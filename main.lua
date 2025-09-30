@@ -3,13 +3,15 @@ local Lovebird = require "dependencies.Lovebird.Lovebird"
 local utf8 = require "utf8"
 local Lf = require "dependencies.loveframes"
 Class = require "dependencies.classic"
+local UiManager
+local Widget = require "ui.widget"
 
-local CollapsibleScreenEdgePanel = require "ui.collapsible_screen_edge_panel"
+
+local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
 
 local languages = {"zh-cn"}
 
-local front_end = {}
-
+local UI_ROOT
 
 love.load = function()
     -- 加载本地化文本
@@ -26,7 +28,9 @@ love.load = function()
     love.keyboard.setKeyRepeat(true)
 
     --UI
-    front_end.left_panel = CollapsibleScreenEdgePanel(250)
+    UiManager = require "ui.ui_manager"()
+    UI_ROOT = UiManager:AddRootWidget(Widget("UI_ROOT"))
+    UI_ROOT:AddChild(CollapsibleScreenEdgePanel(250))
 end
 
 love.update = function(dt)
@@ -35,6 +39,7 @@ love.update = function(dt)
     Lovebird.update(dt)
 
     Lf.update(dt)
+    UiManager:Update(dt)
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -65,4 +70,5 @@ love.draw = function()
     love.graphics.clear(1, 1, 1, 1)
     love.graphics.setColor(1, 1, 1, 1)
     Lf.draw()
+    UiManager:Draw()
 end
