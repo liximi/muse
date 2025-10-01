@@ -1,9 +1,13 @@
 local Lf = require "dependencies.loveframes"
 local Tween = require "dependencies.tween"
-local Widget = require "ui.widget"
+local Widget = require "ui.widgets.widget"
+local Panel = require "ui.widgets.panel"
 
 --水平屏幕边缘停靠可收起面板
-local Panel = Class(Widget, function(self, width, right)
+local CpllapsiblePanel = Class(Panel, function(self, width, right)
+    Panel.new(self, width, love.graphics.getHeight())
+    self._name = "CpllapsibleHScreenEdgePanel"
+
     self.open = true
 	self.width = width
     self.right = false
@@ -18,22 +22,11 @@ local Panel = Class(Widget, function(self, width, right)
     }
 
     self:SetMode(right)
-
-    self.panel = Lf.Create("panel")
-    self.panel:SetSize(width, love.graphics.getHeight())
-    self.panel:SetPos(self.open_x, 0)
+    self:SetPosition(self.open_x, 0)
 
 	self.tween = nil
-    function self.panel.Update(_self, dt)
-		self.panel:SetSize(width, love.graphics.getHeight())
-		if self.tween then
-			if self.tween:update(dt) then
-				self.tween = nil
-			end
-		end
-    end
 
-    self.collapse_btn = Lf.Create("imagebutton", self.panel)
+    self.collapse_btn = Lf.Create("imagebutton", self)
     self.collapse_btn:SetImage(self.collapse_btn_icon.close)
     self.collapse_btn:SetText("")
     self.collapse_btn.scalex = 1 / 28
@@ -46,16 +39,16 @@ local Panel = Class(Widget, function(self, width, right)
     end
 end)
 
-function Panel:ToggleOpen()
+function CpllapsiblePanel:ToggleOpen()
     self.open = not self.open
     if self.tween then
         self.tween:reset()
     end
-	self.tween = Tween.new(0.3, self.panel, {x = self.open and self.open_x or self.close_x}, "outQuint")
+	self.tween = Tween.new(0.3, self, {_x = self.open and self.open_x or self.close_x}, "outQuint")
 	self.collapse_btn:SetImage(self.open and self.collapse_btn_icon.close or self.collapse_btn_icon.open)
 end
 
-function Panel:SetMode(right)
+function CpllapsiblePanel:SetMode(right)
     self.right = right == true
     if self.right then
         self.open_x = love.graphics.getWidth() - self.width
@@ -77,4 +70,14 @@ function Panel:SetMode(right)
 end
 
 
-return Panel
+function CpllapsiblePanel:OnUpdate(dt)
+    self:SetSize(self.width, love.graphics.getHeight())
+    if self.tween then
+        if self.tween:update(dt) then
+            self.tween = nil
+        end
+    end
+end
+
+
+return CpllapsiblePanel

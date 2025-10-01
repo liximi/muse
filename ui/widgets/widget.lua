@@ -1,8 +1,7 @@
-local Lf = require "dependencies.loveframes"
-
 local Widget = Class(function(self, name)
 	self._name = name or "widget"
 	self._valid = true
+	self._debug = false
 	-- Local Transform
 	self._x = 0
 	self._y = 0
@@ -12,6 +11,9 @@ local Widget = Class(function(self, name)
 	-- 全局变换缓存
 	self._transform_cache = nil
 
+	self.width = 0
+	self.height = 0
+
 	self.children = {}
 	self.parent = nil
 
@@ -19,6 +21,7 @@ local Widget = Class(function(self, name)
 	self.shown = true
 	self.focus = false
 end)
+
 
 function Widget:SetPosition(x, y)
 	if self._x ~= x or self._y ~= y then
@@ -150,6 +153,27 @@ function Widget:GetGlobalRotation()
 	end
 end
 
+function Widget:SetSize(w, h)
+	self.width = w or 0
+	self.height = h or 0
+end
+
+function Widget:GetSize()
+	return self.width, self.height
+end
+
+function Widget:GetScaledSize()
+	local w, h = self:GetSize()
+	return w * self._sx, h * self._sy
+end
+
+function Widget:GetGlobalScaledSize()
+	local w, h = self:GetSize()
+	local sx, sy = self:GetGlobalScale()
+	return w * sx, h * sy
+end
+
+
 function Widget:AddChild(child)
 	-- 防止循环引用
 	assert(child ~= self, "Cannot add widget as its own child")
@@ -269,6 +293,14 @@ function Widget:HandleEvent(event_type, ...)
 	if handler then
 		return handler(self, ...)
 	end
+end
+
+function Widget:__tostring()
+	return self._name
+end
+
+function Widget:EnableDebug(enable)
+	self._debug = enable == true
 end
 
 

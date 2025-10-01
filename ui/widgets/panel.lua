@@ -1,0 +1,38 @@
+local Widget = require "ui.widgets.widget"
+local Utils = require "ui.utils"
+
+local Panel = Class(Widget, function(self, w, h)
+	Widget.new(self, "Panel")
+	self:SetSize(w, h)
+	self.bg_color = Utils.RGB(45, 45, 45)
+	self.outline_color = Utils.RGB(135, 135, 135)
+end)
+
+
+--- 设置背景颜色
+---@param r number 红色通道的值 0~255
+---@param g number 绿色通道的值 0~255
+---@param b number 蓝色通道的值 0~255
+function Panel:SetBGColor(r, g, b)
+	self.bg_color = Utils.RGB(r, g, b)
+end
+
+--- 设置边框颜色
+---@param r number 红色通道的值 0~255
+---@param g number 绿色通道的值 0~255
+---@param b number 蓝色通道的值 0~255
+function Panel:SetOutlineColor(r, g, b)
+	self.outline_color = Utils.RGB(r, g, b)
+end
+
+function Panel:OnDraw()
+	love.graphics.setColor(unpack(self.bg_color))
+	local x, y = self:GetGlobalPosition()
+	local sx, sy = self:GetGlobalScale()
+	love.graphics.rectangle("fill", x, y, self.width * sx, self.height * sy)
+	love.graphics.setColor(unpack(self.outline_color))
+	love.graphics.rectangle("line", x, y, self.width * sx, self.height * sy)
+end
+
+
+return Panel
