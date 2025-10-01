@@ -12,7 +12,7 @@ local Text = Class(Widget, function(self, text)
 	self.text = text or ""
 	self.text_color = Utils.RGB(255, 255, 255)
 	self.horizontal_align = "left"	--"left"|"right"|"center"|"justify"
-	self.vertical_align = "center"	--"left"|"right"|"center"
+	self.vertical_align = "center"	--"top"|"bottom"|"center"
 	self.max_width = love.graphics.getWidth()
 end)
 
@@ -27,7 +27,11 @@ end
 
 
 function Text:SetTextColor(r, g, b)
-	self.text_color = Utils.RGB(r, g, b)
+	if type(r) == "table" then
+		self.text_color = r
+	else
+		self.text_color = Utils.RGB(r, g, b)
+	end
 end
 
 
@@ -45,6 +49,17 @@ function Text:SetFont(font_key, size)
 	end
 end
 
+--- 设置水平方向的对齐方式
+---@param align "left"|"right"|"center"|"justify"
+function Text:SetHAlign(align)
+	self.horizontal_align = align
+end
+
+--- 设置垂直方向的对齐方式
+---@param align "top"|"bottom"|"center"
+function Text:SetVAlign(align)
+	self.vertical_align = align
+end
 
 function Text:SetMaxWidth(limit)
 	if type(limit) ~= "number" or limit < 0 then
@@ -93,14 +108,26 @@ function Text:OnDraw()
 	local sx, sy = self:GetGlobalScale()
 	local rot = self:GetGlobalRotation()
 	local font = Fonts:GetFont(self.font_key, self.font_size)
-	if self._debug then
-		love.graphics.setColor(unpack(Utils.RGB(255, 70, 150)))
-		local w, h = self:GetGlobalScaledSize()
-		love.graphics.rectangle("line", x, y, w, h)
-		love.graphics.printf(string.format("Size: %d", self:GetTextSize()), font, x, y+h, w, "left")
-	end
 	love.graphics.setColor(unpack(self.text_color))
 	love.graphics.printf(self.text, font, x, y, self.max_width, self.horizontal_align, rot, sx, sy)
+
+	if self._debug then
+		local debug_font = Fonts:GetFont("default", 12)
+		love.graphics.setColor(unpack(Utils.debug_color1))
+		local w, h = self:GetGlobalScaledSize()
+		love.graphics.rectangle("line", x, y, self.max_width, h)
+		love.graphics.setColor(unpack(Utils.debug_color2))
+		if self.horizontal_align == "left" then
+			love.graphics.rectangle("line", x, y, w, h)
+		elseif self.horizontal_align == "right" then
+			love.graphics.rectangle("line", x+self.max_width-w, y, w, h)
+		elseif self.horizontal_align == "center" then
+			love.graphics.rectangle("line", x+(self.max_width-w)*0.5, y, w, h)
+		elseif self.horizontal_align == "justify" then
+			love.graphics.rectangle("line", x, y, self.max_width, h)
+		end
+		love.graphics.printf(string.format("Size: %d\nH Align: %s", self:GetTextSize(), self.horizontal_align), debug_font, x, y+h, self.max_width, "left")
+	end
 end
 
 

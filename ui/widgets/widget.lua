@@ -277,6 +277,37 @@ function Widget:Hide()
 	self.shown = false
 end
 
+function Widget:Enable()
+	self.enabled = true
+end
+
+function Widget:Disable()
+	self.enabled = false
+end
+
+function Widget:IsEnabled()
+	return self.enabled
+end
+
+function Widget:SetFocus()
+	self.focus = true
+	if self.OnFocus then
+		self:OnFocus()
+	end
+end
+
+function Widget:RemoveFocus()
+	self.focus = false
+	if self.OnRemoveFocus then
+		self.OnRemoveFocus()
+	end
+end
+
+function Widget:IsFocus()
+	return self.focus
+end
+
+
 function Widget:HandleEvent(event_type, ...)
 	if not self:IsOperational() then
 		return
