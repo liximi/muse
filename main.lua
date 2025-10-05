@@ -1,11 +1,15 @@
 local Loc = require "dependencies.i18n.i18n"()
 local Lovebird = require "dependencies.Lovebird.Lovebird"
 Class = require "dependencies.classic"
-local UiManager
+
+local UiManager = require "ui.ui_manager"()
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Fonts = require "ui.fonts"
+local Button = require "ui.widgets.button"
+local Image = require "ui.widgets.image"
+local UiUtils = require "ui.utils"
 
 local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
 
@@ -26,18 +30,33 @@ love.load = function()
     love.keyboard.setKeyRepeat(true)
 
     --UI
-    UiManager = require "ui.ui_manager"()
     UI_ROOT = UiManager:AddRootWidget(Widget("UI_ROOT"))
     UI_ROOT:AddChild(CollapsibleScreenEdgePanel(250))
 
     panel1 = UI_ROOT:AddChild(Panel(200, 200))
     panel1:SetPosition(300, 100)
-    panel1:SetScale(2, 1)
+    panel1:SetScale(1.5, 1)
+
+    test_btn = panel1:AddChild(Button())
+    test_btn:SetPosition(40, 120)
+    test_btn:EnableDebug(true)
+    local count = 0
+    function test_btn:OnClick()
+        count = count + 1
+        test_text:SetText(string.format("Click %d", count))
+    end
+
     panel2 = panel1:AddChild(Panel(160, 80))
     panel2:SetPosition(20, 20)
-    test_text = panel1:AddChild(Text("你好，世界\n换行测试"))
+
+    test_text = panel2:AddChild(Text("你好，世界\n换行测试"))
     test_text:SetMaxWidth(100)
     test_text:EnableDebug(true)
+
+    img = love.graphics.newImage("assets/bilibili.png")
+    test_img = panel1:AddChild(Image(img))
+    test_img:EnableDebug(true)
+    test_img:SetPosition(200, 0)
 end
 
 
@@ -100,8 +119,16 @@ end
 function love.wheelmoved(x, y)
 end
 
+---@param button integer 1 是鼠标左键，2 鼠标右键，3 是鼠标中键
 function love.mousepressed(x, y, button)
+    UiManager:MousePressed(x, y, button)
 end
 
+---@param button integer 1 是鼠标左键，2 鼠标右键，3 是鼠标中键
 function love.mousereleased(x, y, button)
+    UiManager:MouseReleased(x, y, button)
+end
+
+function love.mousemoved(x, y, dx, dy)
+    UiManager:MouseMoved(x, y, dx, dy)
 end

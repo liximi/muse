@@ -2,6 +2,7 @@ local Widget = Class(function(self, name)
 	self._name = name or "widget"
 	self._valid = true
 	self._debug = false
+	self._z_index = 0
 	-- Local Transform
 	self._x = 0
 	self._y = 0
@@ -192,6 +193,7 @@ function Widget:AddChild(child)
 	end
 	child.parent = self
 	table.insert(self.children, child)
+	child:RefreashZIndex(self._z_index + 1)
 	return child
 end
 
@@ -299,12 +301,45 @@ end
 function Widget:RemoveFocus()
 	self.focus = false
 	if self.OnRemoveFocus then
-		self.OnRemoveFocus()
+		self:OnRemoveFocus()
 	end
 end
 
 function Widget:IsFocus()
 	return self.focus
+end
+
+function Widget:RefreashZIndex(new_z_index)
+	self._z_index = new_z_index
+	for i = #self.children, 1, -1 do
+		self.children[i]:RefreashZIndex(new_z_index + 1)
+	end
+end
+
+function Widget:GetAABBB()
+	local x, y = self:GetGlobalPosition()
+	local w, h = self:GetGlobalScaledSize()
+	return {x, y, w, h}
+end
+
+function Widget:IsInUIScope(x, y)
+	local aabb = self:GetAABBB()
+	local minx, maxx = aabb[1], aabb[1] + aabb[3]
+	local miny, maxy = aabb[2], aabb[2] + aabb[4]
+	if minx > maxx then
+		local temp = minx
+		minx = maxx
+		maxx = temp
+	end
+	if miny > maxy then
+		local temp = miny
+		miny = maxy
+		maxy = temp
+	end
+	if x >= minx and x <= maxx and y >= miny and y <= maxy then
+		return true
+	end
+	return false
 end
 
 

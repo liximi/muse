@@ -11,6 +11,7 @@ function Manager:AddRootWidget(widget)
 		end
 	end
 	table.insert(self.root_widgets, widget)
+	widget:RefreashZIndex(#self.root_widgets)
 	return widget
 end
 
@@ -61,18 +62,18 @@ function Manager:MouseMoved(x, y, dx, dy)
 end
 
 
-function Manager:MousePressed(x, y, button, presses)
+function Manager:MousePressed(x, y, button)
 	for i = #self.root_widgets, 1, -1 do
 		local widget = self.root_widgets[i]
-		widget:HandleEvent("MousePressed", x, y, button, presses)
+		widget:HandleEvent("MousePressed", x, y, button)
 	end
 end
 
 
-function Manager:MouseReleased(x, y, button, presses)
+function Manager:MouseReleased(x, y, button)
 	for i = #self.root_widgets, 1, -1 do
 		local widget = self.root_widgets[i]
-		widget:HandleEvent("MouseReleased", x, y, button, presses)
+		widget:HandleEvent("MouseReleased", x, y, button)
 	end
 end
 
