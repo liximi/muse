@@ -115,18 +115,19 @@ function Text:OnDraw()
 		local debug_font = Fonts:GetFont("default", 12)
 		love.graphics.setColor(unpack(Utils.debug_color1))
 		local w, h = self:GetGlobalScaledSize()
-		love.graphics.rectangle("line", x, y, self.max_width, h)
+		local max_w = self.max_width * sx
+		love.graphics.rectangle("line", x, y, max_w, h)
 		love.graphics.setColor(unpack(Utils.debug_color2))
 		if self.horizontal_align == "left" then
 			love.graphics.rectangle("line", x, y, w, h)
 		elseif self.horizontal_align == "right" then
-			love.graphics.rectangle("line", x+self.max_width-w, y, w, h)
+			love.graphics.rectangle("line", x+max_w-w, y, w, h)
 		elseif self.horizontal_align == "center" then
-			love.graphics.rectangle("line", x+(self.max_width-w)*0.5, y, w, h)
+			love.graphics.rectangle("line", x+(max_w-w)*0.5, y, w, h)
 		elseif self.horizontal_align == "justify" then
-			love.graphics.rectangle("line", x, y, self.max_width, h)
+			love.graphics.rectangle("line", x, y, max_w, h)
 		end
-		love.graphics.printf(string.format("Size: %d\nH Align: %s", self:GetTextSize(), self.horizontal_align), debug_font, x, y+h, self.max_width, "left")
+		love.graphics.printf(string.format("Font Size: %d\nH Align: %s", self:GetTextSize(), self.horizontal_align), debug_font, x, y+h, self.max_width, "left")
 	end
 end
 
