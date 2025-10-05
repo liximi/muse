@@ -2,15 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
-
-local BTN_STATES = {
-	normal = "normal",
-	pressed = "pressed",
-	disabled = "disabled",
-	seleted = "seleted",
-	hover = "hover",
-	seleted_hover = "seleted_hover",
-}
+local BTN_STATES = Utils.BTN_STATES
 
 local Button = Class(Widget, function (self)
 	Widget.new(self, "Button")

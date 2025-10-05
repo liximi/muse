@@ -9,6 +9,7 @@ local Text = require "ui.widgets.text"
 local Fonts = require "ui.fonts"
 local Button = require "ui.widgets.button"
 local Image = require "ui.widgets.image"
+local ImageButton = require "ui.widgets.imagebutton"
 local UiUtils = require "ui.utils"
 
 local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
@@ -57,6 +58,22 @@ love.load = function()
     test_img = panel1:AddChild(Image(img))
     test_img:EnableDebug(true)
     test_img:SetPosition(200, 0)
+
+    test_imgbtn = panel1:AddChild(ImageButton())
+    test_imgbtn:SetPosition(0, 250)
+    test_imgbtn:SetStateDef("normal", {
+        text = nil,
+        texture = img,
+    })
+    test_imgbtn:SetStateDef("pressed", {
+        text = nil,
+        texture = img,
+    })
+    test_imgbtn:SetStateDef("disabled", {
+        text = nil,
+        texture = img,
+    })
+    test_imgbtn:EnableDebug(true)
 end
 
 

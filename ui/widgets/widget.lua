@@ -311,10 +311,51 @@ end
 
 function Widget:RefreashZIndex(new_z_index)
 	self._z_index = new_z_index
+	local count = 0
 	for i = #self.children, 1, -1 do
-		self.children[i]:RefreashZIndex(new_z_index + 1)
+		count = count + 1
+		self.children[i]:RefreashZIndex(new_z_index + count)
 	end
 end
+
+function Widget:MoveToTop()
+	if self.parent then
+		local idx = 1
+		for k, v in ipairs(self.parent.children) do
+			if v == self then
+				idx = k
+				table.remove(self.parent.children, k)
+				table.insert(self.parent.children, self)
+				break
+			end
+		end
+		local count = 0
+		for i = #self.children, idx, -1 do
+			count = count + 1
+			self.parent.children[i]:RefreashZIndex(self.parent._z_index + count)
+		end
+	end
+end
+
+function Widget:MoveToBottom()
+	if self.parent then
+		local idx = 1
+		for k, v in ipairs(self.parent.children) do
+			if v == self then
+				idx = k
+				table.remove(self.parent.children, k)
+				table.insert(self.parent.children, 1, self)
+				break
+			end
+		end
+		local count = 0
+		for i = idx, 1, -1 do
+			count = count + 1
+			self.parent.children[i]:RefreashZIndex(self.parent._z_index + count)
+		end
+	end
+end
+
 
 function Widget:GetAABBB()
 	local x, y = self:GetGlobalPosition()

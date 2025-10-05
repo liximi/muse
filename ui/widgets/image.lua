@@ -47,18 +47,29 @@ end
 
 
 function Image:OnDraw()
-	love.graphics.setColor(1, 1, 1, 1)
-	local x, y = self:GetGlobalPosition()
-	local w, h = self:GetGlobalScaledSize()
-	local rw, rh = self:GetTextureRowSize()
-	local sx, sy = w / rw, h / rh
-	love.graphics.draw(self.texture, x, y, self.rotation, sx, sy)
+	if self.texture then
+		love.graphics.setColor(1, 1, 1, 1)
+		local x, y = self:GetGlobalPosition()
+		local w, h = self:GetGlobalScaledSize()
+		local rw, rh = self:GetTextureRowSize()
+		local sx, sy = w / rw, h / rh
+		love.graphics.draw(self.texture, x, y, self.rotation, sx, sy)
 
-	if self._debug then
-		love.graphics.setColor(unpack(Utils.debug_color1))
-		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
-		love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:GetFont("default", 16), x, y + h, w)
+		if self._debug then
+			love.graphics.setColor(unpack(Utils.debug_color1))
+			love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
+			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:GetFont("default", 16), x, y + h, w)
+		end
+	else
+		if self._debug then
+			local x, y = self:GetGlobalPosition()
+			love.graphics.setColor(unpack(Utils.debug_color1))
+			love.graphics.rectangle("line", x-1, y-1, 2, 2)
+			love.graphics.setFont(Fonts:GetFont("default", 16))
+			love.graphics.print("No Texture", x, y + 1)
+		end
 	end
+
 end
 
 
