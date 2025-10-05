@@ -32,7 +32,7 @@ love.load = function()
 
     --UI
     UI_ROOT = UiManager:AddRootWidget(Widget("UI_ROOT"))
-    UI_ROOT:AddChild(CollapsibleScreenEdgePanel(250))
+    UI_ROOT:AddChild(CollapsibleScreenEdgePanel(300))
 
     panel1 = UI_ROOT:AddChild(Panel(200, 200))
     panel1:SetPosition(300, 100)

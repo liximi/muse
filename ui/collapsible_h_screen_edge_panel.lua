@@ -1,7 +1,6 @@
-local Lf = require "dependencies.loveframes"
-local Tween = require "dependencies.tween"
-local Widget = require "ui.widgets.widget"
+local ImageButton = require "ui.widgets.imagebutton"
 local Panel = require "ui.widgets.panel"
+local Tween = require "dependencies.tween"
 
 --水平屏幕边缘停靠可收起面板
 local CpllapsiblePanel = Class(Panel, function(self, width, right)
@@ -16,9 +15,11 @@ local CpllapsiblePanel = Class(Panel, function(self, width, right)
     self.close_x = 0
     self.collapse_btn_x = 0
 
+    self.left_arrow = love.graphics.newImage("assets/ui/TablerLayoutSidebarLeftCollapseFilled.png")
+    self.right_arrow = love.graphics.newImage("assets/ui/TablerLayoutSidebarRightCollapseFilled.png")
     self.collapse_btn_icon = {
-        open = "assets/ui/TablerLayoutSidebarLeftCollapseFilled.png",
-        close = "assets/ui/TablerLayoutSidebarRightCollapseFilled.png",
+        open = self.left_arrow,
+        close = self.right_arrow,
     }
 
     self:SetMode(right)
@@ -26,17 +27,22 @@ local CpllapsiblePanel = Class(Panel, function(self, width, right)
 
 	self.tween = nil
 
-    self.collapse_btn = Lf.Create("imagebutton", self)
-    self.collapse_btn:SetImage(self.collapse_btn_icon.close)
-    self.collapse_btn:SetText("")
-    self.collapse_btn.scalex = 1 / 28
-    self.collapse_btn.scaley = 1 / 28
-    local img_w = self.collapse_btn:GetImageWidth() / 28
-    self.collapse_btn:SetPos(self.collapse_btn_x + (self.right and 0 or -img_w) , 5)
-
-    function self.collapse_btn.OnClick(_self, x, y)
+    self.collapse_btn = self:AddChild(ImageButton())
+    self.collapse_btn:SetStateDef("normal", {
+        text = "",
+        texture = self.collapse_btn_icon.close,
+    })
+    self.collapse_btn:SetStateDef("pressed", {
+        text = "",
+        offset = {0, 2}
+    })
+    self.collapse_btn:SetSize(24, 24)
+    self.collapse_btn:SetPosition(self.collapse_btn_x + (self.right and 0 or -self.collapse_btn:GetScaledSize()) , 5)
+    function self.collapse_btn.OnClick(_self)
         self:ToggleOpen()
     end
+
+    self:SetBGColor(200, 200, 200)
 end)
 
 function CpllapsiblePanel:ToggleOpen()
@@ -45,7 +51,10 @@ function CpllapsiblePanel:ToggleOpen()
         self.tween:reset()
     end
 	self.tween = Tween.new(0.3, self, {_x = self.open and self.open_x or self.close_x}, "outQuint")
-	self.collapse_btn:SetImage(self.open and self.collapse_btn_icon.close or self.collapse_btn_icon.open)
+    self.collapse_btn:SetStateDef("normal", {
+        text = "",
+        texture = self.open and self.collapse_btn_icon.close or self.collapse_btn_icon.open,
+    })
 end
 
 function CpllapsiblePanel:SetMode(right)
@@ -55,16 +64,16 @@ function CpllapsiblePanel:SetMode(right)
         self.close_x = love.graphics.getWidth() - 27
         self.collapse_btn_x = 5
         self.collapse_btn_icon = {
-            open = "assets/ui/TablerLayoutSidebarLeftCollapseFilled.png",
-            close = "assets/ui/TablerLayoutSidebarRightCollapseFilled.png",
+            open = self.left_arrow,
+            close = self.right_arrow,
         }
     else
         self.open_x = 0
         self.close_x = -self.width + 27
         self.collapse_btn_x = self.width - 5
         self.collapse_btn_icon = {
-            close = "assets/ui/TablerLayoutSidebarLeftCollapseFilled.png",
-            open = "assets/ui/TablerLayoutSidebarRightCollapseFilled.png",
+            open = self.right_arrow,
+            close = self.left_arrow,
         }
     end
 end

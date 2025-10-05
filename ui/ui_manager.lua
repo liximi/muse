@@ -18,7 +18,7 @@ end
 
 function Manager:Update(dt)
 	for _, widget in ipairs(self.root_widgets) do
-		widget:Update()
+		widget:Update(dt)
 	end
 end
 
