@@ -3,7 +3,7 @@ local Panel = require "ui.widgets.panel"
 local Tween = require "dependencies.tween"
 
 --水平屏幕边缘停靠可收起面板
-local CpllapsiblePanel = Class(Panel, function(self, width, right)
+local CollapsiblePanel = Class(Panel, function(self, width, right)
     Panel.new(self, width, love.graphics.getHeight())
     self._name = "CpllapsibleHScreenEdgePanel"
 
@@ -45,7 +45,7 @@ local CpllapsiblePanel = Class(Panel, function(self, width, right)
     self:SetBGColor(200, 200, 200)
 end)
 
-function CpllapsiblePanel:ToggleOpen()
+function CollapsiblePanel:ToggleOpen()
     self.open = not self.open
     if self.tween then
         self.tween:reset()
@@ -57,7 +57,7 @@ function CpllapsiblePanel:ToggleOpen()
     })
 end
 
-function CpllapsiblePanel:SetMode(right)
+function CollapsiblePanel:SetMode(right)
     self.right = right == true
     if self.right then
         self.open_x = love.graphics.getWidth() - self.width
@@ -79,7 +79,7 @@ function CpllapsiblePanel:SetMode(right)
 end
 
 
-function CpllapsiblePanel:OnUpdate(dt)
+function CollapsiblePanel:OnUpdate(dt)
     self:SetSize(self.width, love.graphics.getHeight())
     if self.tween then
         if self.tween:update(dt) then
@@ -89,4 +89,4 @@ function CpllapsiblePanel:OnUpdate(dt)
 end
 
 
-return CpllapsiblePanel
+return CollapsiblePanel
