@@ -61,7 +61,7 @@ function CollapsiblePanel:SetMode(right)
     self.right = right == true
     if self.right then
         self.open_x = love.graphics.getWidth() - self.width
-        self.close_x = love.graphics.getWidth() - 27
+        self.close_x = love.graphics.getWidth() - 36
         self.collapse_btn_x = 5
         self.collapse_btn_icon = {
             open = self.left_arrow,
@@ -69,7 +69,7 @@ function CollapsiblePanel:SetMode(right)
         }
     else
         self.open_x = 0
-        self.close_x = -self.width + 27
+        self.close_x = -self.width + 36
         self.collapse_btn_x = self.width - 5
         self.collapse_btn_icon = {
             open = self.right_arrow,

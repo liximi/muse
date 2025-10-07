@@ -333,33 +333,6 @@ function Widget:MoveToBottom()
 end
 
 
-function Widget:GetAABBB()
-	local x, y = self:GetGlobalPosition()
-	local w, h = self:GetGlobalScaledSize()
-	return {x, y, w, h}
-end
-
-function Widget:IsInUIScope(x, y)
-	local aabb = self:GetAABBB()
-	local minx, maxx = aabb[1], aabb[1] + aabb[3]
-	local miny, maxy = aabb[2], aabb[2] + aabb[4]
-	if minx > maxx then
-		local temp = minx
-		minx = maxx
-		maxx = temp
-	end
-	if miny > maxy then
-		local temp = miny
-		miny = maxy
-		maxy = temp
-	end
-	if x >= minx and x <= maxx and y >= miny and y <= maxy then
-		return true
-	end
-	return false
-end
-
-
 function Widget:HandleEvent(event_type, ...)
 	if not self:IsOperational() then
 		return

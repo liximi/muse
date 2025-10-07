@@ -11,7 +11,7 @@ local Text = Class(Widget, function(self, text)
 	self.font_size = 16
 
 	self.text = text or ""
-	self.text_color = Utils.RGB(255, 255, 255)
+	self.text_color = Utils.UI_COLORS.TEXT
 	self.horizontal_align = "left"	--"left"|"right"|"center"|"justify"
 	self.vertical_align = "center"	--"top"|"bottom"|"center"
 	self.max_width = love.graphics.getWidth()
@@ -24,6 +24,10 @@ function Text:SetText(text)
 	else
 		self.text = text
 	end
+end
+
+function Text:GetText()
+	return self.text
 end
 
 

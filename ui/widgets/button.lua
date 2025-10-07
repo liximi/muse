@@ -14,21 +14,18 @@ local Button = Class(Widget, function (self)
 	self.state_defs = {
 		normal = {
 			text = "Button",
-			text_color = Utils.RGB(0, 0, 0),
-			bg_color = Utils.RGB(92, 200, 245),
-			outline_color = Utils.RGB(70, 135, 170),
+			text_color = Utils.UI_COLORS.PRIMARY_TEXT,
+			bg_color = Utils.UI_COLORS.ACCENT,
+			outline_color = Utils.UI_COLORS.DARK_PRIMARY,
 		},
 		pressed = {
-			bg_color = Utils.RGB(70, 135, 170),
-			outline_color = Utils.RGB(20, 80, 100),
-			offset = {0, 1},
+			outline_color = Utils.UI_COLORS.LIGHT_PRIMARY,
+			offset = {0, 1.5},
+			scale = {1.01, 1.01},
 		},
 		hover = {
-			text_color = Utils.RGB(255, 255, 255),
-			bg_color = Utils.RGB(100, 210, 250),
-			outline_color = Utils.RGB(75, 140, 180),
-			offset = {0, 2},
-			scale = {1.05, 1.05},
+			offset = {0, 1},
+			scale = {1.01, 1.01},
 		}
 	}
 

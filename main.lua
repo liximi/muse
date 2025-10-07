@@ -10,6 +10,7 @@ local Fonts = require "ui.fonts"
 local Button = require "ui.widgets.button"
 local Image = require "ui.widgets.image"
 local ImageButton = require "ui.widgets.imagebutton"
+local TextInput = require "ui.widgets.textinput"
 local UiUtils = require "ui.utils"
 
 local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
@@ -36,11 +37,9 @@ love.load = function()
 
     panel1 = UI_ROOT:AddChild(Panel(200, 200))
     panel1:SetPosition(300, 100)
-    panel1:SetScale(1.5, 1)
 
     test_btn = panel1:AddChild(Button())
     test_btn:SetPosition(40, 120)
-    test_btn:EnableDebug(true)
     local count = 0
     function test_btn:OnClick()
         count = count + 1
@@ -53,7 +52,7 @@ love.load = function()
 
     img = love.graphics.newImage("assets/bilibili.png")
     test_img = panel1:AddChild(Image(img))
-    test_img:EnableDebug(true)
+    -- test_img:EnableDebug(true)
     test_img:SetPosition(200, 0)
 
     test_imgbtn = panel1:AddChild(ImageButton())
@@ -71,6 +70,10 @@ love.load = function()
         texture = img,
     })
     test_imgbtn:EnableDebug(true)
+
+
+    test_textinput = panel1:AddChild(TextInput(nil, nil, "请输入...", true))
+    test_textinput:SetPosition(0, 350)
 end
 
 
@@ -122,12 +125,15 @@ end
 
 
 function love.keypressed(key, scancode, isrepeat)
+    UiManager:KeyPressed(key, isrepeat)
 end
 
 function love.textinput(text)
+    UiManager:TextInput(text)
 end
 
 function love.keyreleased(key, scancode)
+    UiManager:KeyReleased(key)
 end
 
 function love.wheelmoved(x, y)

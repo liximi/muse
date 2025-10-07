@@ -9,8 +9,8 @@ local Panel = Class(Widget, function(self, w, h)
 
 	AddSizeComponent(self)
 	self:SetSize(w, h)
-	self.bg_color = Utils.RGB(45, 45, 45)
-	self.outline_color = Utils.RGB(135, 135, 135)
+	self.bg_color = Utils.UI_COLORS.PRIMARY
+	self.outline_color = Utils.UI_COLORS.DIVIDER
 end)
 
 
@@ -19,7 +19,11 @@ end)
 ---@param g number 绿色通道的值 0~255
 ---@param b number 蓝色通道的值 0~255
 function Panel:SetBGColor(r, g, b)
-	self.bg_color = Utils.RGB(r, g, b)
+	if type(r) == "table" then
+		self.bg_color = r
+	else
+		self.bg_color = Utils.RGB(r, g, b)
+	end
 end
 
 --- 设置边框颜色
@@ -27,7 +31,11 @@ end
 ---@param g number 绿色通道的值 0~255
 ---@param b number 蓝色通道的值 0~255
 function Panel:SetOutlineColor(r, g, b)
-	self.outline_color = Utils.RGB(r, g, b)
+	if type(r) == "table" then
+		self.outline_color = r
+	else
+		self.outline_color = Utils.RGB(r, g, b)
+	end
 end
 
 function Panel:OnDraw()
