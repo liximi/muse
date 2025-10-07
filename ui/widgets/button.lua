@@ -2,10 +2,13 @@ local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
+local AddSizeComponent = require "ui.components".AddSize
 local BTN_STATES = Utils.BTN_STATES
 
 local Button = Class(Widget, function (self)
 	Widget.new(self, "Button")
+
+	AddSizeComponent(self)
 
 	self.cur_state = BTN_STATES.normal
 	self.state_defs = {
@@ -50,8 +53,7 @@ function Button:SetStateDef(state, def)
 end
 
 
-function Button:SetSize(w, h)--覆写Widget的SetSize
-	Widget.SetSize(self, w ,h)
+function Button:OnSetSize(w, h)
 	self.text:SetMaxWidth(w)
 	local textw, texth = self.text:GetSize()
 	self.text:SetPosition(0, (h-texth)*0.5)

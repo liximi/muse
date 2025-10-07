@@ -26,15 +26,11 @@ local ImageButton = Class(Button, function (self)
 end)
 
 
-function ImageButton:SetSize(w, h)
-	Button.SetSize(self, w, h)
+function ImageButton:OnSetSize(w, h)
+	Button.OnSetSize(self, w, h)
 	if self.image then
 		self.image:SetSize(w, h)
 	end
-end
-
-function ImageButton:GetSize()
-	return self.image:GetSize()
 end
 
 

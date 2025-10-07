@@ -1,8 +1,13 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
+local AddSizeComponent = require "ui.components".AddSize
 
+
+--一个纯色的面板，可设置面板颜色和边框颜色
 local Panel = Class(Widget, function(self, w, h)
 	Widget.new(self, "Panel")
+
+	AddSizeComponent(self)
 	self:SetSize(w, h)
 	self.bg_color = Utils.RGB(45, 45, 45)
 	self.outline_color = Utils.RGB(135, 135, 135)

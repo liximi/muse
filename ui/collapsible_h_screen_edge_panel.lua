@@ -85,6 +85,7 @@ function CollapsiblePanel:OnUpdate(dt)
         if self.tween:update(dt) then
             self.tween = nil
         end
+        self:InvalidateTransform()--TODO:临时解决办法，不太优雅
     end
 end
 

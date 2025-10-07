@@ -12,9 +12,6 @@ local Widget = Class(function(self, name)
 	-- 全局变换缓存
 	self._transform_cache = nil
 
-	self.width = 0
-	self.height = 0
-
 	self.children = {}
 	self.parent = nil
 
@@ -154,29 +151,8 @@ function Widget:GetGlobalRotation()
 	end
 end
 
-function Widget:SetSize(w, h)
-	self.width = w or 0
-	self.height = h or 0
-end
-
-function Widget:GetSize()
-	return self.width, self.height
-end
-
-function Widget:GetScaledSize()
-	local w, h = self:GetSize()
-	return w * self._sx, h * self._sy
-end
-
-function Widget:GetGlobalScaledSize()
-	local w, h = self:GetSize()
-	local sx, sy = self:GetGlobalScale()
-	return w * sx, h * sy
-end
-
-
 function Widget:AddChild(child)
-	-- 防止循环引用
+	assert(child ~= nil, "Child cannot be nil")
 	assert(child ~= self, "Cannot add widget as its own child")
 	-- 检查是否会导致循环引用
 	local current = self.parent

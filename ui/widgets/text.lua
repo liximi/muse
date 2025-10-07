@@ -6,6 +6,7 @@ local Fonts = require "ui.fonts"
 local Text = Class(Widget, function(self, text)
 	Widget.new(self, "Text")
 
+	
 	self.font_key = "default"
 	self.font_size = 16
 
@@ -77,7 +78,7 @@ function Text:GetTextWidth()
 	return Fonts:GetFont(self.font_key, self.font_size):getWidth(self.text)
 end
 
-function Text:GetSize()--覆写Widget的GetSize
+function Text:GetSize()
 	local font = Fonts:GetFont(self.font_key, self.font_size)
 	if not font then
 		return 0, 0
@@ -86,7 +87,15 @@ function Text:GetSize()--覆写Widget的GetSize
 	return width, font:getHeight() * font:getLineHeight() * #wrappedtext
 end
 
-function Text:SetSize()--屏蔽该接口
+function Text:GetScaledSize()
+	local w, h = self:GetSize()
+	return w * self._sx, h * self._sy
+end
+
+function Text:GetGlobalScaledSize()
+	local w, h = self:GetSize()
+	local sx, sy = self:GetGlobalScale()
+	return w * sx, h * sy
 end
 
 function Text:GetTextSize()

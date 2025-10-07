@@ -47,10 +47,7 @@ love.load = function()
         test_text:SetText(string.format("Click %d", count))
     end
 
-    panel2 = panel1:AddChild(Panel(160, 80))
-    panel2:SetPosition(20, 20)
-
-    test_text = panel2:AddChild(Text("你好，世界\n换行测试"))
+    test_text = panel1:AddChild(Text("你好，世界\n换行测试"))
     test_text:SetMaxWidth(100)
     test_text:EnableDebug(true)
 

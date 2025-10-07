@@ -1,12 +1,13 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
+local AddSizeComponent = require "ui.components".AddSize
 
 
 local Image = Class(Widget, function(self, texture)
 	Widget.new(self, "Image")
 
-	self:SetSize(0, 0)
+	AddSizeComponent(self)
 	self.texture = nil
 	if texture then
 		self:SetTexture(texture, true)
