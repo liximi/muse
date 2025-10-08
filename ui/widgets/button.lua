@@ -5,7 +5,7 @@ local Fonts = require "ui.fonts"
 local AddSizeComponent = require "ui.components".AddSize
 local BTN_STATES = Utils.BTN_STATES
 
-local Button = Class(Widget, function (self)
+local Button = Class(Widget, function (self, text)
 	Widget.new(self, "Button")
 
 	AddSizeComponent(self)
@@ -13,7 +13,7 @@ local Button = Class(Widget, function (self)
 	self.cur_state = BTN_STATES.normal
 	self.state_defs = {
 		normal = {
-			text = "Button",
+			text = text or "Button",
 			text_color = Utils.UI_COLORS.PRIMARY_TEXT,
 			bg_color = Utils.UI_COLORS.ACCENT,
 			outline_color = Utils.UI_COLORS.DARK_PRIMARY,
@@ -29,7 +29,7 @@ local Button = Class(Widget, function (self)
 		}
 	}
 
-	self.text = self:AddChild(Text("Button"))
+	self.text = self:AddChild(Text(text or "Button"))
 	self.text:SetTextColor(self.state_defs.normal.text_color)
 	self.text:SetHAlign("center")
 

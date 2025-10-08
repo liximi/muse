@@ -21,6 +21,10 @@ local Widget = Class(function(self, name)
 end)
 
 
+--------------------------------------------------
+-- Transform Setter
+--------------------------------------------------
+
 function Widget:SetPosition(x, y)
 	if self._x ~= x or self._y ~= y then
 		self._x = x
@@ -29,20 +33,12 @@ function Widget:SetPosition(x, y)
 	end
 end
 
-function Widget:GetPosition()
-	return self._x, self._y
-end
-
 function Widget:SetScale(x, y)
 	if self._sx ~= x or self._sy ~= y then
 		self._sx = x
 		self._sy = y
 		self:InvalidateTransform()
 	end
-end
-
-function Widget:GetScale()
-	return self._sx, self._sy
 end
 
 function Widget:SetRotation(rot) -- 0 ~ 2Pi
@@ -63,7 +59,18 @@ function Widget:InvalidateTransform()
 	end
 end
 
--- 全局变换计算 - 使用缓存
+--------------------------------------------------
+-- Transform Getter
+--------------------------------------------------
+
+function Widget:GetPosition()
+	return self._x, self._y
+end
+
+function Widget:GetScale()
+	return self._sx, self._sy
+end
+
 function Widget:GetGlobalTransform()
 	if self._transform_cache then
 		return unpack(self._transform_cache)
@@ -104,7 +111,6 @@ function Widget:GetGlobalTransform()
 	return gx, gy, gsx, gsy, grotation
 end
 
--- 优化的全局变换获取函数 - 避免不必要的计算
 function Widget:GetGlobalPosition()
 	if self._transform_cache then
 		return self._transform_cache[1], self._transform_cache[2]
@@ -151,6 +157,10 @@ function Widget:GetGlobalRotation()
 	end
 end
 
+--------------------------------------------------
+-- Children
+--------------------------------------------------
+
 function Widget:AddChild(child)
 	assert(child ~= nil, "Child cannot be nil")
 	assert(child ~= self, "Cannot add widget as its own child")
@@ -190,6 +200,10 @@ function Widget:RemoveAllChildren()
 	self.children = {}
 end
 
+--------------------------------------------------
+-- Destroy
+--------------------------------------------------
+
 function Widget:Destroy()
 	local temp_children = self.children
 	self:RemoveAllChildren()
@@ -206,10 +220,9 @@ function Widget:IsValid()
 	return self._valid == true
 end
 
--- 统一的状态检查方法
-function Widget:IsOperational()
-	return self._valid and self.enabled and self.shown
-end
+--------------------------------------------------
+-- Update & Draw
+--------------------------------------------------
 
 function Widget:ShouldDraw()
 	return self._valid and self.shown
@@ -217,18 +230,6 @@ end
 
 function Widget:ShouldUpdate()
 	return self._valid and self.enabled
-end
-
-function Widget:Draw()
-	if not self:ShouldDraw() then
-		return
-	end
-	if self.OnDraw then
-		self:OnDraw()
-	end
-	for _, child in ipairs(self.children) do
-		child:Draw()
-	end
 end
 
 function Widget:Update(dt)
@@ -243,6 +244,22 @@ function Widget:Update(dt)
 	end
 end
 
+function Widget:Draw()
+	if not self:ShouldDraw() then
+		return
+	end
+	if self.OnDraw then
+		self:OnDraw()
+	end
+	for _, child in ipairs(self.children) do
+		child:Draw()
+	end
+end
+
+--------------------------------------------------
+-- Show & Hide
+--------------------------------------------------
+
 function Widget:IsShown()
 	return self.shown
 end
@@ -255,6 +272,10 @@ function Widget:Hide()
 	self.shown = false
 end
 
+--------------------------------------------------
+-- Enable & Disable
+--------------------------------------------------
+
 function Widget:Enable()
 	self.enabled = true
 end
@@ -266,6 +287,10 @@ end
 function Widget:IsEnabled()
 	return self.enabled
 end
+
+--------------------------------------------------
+-- Focus
+--------------------------------------------------
 
 function Widget:SetFocus()
 	self.focus = true
@@ -284,6 +309,10 @@ end
 function Widget:IsFocus()
 	return self.focus
 end
+
+--------------------------------------------------
+-- Z-Index
+--------------------------------------------------
 
 function Widget:RefreashZIndex(new_z_index)
 	self._z_index = new_z_index
@@ -333,6 +362,14 @@ function Widget:MoveToBottom()
 end
 
 
+--------------------------------------------------
+-- Event Handler
+--------------------------------------------------
+
+function Widget:IsOperational()
+	return self._valid and self.enabled and self.shown
+end
+
 function Widget:HandleEvent(event_type, ...)
 	if not self:IsOperational() then
 		return
@@ -350,6 +387,11 @@ function Widget:HandleEvent(event_type, ...)
 		return handler(self, ...)
 	end
 end
+
+
+--------------------------------------------------
+-- Debug
+--------------------------------------------------
 
 function Widget:__tostring()
 	return self._name

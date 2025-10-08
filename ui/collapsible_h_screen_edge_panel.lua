@@ -26,6 +26,7 @@ local CollapsiblePanel = Class(Panel, function(self, width, right)
     self:SetPosition(self.open_x, 0)
 
 	self.tween = nil
+    self.tween_btn = nil
 
     self.collapse_btn = self:AddChild(ImageButton())
     self.collapse_btn:SetStateDef("normal", {
@@ -37,20 +38,21 @@ local CollapsiblePanel = Class(Panel, function(self, width, right)
         offset = {0, 2}
     })
     self.collapse_btn:SetSize(24, 24)
-    self.collapse_btn:SetPosition(self.collapse_btn_x + (self.right and 0 or -self.collapse_btn:GetScaledSize()) , 5)
+    self.collapse_btn:SetPosition(self.collapse_btn_x , 5)
     function self.collapse_btn.OnClick(_self)
         self:ToggleOpen()
     end
 
-    self:SetBGColor(200, 200, 200)
+    self:SetBGColor(230, 230, 230)
 end)
 
 function CollapsiblePanel:ToggleOpen()
     self.open = not self.open
-    if self.tween then
-        self.tween:reset()
-    end
+    -- if self.tween then
+    --     self.tween:reset()
+    -- end
 	self.tween = Tween.new(0.3, self, {_x = self.open and self.open_x or self.close_x}, "outQuint")
+    self.tween_btn = Tween.new(0.3, self.collapse_btn, {_x = self.open and self.collapse_btn_x or self.collapse_btn_x_close}, "outQuint")
     self.collapse_btn:SetStateDef("normal", {
         text = "",
         texture = self.open and self.collapse_btn_icon.close or self.collapse_btn_icon.open,
@@ -61,16 +63,18 @@ function CollapsiblePanel:SetMode(right)
     self.right = right == true
     if self.right then
         self.open_x = love.graphics.getWidth() - self.width
-        self.close_x = love.graphics.getWidth() - 36
+        self.close_x = love.graphics.getWidth()
         self.collapse_btn_x = 5
+        self.collapse_btn_x_close = self.collapse_btn_x - 10 - 24
         self.collapse_btn_icon = {
             open = self.left_arrow,
             close = self.right_arrow,
         }
     else
         self.open_x = 0
-        self.close_x = -self.width + 36
-        self.collapse_btn_x = self.width - 5
+        self.close_x = -self.width
+        self.collapse_btn_x = self.width - 5 - 24
+        self.collapse_btn_x_close = self.collapse_btn_x + 10 + 24
         self.collapse_btn_icon = {
             open = self.right_arrow,
             close = self.left_arrow,
@@ -81,6 +85,11 @@ end
 
 function CollapsiblePanel:OnUpdate(dt)
     self:SetSize(self.width, love.graphics.getHeight())
+    if self.tween_btn then
+        if self.tween_btn:update(dt) then
+            self.tween_btn = nil
+        end
+    end
     if self.tween then
         if self.tween:update(dt) then
             self.tween = nil

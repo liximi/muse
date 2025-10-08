@@ -11,6 +11,7 @@ local Button = require "ui.widgets.button"
 local Image = require "ui.widgets.image"
 local ImageButton = require "ui.widgets.imagebutton"
 local TextInput = require "ui.widgets.textinput"
+local ScrollableList = require "ui.widgets.scrollable_list"
 local UiUtils = require "ui.utils"
 
 local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
@@ -33,47 +34,56 @@ love.load = function()
 
     --UI
     UI_ROOT = UiManager:AddRootWidget(Widget("UI_ROOT"))
-    UI_ROOT:AddChild(CollapsibleScreenEdgePanel(300))
 
-    panel1 = UI_ROOT:AddChild(Panel(200, 200))
-    panel1:SetPosition(300, 100)
+    local root_panel = UI_ROOT:AddChild(CollapsibleScreenEdgePanel(300))
 
-    test_btn = panel1:AddChild(Button())
-    test_btn:SetPosition(40, 120)
-    local count = 0
-    function test_btn:OnClick()
-        count = count + 1
-        test_text:SetText(string.format("Click %d", count))
+    local title = root_panel:AddChild(Text("Widget Examples"))
+    title:SetTextColor(UiUtils.UI_COLORS.PRIMARY_TEXT)
+    title:SetFont("default", 20)
+    title:SetPosition(10, 0)
+
+    local list = root_panel:AddChild(ScrollableList(280, 675))
+    list:SetPosition(10, 36)
+
+    local example_btn_1 = Button("Panel")
+    example_btn_1:SetSize(276, 50)
+    example_btn_1.OnClick = function(self)
+
     end
+    local example_btn_2 = Button("Text")
+    example_btn_2:SetSize(276, 50)
+    example_btn_2.OnClick = function(self)
 
-    test_text = panel1:AddChild(Text("你好，世界\n换行测试"))
-    test_text:SetMaxWidth(100)
-    test_text:EnableDebug(true)
+    end
+    local example_btn_3 = Button("Image")
+    example_btn_3:SetSize(276, 50)
+    example_btn_3.OnClick = function(self)
 
-    img = love.graphics.newImage("assets/bilibili.png")
-    test_img = panel1:AddChild(Image(img))
-    -- test_img:EnableDebug(true)
-    test_img:SetPosition(200, 0)
+    end
+    local example_btn_4 = Button("Button")
+    example_btn_4:SetSize(276, 50)
+    example_btn_4.OnClick = function(self)
 
-    test_imgbtn = panel1:AddChild(ImageButton())
-    test_imgbtn:SetPosition(0, 250)
-    test_imgbtn:SetStateDef("normal", {
-        text = nil,
-        texture = img,
+    end
+    local example_btn_5 = Button("ImageButton")
+    example_btn_5:SetSize(276, 50)
+    example_btn_5.OnClick = function(self)
+
+    end
+    local example_btn_6 = Button("TextInput")
+    example_btn_6:SetSize(276, 50)
+    example_btn_6.OnClick = function(self)
+
+    end
+    list:SetItems({
+        example_btn_1,
+        example_btn_2,
+        example_btn_3,
+        example_btn_4,
+        example_btn_5,
+        example_btn_6,
     })
-    test_imgbtn:SetStateDef("pressed", {
-        text = nil,
-        texture = img,
-    })
-    test_imgbtn:SetStateDef("disabled", {
-        text = nil,
-        texture = img,
-    })
-    test_imgbtn:EnableDebug(true)
-
-
-    test_textinput = panel1:AddChild(TextInput(nil, nil, "请输入...", true))
-    test_textinput:SetPosition(0, 350)
+    list:SetXOffset(2)
 end
 
 
@@ -137,6 +147,7 @@ function love.keyreleased(key, scancode)
 end
 
 function love.wheelmoved(x, y)
+    UiManager:WheelMoved(x, y)
 end
 
 ---@param button integer 1 是鼠标左键，2 鼠标右键，3 是鼠标中键

@@ -8,11 +8,15 @@ local AddSizeComponent = require "ui.components".AddSize
 local AddHoverState = require "ui.components".AddHoverState
 
 
-local TextInput = Class(Widget, function(self, w, h, hint, enable_background)
+local TextInput = Class(Widget, function(self, w, h, hint, enable_background, height_adaptive, min_height)
 	Widget.new(self, "TextInput")
 
 	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
 	self.hovered_outline_color = Utils.UI_COLORS.ACCENT
+
+	self.height_adaptive = height_adaptive == true
+	self.min_height = min_height or h or 75
+
 	if enable_background then
 		self.bg = self:AddChild(Panel(w or 200, h or 75))
 		self.bg:SetBGColor(Utils.UI_COLORS.TEXT)
@@ -53,6 +57,26 @@ function TextInput:OnSetSize(w, h)
 end
 
 
+function TextInput:RefreashHint()
+	if not self.hint then
+		return
+	end
+	local text = self.text:GetText()
+	if not text or text == "" then
+		self.hint:Show()
+	else
+		self.hint:Hide()
+	end
+end
+
+function TextInput:RefreashHeight()
+	local _, text_h = self.text:GetScaledSize()
+	text_h = math.max(self.min_height, text_h)
+	local w, h = self:GetSize()
+	if h ~= text_h then
+		self:SetSize(w, text_h)
+	end
+end
 
 
 function TextInput:OnMouseReleased(x, y, button)
@@ -82,18 +106,6 @@ function TextInput:OnHovered(hovered, x, y, dx, dy)
 	end
 end
 
-function TextInput:RefreashHint()
-	if not self.hint then
-		return
-	end
-	local text = self.text:GetText()
-	if not text or text == "" then
-		self.hint:Show()
-	else
-		self.hint:Hide()
-	end
-end
-
 function TextInput:OnKeyPressed(key, isrepeat)
 	if key == "backspace" then
 		local text = self.text:GetText()
@@ -101,6 +113,9 @@ function TextInput:OnKeyPressed(key, isrepeat)
         if byteoffset then
             text = string.sub(text, 1, byteoffset - 1)
 			self.text:SetText(text)
+			if self.height_adaptive then
+				self:RefreashHeight()
+			end
 			self:RefreashHint()
         end
 	elseif key == "kpenter" or key == "return" then
@@ -114,6 +129,9 @@ function TextInput:OnTextInput(text)
 	end
 	local old_text = self.text:GetText()
 	self.text:SetText(old_text..text)
+	if self.height_adaptive then
+		self:RefreashHeight()
+	end
 	self:RefreashHint()
 end
 
