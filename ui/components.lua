@@ -20,12 +20,12 @@ function Components.AddSize(widget)
 	end
 	widget.GetGlobalScaledSize = function(self)
 		local w, h = self:GetSize()
-		local sx, sy = self:GetGlobalScale()
+		local sx, sy = self:getGlobalScale()
 		return w * sx, h * sy
 	end
 
 	widget.GetAABBB = function(self)
-		local x, y = self:GetGlobalPosition()
+		local x, y = self:getGlobalPosition()
 		local w, h = self:GetGlobalScaledSize()
 		return {x, y, w, h}
 	end

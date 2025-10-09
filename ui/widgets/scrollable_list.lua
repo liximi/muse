@@ -26,7 +26,7 @@ local List = Class(Widget, function(self, w, h, space)
 		if not _self:ShouldDraw() then
 			return
 		end
-		local x, y = self:GetGlobalPosition()
+		local x, y = self:getGlobalPosition()
 		local w, h = self:GetSize()
 		love.graphics.setScissor(x, y, w, h)
 		Widget.Draw(_self)
@@ -67,8 +67,8 @@ end
 
 function List:SetXOffset(offset)
 	self.x_offset = offset
-	local x, y = self.list_root:GetPosition()
-	self.list_root:SetPosition(offset, y)
+	local x, y = self.list_root:getPosition()
+	self.list_root:setPosition(offset, y)
 end
 
 
@@ -76,7 +76,7 @@ function List:RefreashListLayout()
 	self.list_total_height = 0
 	local height_offset = 0
 	for i, v in ipairs(self.items) do
-		v:SetPosition(0, height_offset)
+		v:setPosition(0, height_offset)
 		local w, h = v:GetSize()
 		height_offset = height_offset + h + self.space
 	end
@@ -115,13 +115,13 @@ function List:OnUpdate(dt)
         if self.tween:update(dt) then
             self.tween = nil
         end
-		self.list_root:SetPosition(self.x_offset, -self.offset)
+		self.list_root:setPosition(self.x_offset, -self.offset)
     end
 end
 
 function List:OnDraw()
 	if self._debug then
-		local x, y = self:GetGlobalPosition()
+		local x, y = self:getGlobalPosition()
 		local w, h = self:GetGlobalScaledSize()
 		love.graphics.setColor(unpack(Utils.debug_color1))
 		love.graphics.rectangle("line", x, y, w, h)

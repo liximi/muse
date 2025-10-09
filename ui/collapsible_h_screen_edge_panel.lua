@@ -23,7 +23,7 @@ local CollapsiblePanel = Class(Panel, function(self, width, right)
     }
 
     self:SetMode(right)
-    self:SetPosition(self.open_x, 0)
+    self:setPosition(self.open_x, 0)
 
 	self.tween = nil
     self.tween_btn = nil
@@ -38,7 +38,7 @@ local CollapsiblePanel = Class(Panel, function(self, width, right)
         offset = {0, 2}
     })
     self.collapse_btn:SetSize(24, 24)
-    self.collapse_btn:SetPosition(self.collapse_btn_x , 5)
+    self.collapse_btn:setPosition(self.collapse_btn_x , 5)
     function self.collapse_btn.OnClick(_self)
         self:ToggleOpen()
     end
@@ -94,7 +94,6 @@ function CollapsiblePanel:OnUpdate(dt)
         if self.tween:update(dt) then
             self.tween = nil
         end
-        self:InvalidateTransform()--TODO:临时解决办法，不太优雅
     end
 end
 

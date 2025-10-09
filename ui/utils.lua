@@ -1,4 +1,17 @@
-local Utils = {}
+local Utils = {
+    ---@enum Utils.ANCHORS_HORI
+    ANCHORS_HORI = {
+        LEFT = "left",
+        MIDDLE = "middle",
+        RIGHT = "right",
+    },
+    ---@enum Utils.ANCHORS_VERT
+    ANCHORS_VERT = {
+        TOP = "top",
+        MIDDLE = "middle",
+        BOTTOM = "bottom",
+    }
+}
 
 
 --- 构造颜色对象

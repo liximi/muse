@@ -98,7 +98,7 @@ end
 
 function Text:GetGlobalScaledSize()
 	local w, h = self:GetSize()
-	local sx, sy = self:GetGlobalScale()
+	local sx, sy = self:getGlobalScale()
 	return w * sx, h * sy
 end
 
@@ -117,9 +117,9 @@ end
 
 
 function Text:OnDraw()
-	local x, y = self:GetGlobalPosition()
-	local sx, sy = self:GetGlobalScale()
-	local rot = self:GetGlobalRotation()
+	local x, y = self:getGlobalPosition()
+	local sx, sy = self:getGlobalScale()
+	local rot = self.transform:getGlobalRotation()
 	local font = Fonts:GetFont(self.font_key, self.font_size)
 	love.graphics.setColor(unpack(self.text_color))
 	love.graphics.printf(self.text, font, x, y, self.max_width, self.horizontal_align, rot, sx, sy)

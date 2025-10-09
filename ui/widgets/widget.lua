@@ -1,16 +1,12 @@
+local UiManager = require "ui.ui_manager":GetInstance()
+local Transform = require "ui.transform"
+---@class Widget
 local Widget = Class(function(self, name)
 	self._name = name or "widget"
 	self._valid = true
 	self._debug = false
-	self._z_index = 0
-	-- Local Transform
-	self._x = 0
-	self._y = 0
-	self._sx = 1 -- scale x
-	self._sy = 1 -- scale y
-	self._rotation = 0 -- 0 ~ 2Pi
-	-- 全局变换缓存
-	self._transform_cache = nil
+
+	self.transform = Transform()
 
 	self.children = {}
 	self.parent = nil
@@ -22,139 +18,23 @@ end)
 
 
 --------------------------------------------------
--- Transform Setter
+-- Transform
 --------------------------------------------------
 
-function Widget:SetPosition(x, y)
-	if self._x ~= x or self._y ~= y then
-		self._x = x
-		self._y = y
-		self:InvalidateTransform()
-	end
+function Widget:setPosition(x, y)
+	self.transform:setPosition(x, y)
 end
 
-function Widget:SetScale(x, y)
-	if self._sx ~= x or self._sy ~= y then
-		self._sx = x
-		self._sy = y
-		self:InvalidateTransform()
-	end
+function Widget:getPosition()
+	return self.transform:getPosition()
 end
 
-function Widget:SetRotation(rot) -- 0 ~ 2Pi
-	if self._rotation ~= rot then
-		self._rotation = rot % (2 * math.pi)
-		self:InvalidateTransform()
-	end
+function Widget:getGlobalPosition()
+	return self.transform:getGlobalPosition()
 end
 
--- 缓存失效机制
-function Widget:InvalidateTransform()
-	self._transform_cache = nil
-	-- 只有当变换实际影响子组件时才失效子缓存
-	if #self.children > 0 then
-		for _, child in ipairs(self.children) do
-			child:InvalidateTransform()
-		end
-	end
-end
-
---------------------------------------------------
--- Transform Getter
---------------------------------------------------
-
-function Widget:GetPosition()
-	return self._x, self._y
-end
-
-function Widget:GetScale()
-	return self._sx, self._sy
-end
-
-function Widget:GetGlobalTransform()
-	if self._transform_cache then
-		return unpack(self._transform_cache)
-	end
-
-	local gx, gy, gsx, gsy, grotation
-
-	if self.parent then
-		local px, py = self.parent:GetGlobalPosition()
-		local psx, psy = self.parent:GetGlobalScale()
-		local prot = self.parent:GetGlobalRotation()
-
-		-- 计算全局位置（考虑父级缩放和旋转）
-		local scaled_x = self._x * psx
-		local scaled_y = self._y * psy
-		local rotated_x = scaled_x * math.cos(prot) - scaled_y * math.sin(prot)
-		local rotated_y = scaled_x * math.sin(prot) + scaled_y * math.cos(prot)
-		gx = px + rotated_x
-		gy = py + rotated_y
-
-		-- 计算全局缩放（累积父级缩放）
-		gsx = self._sx * psx
-		gsy = self._sy * psy
-
-		-- 计算全局旋转（累积父级旋转）
-		grotation = (self._rotation + prot) % (2 * math.pi)
-	else
-		-- 没有父级时，全局变换等于局部变换
-		gx = self._x
-		gy = self._y
-		gsx = self._sx
-		gsy = self._sy
-		grotation = self._rotation
-	end
-
-	-- 缓存结果
-	self._transform_cache = {gx, gy, gsx, gsy, grotation}
-	return gx, gy, gsx, gsy, grotation
-end
-
-function Widget:GetGlobalPosition()
-	if self._transform_cache then
-		return self._transform_cache[1], self._transform_cache[2]
-	end
-
-	if self.parent then
-		local px, py = self.parent:GetGlobalPosition()
-		local psx, psy = self.parent:GetGlobalScale()
-		local prot = self.parent:GetGlobalRotation()
-
-		local scaled_x = self._x * psx
-		local scaled_y = self._y * psy
-		local rotated_x = scaled_x * math.cos(prot) - scaled_y * math.sin(prot)
-		local rotated_y = scaled_x * math.sin(prot) + scaled_y * math.cos(prot)
-		return px + rotated_x, py + rotated_y
-	else
-		return self._x, self._y
-	end
-end
-
-function Widget:GetGlobalScale()
-	if self._transform_cache then
-		return self._transform_cache[3], self._transform_cache[4]
-	end
-
-	if self.parent then
-		local psx, psy = self.parent:GetGlobalScale()
-		return self._sx * psx, self._sy * psy
-	else
-		return self._sx, self._sy
-	end
-end
-
-function Widget:GetGlobalRotation()
-	if self._transform_cache then
-		return self._transform_cache[5]
-	end
-
-	if self.parent then
-		local prot = self.parent:GetGlobalRotation()
-		return (self._rotation + prot) % (2 * math.pi)
-	else
-		return self._rotation
-	end
+function Widget:getGlobalScale()
+	return self.transform:getGlobalScale()
 end
 
 --------------------------------------------------
@@ -179,7 +59,7 @@ function Widget:AddChild(child)
 	end
 	child.parent = self
 	table.insert(self.children, child)
-	child:RefreashZIndex(self._z_index + 1)
+	child.transform:setParent(self.transform)
 	return child
 end
 
@@ -188,6 +68,7 @@ function Widget:RemoveChild(child)
 		if _child == child then
 			child.parent = nil
 			table.remove(self.children, i)
+			child.transform:setParent()
 			return
 		end
 	end
@@ -196,6 +77,7 @@ end
 function Widget:RemoveAllChildren()
 	for _, child in ipairs(self.children) do
 		child.parent = nil
+		child.transform:setParent()
 	end
 	self.children = {}
 end
@@ -311,53 +193,34 @@ function Widget:IsFocus()
 end
 
 --------------------------------------------------
--- Z-Index
+-- Z-axis Movement
 --------------------------------------------------
-
-function Widget:RefreashZIndex(new_z_index)
-	self._z_index = new_z_index
-	local count = 0
-	for i = #self.children, 1, -1 do
-		count = count + 1
-		self.children[i]:RefreashZIndex(new_z_index + count)
-	end
-end
 
 function Widget:MoveToTop()
 	if self.parent then
-		local idx = 1
 		for k, v in ipairs(self.parent.children) do
 			if v == self then
-				idx = k
 				table.remove(self.parent.children, k)
 				table.insert(self.parent.children, self)
 				break
 			end
 		end
-		local count = 0
-		for i = #self.children, idx, -1 do
-			count = count + 1
-			self.parent.children[i]:RefreashZIndex(self.parent._z_index + count)
-		end
+	else
+		UiManager:MoveToTop(self)
 	end
 end
 
 function Widget:MoveToBottom()
 	if self.parent then
-		local idx = 1
 		for k, v in ipairs(self.parent.children) do
 			if v == self then
-				idx = k
 				table.remove(self.parent.children, k)
 				table.insert(self.parent.children, 1, self)
 				break
 			end
 		end
-		local count = 0
-		for i = idx, 1, -1 do
-			count = count + 1
-			self.parent.children[i]:RefreashZIndex(self.parent._z_index + count)
-		end
+	else
+		UiManager:MoveToBottom(self)
 	end
 end
 

@@ -2,7 +2,7 @@ local Loc = require "dependencies.i18n.i18n"()
 local Lovebird = require "dependencies.Lovebird.Lovebird"
 Class = require "dependencies.classic"
 
-local UiManager = require "ui.ui_manager"()
+local UiManager = require "ui.ui_manager":GetInstance()
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
@@ -33,17 +33,17 @@ love.load = function()
     love.keyboard.setKeyRepeat(true)
 
     --UI
-    UI_ROOT = UiManager:AddRootWidget(Widget("UI_ROOT"))
+    UI_ROOT = UiManager:AddWidget(Widget("UI_ROOT"))
 
     local root_panel = UI_ROOT:AddChild(CollapsibleScreenEdgePanel(300))
 
     local title = root_panel:AddChild(Text("Widget Examples"))
     title:SetTextColor(UiUtils.UI_COLORS.PRIMARY_TEXT)
     title:SetFont("default", 20)
-    title:SetPosition(10, 0)
+    title:setPosition(10, 0)
 
     local list = root_panel:AddChild(ScrollableList(280, 675))
-    list:SetPosition(10, 36)
+    list:setPosition(10, 36)
 
     local example_btn_1 = Button("Panel")
     example_btn_1:SetSize(276, 50)

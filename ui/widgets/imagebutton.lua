@@ -51,7 +51,7 @@ end
 
 
 function ImageButton:OnDraw()
-	local x, y = self:GetGlobalPosition()
+	local x, y = self:getGlobalPosition()
 	local w, h = self:GetGlobalScaledSize()
 
 	if self._debug then

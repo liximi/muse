@@ -50,7 +50,7 @@ end
 function Image:OnDraw()
 	if self.texture then
 		love.graphics.setColor(1, 1, 1, 1)
-		local x, y = self:GetGlobalPosition()
+		local x, y = self:getGlobalPosition()
 		local w, h = self:GetGlobalScaledSize()
 		local rw, rh = self:GetTextureRowSize()
 		local sx, sy = w / rw, h / rh
@@ -63,7 +63,7 @@ function Image:OnDraw()
 		end
 	else
 		if self._debug then
-			local x, y = self:GetGlobalPosition()
+			local x, y = self:getGlobalPosition()
 			love.graphics.setColor(unpack(Utils.debug_color1))
 			love.graphics.rectangle("line", x-1, y-1, 2, 2)
 			love.graphics.setFont(Fonts:GetFont("default", 16))

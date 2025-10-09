@@ -53,7 +53,7 @@ end
 function Button:OnSetSize(w, h)
 	self.text:SetMaxWidth(w)
 	local textw, texth = self.text:GetSize()
-	self.text:SetPosition(0, (h-texth)*0.5)
+	self.text:setPosition(0, (h-texth)*0.5)
 end
 
 function Button:SetState(new_state)
@@ -76,11 +76,11 @@ function Button:SetState(new_state)
 	local old_offset = self.state_defs[old_state] and self.state_defs[old_state].offset or {0, 0}
 	local offset = self.state_defs[new_state] and self.state_defs[new_state].offset or {0, 0}
 	local total_offset = {offset[1] - old_offset[1], offset[2] - old_offset[2]}
-	local x, y = self:GetPosition()
-	self:SetPosition(x+total_offset[1], y+total_offset[2])
+	local x, y = self:getPosition()
+	self:setPosition(x+total_offset[1], y+total_offset[2])
 
 	local scale = self.state_defs[new_state] and self.state_defs[new_state].scale or {1, 1}
-	self:SetScale(scale[1], scale[2])
+	self.transform:setScale(scale[1], scale[2])
 end
 
 function Button:OnFocus()
@@ -131,7 +131,7 @@ end
 
 function Button:OnDraw()
 	local cur_state_def = self.state_defs[self.cur_state]
-	local x, y = self:GetGlobalPosition()
+	local x, y = self:getGlobalPosition()
 	local w, h = self:GetGlobalScaledSize()
 	local bg_color = cur_state_def.bg_color or self.state_defs.normal.bg_color
 	local outline_color = cur_state_def.outline_color or self.state_defs.normal.outline_color
