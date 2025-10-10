@@ -11,11 +11,11 @@ local SliderBar = Class(Widget, function (self, w, h)
 	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
 
 	AddSizeComponent(self)
-	self:SetSize(w or 10, h or 100)
+	self.transform:setSize(w or 10, h or 100)
 end)
 
 
-function SliderBar:OnDraw()
+function SliderBar:onDraw()
 	love.graphics.setColor(unpack(self.bg_color))
 	local x, y = self:getGlobalPosition()
 	local sx, sy = self:getGlobalScale()

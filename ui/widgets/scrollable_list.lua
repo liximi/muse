@@ -20,32 +20,32 @@ local List = Class(Widget, function(self, w, h, space)
 	self.list_total_height = 0
 	self.sensitivity = 80	--滚动灵敏度，单位：像素
 
-	self.list_root = self:AddChild(Widget("ListRoot"))
+	self.list_root = self:addChild(Widget("ListRoot"))
 	--覆写Draw函数
-	self.list_root.Draw = function (_self)
-		if not _self:ShouldDraw() then
+	self.list_root.draw = function (_self)
+		if not _self:shouldDraw() then
 			return
 		end
 		local x, y = self:getGlobalPosition()
-		local w, h = self:GetSize()
+		local w, h = self.transform:getSize()
 		love.graphics.setScissor(x, y, w, h)
-		Widget.Draw(_self)
+		Widget.draw(_self)
 		love.graphics.setScissor()
 	end
 
-	-- self.slider_bar = self:AddChild(SliderBar(nil, h))
-	self:SetSize(w, h)
+	-- self.slider_bar = self:addChild(SliderBar(nil, h))
+	self.transform:setSize(w, h)
 end)
 
 
 --- 设置要显示的内容
 ---@param items [Widget] 要显示的UI的数组，注意：每个UI都必须实现GetSize方法，否则列表将无法正确布局元素。
 function List:SetItems(items)
-	self.list_root:RemoveAllChildren()
+	self.list_root:removeAllChildren()
 	self.items = {}
 	for i, v in ipairs(items) do
 		table.insert(self.items, v)
-		self.list_root:AddChild(v)
+		self.list_root:addChild(v)
 	end
 	self:RefreashListLayout()
 end
@@ -60,7 +60,7 @@ function List:Insert(item, pos)
 	else
 		table.insert(self.items, item)
 	end
-	self.list_root:AddChild(item)
+	self.list_root:addChild(item)
 	self:RefreashListLayout()
 end
 
@@ -77,11 +77,12 @@ function List:RefreashListLayout()
 	local height_offset = 0
 	for i, v in ipairs(self.items) do
 		v:setPosition(0, height_offset)
-		local w, h = v:GetSize()
+		local w, h = v.transform:getSize()
 		height_offset = height_offset + h + self.space
 	end
 	self.list_total_height = height_offset - self.space
-	local max_offset = math.max(0, self.list_total_height - self.height)
+	local w, h = self.transform:getSize()
+	local max_offset = math.max(0, self.list_total_height - h)
 	if max_offset < self.offset then
 		self:SetOffset(max_offset)
 	end
@@ -89,7 +90,8 @@ end
 
 
 function List:SetOffset(offset)
-	offset = math.min(math.max(offset, 0), math.max(0, self.list_total_height - self.height))
+	local w, h = self.transform:getSize()
+	offset = math.min(math.max(offset, 0), math.max(0, self.list_total_height - h))
 	if offset == self.offset then
 		return
 	end
@@ -98,7 +100,7 @@ end
 
 function List:OnWheelMoved(x, y)
 	local mousex, mousey = love.mouse.getPosition()
-	if not self:IsInUIScope(mousex, mousey) then
+	if not self:isInUIScope(mousex, mousey) then
 		return
 	end
 	if y > 0 then
@@ -119,14 +121,14 @@ function List:OnUpdate(dt)
     end
 end
 
-function List:OnDraw()
+function List:onDraw()
 	if self._debug then
 		local x, y = self:getGlobalPosition()
-		local w, h = self:GetGlobalScaledSize()
+		local w, h = self:getGlobalScaledSize()
 		love.graphics.setColor(unpack(Utils.debug_color1))
 		love.graphics.rectangle("line", x, y, w, h)
 		love.graphics.printf(string.format("Offset: %.1f|Total Height: %.1f", self.offset, self.list_total_height),
-			Fonts:GetFont("default", 16), x, y+h, w)
+			Fonts:getFont("default", 16), x, y+h, w)
 	end
 end
 

@@ -3,7 +3,7 @@ local Manager = Class(function(self)
 end)
 
 
-function Manager:AddWidget(widget)
+function Manager:addWidget(widget)
 	assert(widget.parent == nil, "Cannot use a Widget with a parent as the root")
 	for _, v in ipairs(self.hierarchy) do
 		if v == widget then
@@ -15,7 +15,7 @@ function Manager:AddWidget(widget)
 end
 
 
-function Manager:MoveToTop(widget)
+function Manager:moveToTop(widget)
 	for k, v in ipairs(self.hierarchy) do
 		if v == widget then
 			table.remove(self.hierarchy, k)
@@ -26,7 +26,7 @@ function Manager:MoveToTop(widget)
 end
 
 
-function Manager:MoveToBottom(widget)
+function Manager:moveToBottom(widget)
 	for k, v in ipairs(self.hierarchy) do
 		if v == widget then
 			table.remove(self.hierarchy, k)
@@ -41,16 +41,16 @@ end
 -- Event Handlers
 --------------------------------------------------
 
-function Manager:Update(dt)
+function Manager:update(dt)
 	for _, widget in ipairs(self.hierarchy) do
-		widget:Update(dt)
+		widget:update(dt)
 	end
 end
 
 
-function Manager:Draw()
+function Manager:draw()
 	for _, widget in ipairs(self.hierarchy) do
-		widget:Draw()
+		widget:draw()
 	end
 end
 
@@ -58,7 +58,7 @@ end
 function Manager:KeyPressed(key, isrepeat)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("KeyPressed", key, isrepeat)
+		widget:handleEvent("KeyPressed", key, isrepeat)
 	end
 end
 
@@ -66,7 +66,7 @@ end
 function Manager:KeyReleased(key)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("KeyReleased", key)
+		widget:handleEvent("KeyReleased", key)
 	end
 end
 
@@ -74,7 +74,7 @@ end
 function Manager:TextInput(text)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("TextInput", text)
+		widget:handleEvent("TextInput", text)
 	end
 end
 
@@ -82,7 +82,7 @@ end
 function Manager:MouseMoved(x, y, dx, dy)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("MouseMoved", x, y, dx, dy)
+		widget:handleEvent("MouseMoved", x, y, dx, dy)
 	end
 end
 
@@ -90,7 +90,7 @@ end
 function Manager:MousePressed(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("MousePressed", x, y, button)
+		widget:handleEvent("MousePressed", x, y, button)
 	end
 end
 
@@ -98,7 +98,7 @@ end
 function Manager:MouseReleased(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("MouseReleased", x, y, button)
+		widget:handleEvent("MouseReleased", x, y, button)
 	end
 end
 
@@ -106,7 +106,7 @@ end
 function Manager:WheelMoved(x, y)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:HandleEvent("WheelMoved", x, y)
+		widget:handleEvent("WheelMoved", x, y)
 	end
 end
 

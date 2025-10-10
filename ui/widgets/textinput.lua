@@ -5,7 +5,7 @@ local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 local Utils = require "ui.utils"
 local AddSizeComponent = require "ui.components".AddSize
-local AddHoverState = require "ui.components".AddHoverState
+local addHoverState = require "ui.components".addHoverState
 
 
 local TextInput = Class(Widget, function(self, w, h, hint, enable_background, height_adaptive, min_height)
@@ -18,22 +18,22 @@ local TextInput = Class(Widget, function(self, w, h, hint, enable_background, he
 	self.min_height = min_height or h or 75
 
 	if enable_background then
-		self.bg = self:AddChild(Panel(w or 200, h or 75))
+		self.bg = self:addChild(Panel(w or 200, h or 75))
 		self.bg:SetBGColor(Utils.UI_COLORS.TEXT)
 		self.bg:SetOutlineColor(self.outline_color)
 	end
 
-	self.text = self:AddChild(Text())
-	self.text:SetTextColor(Utils.UI_COLORS.PRIMARY_TEXT)
+	self.text = self:addChild(Text())
+	self.text:setTextColor(Utils.UI_COLORS.PRIMARY_TEXT)
 	if hint then
-		self.hint = self:AddChild(Text(hint))
-		self.hint:SetTextColor(Utils.UI_COLORS.SECONDARY_TEXT)
+		self.hint = self:addChild(Text(hint))
+		self.hint:setTextColor(Utils.UI_COLORS.SECONDARY_TEXT)
 	end
 
 	AddSizeComponent(self)
-	self:SetSize(w or 200, h or 75)
+	self.transform:setSize(w or 200, h or 75)
 
-	AddHoverState(self)
+	addHoverState(self)
 end)
 
 
@@ -45,58 +45,46 @@ function TextInput:SetHoveredOutlineColor(color)
 	self.hovered_outline_color = color
 end
 
-
-function TextInput:OnSetSize(w, h)
-	if self.bg then
-		self.bg:SetSize(w, h)
-	end
-	self.text:SetMaxWidth(w)
-	if self.hint then
-		self.hint:SetMaxWidth(w)
-	end
-end
-
-
 function TextInput:RefreashHint()
 	if not self.hint then
 		return
 	end
-	local text = self.text:GetText()
+	local text = self.text:getText()
 	if not text or text == "" then
-		self.hint:Show()
+		self.hint:show()
 	else
-		self.hint:Hide()
+		self.hint:hide()
 	end
 end
 
 function TextInput:RefreashHeight()
-	local _, text_h = self.text:GetScaledSize()
+	local _, text_h = self.text:getScaledSize()
 	text_h = math.max(self.min_height, text_h)
-	local w, h = self:GetSize()
+	local w, h = self.transform:getSize()
 	if h ~= text_h then
-		self:SetSize(w, text_h)
+		self.transform:setSize(w, text_h)
 	end
 end
 
 
-function TextInput:OnMouseReleased(x, y, button)
+function TextInput:onMouseReleased(x, y, button)
 	if button ~= 1 then
 		return
 	end
-	local is_in_scope = self:IsInUIScope(x, y)
-	local is_focus = self:IsFocus()
+	local is_in_scope = self:isInUIScope(x, y)
+	local is_focus = self:isFocus()
 	if is_in_scope and not is_focus then
-		self:SetFocus()
+		self:setFocus()
 		return
 	end
 	if is_focus then
-		self:RemoveFocus()
+		self:removeFocus()
 		self:OnHovered(is_in_scope)
 	end
 end
 
 function TextInput:OnHovered(hovered, x, y, dx, dy)
-	if not self.bg or self:IsFocus() then
+	if not self.bg or self:isFocus() then
 		return
 	end
 	if hovered then
@@ -108,11 +96,11 @@ end
 
 function TextInput:OnKeyPressed(key, isrepeat)
 	if key == "backspace" then
-		local text = self.text:GetText()
+		local text = self.text:getText()
         local byteoffset = utf8.offset(text, -1)
         if byteoffset then
             text = string.sub(text, 1, byteoffset - 1)
-			self.text:SetText(text)
+			self.text:setText(text)
 			if self.height_adaptive then
 				self:RefreashHeight()
 			end
@@ -124,11 +112,11 @@ function TextInput:OnKeyPressed(key, isrepeat)
 end
 
 function TextInput:OnTextInput(text)
-	if not self:IsFocus() then
+	if not self:isFocus() then
 		return
 	end
-	local old_text = self.text:GetText()
-	self.text:SetText(old_text..text)
+	local old_text = self.text:getText()
+	self.text:setText(old_text..text)
 	if self.height_adaptive then
 		self:RefreashHeight()
 	end

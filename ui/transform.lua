@@ -1,14 +1,44 @@
 local function _updateLeftRight(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	transform.left = transform.x - transform.w * transform.pivot[1] - transform.anchors_min[1] * parent_w
-	transform.right = transform.anchors_max[1] * parent_w - transform.x - transform.w * (1 - transform.pivot[1])
+	local parent_pivot_x = transform.parent and transform.parent.pivot[1] or 0
+	local parent_left_begin = parent_w * transform.anchors_min[1] - parent_pivot_x * parent_w
+	local parent_right_begin = parent_w * transform.anchors_max[1] - parent_pivot_x * parent_w
+	transform.left = transform.x - transform.w * transform.pivot[1] - parent_left_begin
+	transform.right = parent_right_begin - transform.x - transform.w * (1 - transform.pivot[1])
+	print(transform.left, transform.right)
 end
 
 local function _updateTopBottom(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	transform.top = transform.y - transform.h * transform.pivot[2] - transform.anchors_min[2] * parent_h
-	transform.bottom = transform.anchors_max[2] * parent_h - transform.y - transform.h * (1 - transform.pivot[2])
+	local parent_pivot_y = transform.parent and transform.parent.pivot[2] or 0
+	local parent_top_begin = parent_h * transform.anchors_min[2] - parent_pivot_y * parent_h
+	local parent_bottom_begin = parent_h * transform.anchors_max[2] - parent_pivot_y * parent_h
+	transform.top = transform.y - transform.h * transform.pivot[2] - parent_top_begin
+	transform.bottom = parent_bottom_begin - transform.y - transform.h * (1 - transform.pivot[2])
 end
+
+local function _updateWidth(transform)
+	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
+	local parent_pivot_x = transform.parent and transform.parent.pivot[1] or 0
+	local parent_left_begin = parent_w * transform.anchors_min[1] - parent_pivot_x * parent_w
+	local parent_right_begin = parent_w * transform.anchors_max[1] - parent_pivot_x * parent_w
+	local w = parent_right_begin - parent_left_begin - transform.left - transform.right
+	if w ~= transform.w then
+		transform.w = w
+	end
+end
+
+local function _updateHeight(transform)
+	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
+	local parent_pivot_y = transform.parent and transform.parent.pivot[2] or 0
+	local parent_top_begin = parent_h * transform.anchors_min[2] - parent_pivot_y * parent_h
+	local parent_bottom_begin = parent_h * transform.anchors_max[2] - parent_pivot_y * parent_h
+	local h = parent_bottom_begin - parent_top_begin - transform.top - transform.bottom
+	if h ~= transform.h then
+		transform.h = h
+	end
+end
+
 
 local function normalizeRadians(rad)
     local twoPi = 2 * math.pi
@@ -183,7 +213,7 @@ local function getGlobalScale(transform)
 	return transform.scale_x * parent_sx, transform.scale_y * parent_sy
 end
 
-local function getGloablScaledSize(transform)
+local function getGlobalScaledSize(transform)
 	local sx, sy = transform:getGlobalScale()
 	return transform.w * sx, transform.h * sy
 end
@@ -210,8 +240,8 @@ local function Transform()
 		scale_x = 1,
 		scale_y = 1,
 		--锚点，决定了元素在父容器中的定位基准，虽然说是点，但其实是一个范围
-		anchors_min = {0, 1},--锚点的左上角坐标（百分比）
-		anchors_max = {0, 1},--锚点的右下角坐标（百分比）
+		anchors_min = {0, 0},--锚点的左上角坐标（百分比）
+		anchors_max = {0, 0},--锚点的右下角坐标（百分比）
 		--支点，决定了元素自身坐标的原点，同时也是旋转、缩放等变换的中心（百分比）。
 		pivot = {0, 0},
 
@@ -222,6 +252,7 @@ local function Transform()
 
 		setParent = function (self, parent_transform)
 			self.parent = parent_transform
+			self:onUpdate()
 		end,
 		setPosition = setPosition,
 		setSize = setSize,
@@ -241,8 +272,26 @@ local function Transform()
 
 		getGlobalPosition = getGlobalPosition,
 		getGlobalScale = getGlobalScale,
-		getGloablScaledSize = getGloablScaledSize,
+		getGlobalScaledSize = getGlobalScaledSize,
 		getGlobalRotation = getGlobalRotation,
+
+		onUpdate = function(self)
+			if self.anchors_min[1] == self.anchors_max[1] then
+				_updateLeftRight(self)
+			else
+				_updateWidth(self)
+			end
+			if self.anchors_min[2] == self.anchors_max[2] then
+				_updateTopBottom(self)
+			else
+				_updateHeight(self)
+			end
+		end,
+
+		__tostring = function(self)
+			return string.format("Transform position:[%.2f, %.2f] size:[%.2f, %.2f] rotation:%.2f scale:[%.2f, %.2f] anchors:[%.2f, %.2f, %.2f, %.2f] pivot:[%.2f, %.2f] padding:[l:%.2f, r:%.2f, t:%.2f b:%.2f]",
+				self.x, self.y, self.w, self.h, self.rotation, self.scale_x, self.scale_y, self.anchors_min[1], self.anchors_min[2], self.anchors_max[1], self.anchors_max[2], self.pivot[1], self.pivot[2], self.left, self.right, self.top, self.bottom)
+		end
 	}
 end
 

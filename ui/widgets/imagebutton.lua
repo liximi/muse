@@ -19,45 +19,37 @@ local ImageButton = Class(Button, function (self)
 	Button.new(self)
 	self._name = "ImageButton"
 
-	self.image = self:AddChild(Image())
-	self.image:MoveToBottom()
+	self.image = self:addChild(Image())
+	self.image:moveToBottom()
 
-	self:SetSize(120, 50)
+	self.transform:setSize(120, 50)
 end)
 
 
-function ImageButton:OnSetSize(w, h)
-	Button.OnSetSize(self, w, h)
-	if self.image then
-		self.image:SetSize(w, h)
-	end
-end
-
-
-function ImageButton:SetState(new_state)
+function ImageButton:setState(new_state)
 	if not BTN_STATES[new_state] then
-		print("Button:SetStateDef|Invalid state:", new_state)
+		print("Button:setStateDef|Invalid state:", new_state)
 		return
 	end
-	Button.SetState(self, new_state)
+	Button.setState(self, new_state)
 
 	self.cur_state = new_state
 
 	local new_texture = self.state_defs[new_state] and self.state_defs[new_state].texture or self.state_defs.normal.texture
 	if new_texture then
-		self.image:SetTexture(new_texture)
+		self.image:setTexture(new_texture)
 	end
 end
 
 
-function ImageButton:OnDraw()
+function ImageButton:onDraw()
 	local x, y = self:getGlobalPosition()
-	local w, h = self:GetGlobalScaledSize()
+	local w, h = self:getGlobalScaledSize()
 
 	if self._debug then
 		love.graphics.setColor(unpack(Utils.debug_color1))
 		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
-		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:GetFont("default", 16), x, y + h, self.width)
+		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, self.width)
 	end
 end
 

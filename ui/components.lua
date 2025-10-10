@@ -2,36 +2,8 @@
 local Components = {}
 
 function Components.AddSize(widget)
-	widget.width = 0
-	widget.height = 0
-	widget.SetSize = function(self, w, h)
-		self.width = w
-		self.height = h
-		if self.OnSetSize then
-			self:OnSetSize(w, h)
-		end
-	end
-	widget.GetSize = function(self)
-		return self.width, self.height
-	end
-	widget.GetScaledSize = function(self)
-		local w, h = self:GetSize()
-		return w * self._sx, h * self._sy
-	end
-	widget.GetGlobalScaledSize = function(self)
-		local w, h = self:GetSize()
-		local sx, sy = self:getGlobalScale()
-		return w * sx, h * sy
-	end
-
-	widget.GetAABBB = function(self)
-		local x, y = self:getGlobalPosition()
-		local w, h = self:GetGlobalScaledSize()
-		return {x, y, w, h}
-	end
-
-	widget.IsInUIScope = function(self, x, y)
-		local aabb = self:GetAABBB()
+	widget.isInUIScope = function(self, x, y)
+		local aabb = self:getAABB()
 		local minx, maxx = aabb[1], aabb[1] + aabb[3]
 		local miny, maxy = aabb[2], aabb[2] + aabb[4]
 		if minx > maxx then
@@ -52,10 +24,10 @@ function Components.AddSize(widget)
 end
 
 
-function Components.AddHoverState(widget)
+function Components.addHoverState(widget)
 	widget.hovered = false
-	widget.OnMouseMoved = function(self, x, y, dx, dy)
-		if self:IsInUIScope(x, y) then
+	widget.onMouseMoved = function(self, x, y, dx, dy)
+		if self:isInUIScope(x, y) then
 			if not self.hovered then
 				self.hovered = true
 				if self.OnHovered then

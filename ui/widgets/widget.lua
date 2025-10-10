@@ -1,12 +1,32 @@
 local UiManager = require "ui.ui_manager":GetInstance()
 local Transform = require "ui.transform"
 ---@class Widget
-local Widget = Class(function(self, name)
+local Widget = Class(function(self, name, datas)
 	self._name = name or "widget"
 	self._valid = true
 	self._debug = false
 
 	self.transform = Transform()
+	if datas then
+		if datas.pivot then
+			self.transform:setPivot(unpack(datas.pivot))
+		end
+		if datas.x or datas.y then
+			self.transform:setPosition(datas.x, datas.y)
+		end
+		if datas.w or datas.h then
+			self.transform:setSize(datas.w, datas.h)
+		end
+		if datas.sx or datas.sy then
+			self.transform:setScale(datas.sx, datas.sy)
+		end
+		if datas.anchors then
+			self.transform:setAnchors(unpack(datas.anchors))
+		end
+		if datas.padding then
+			self.transform:setPadding(unpack(datas.padding))
+		end
+	end
 
 	self.children = {}
 	self.parent = nil
@@ -37,11 +57,45 @@ function Widget:getGlobalScale()
 	return self.transform:getGlobalScale()
 end
 
+function Widget:getGlobalScaledSize()
+	return self.transform:getGlobalScaledSize()
+end
+
+--------------------------------------------------
+-- AABB (Axis-Aligned Bounding Box)
+--------------------------------------------------
+
+--- 返回一个包含 x,y,w,h 的 table，x 和 y 是该包围框的左上角坐标
+function Widget:getAABB()
+	local x, y = self.transform:getPosition()
+	local px, py = self.transform:getPivot()
+	local w, h = self.transform:getScaledSize()
+	return {
+		x = x - px * w,
+		y = y - py * h,
+		w = w,
+		h = h
+	}
+end
+
+--- 获取 Widget 基于全局坐标系的AABB
+function Widget:getGlobalAABB()
+	local x, y = self.transform:getGlobalPosition()
+	local px, py = self.transform:getPivot()
+	local w, h = self.transform:getGlobalScaledSize()
+	return {
+		x = x - px * w,
+		y = y - py * h,
+		w = w,
+		h = h
+	}
+end
+
 --------------------------------------------------
 -- Children
 --------------------------------------------------
 
-function Widget:AddChild(child)
+function Widget:addChild(child)
 	assert(child ~= nil, "Child cannot be nil")
 	assert(child ~= self, "Cannot add widget as its own child")
 	-- 检查是否会导致循环引用
@@ -55,7 +109,7 @@ function Widget:AddChild(child)
 		return child
 	end
 	if child.parent ~= nil and child.parent ~= self then
-		child.parent:RemoveChild(child)
+		child.parent:removeChild(child)
 	end
 	child.parent = self
 	table.insert(self.children, child)
@@ -63,7 +117,7 @@ function Widget:AddChild(child)
 	return child
 end
 
-function Widget:RemoveChild(child)
+function Widget:removeChild(child)
 	for i, _child in ipairs(self.children) do
 		if _child == child then
 			child.parent = nil
@@ -74,7 +128,7 @@ function Widget:RemoveChild(child)
 	end
 end
 
-function Widget:RemoveAllChildren()
+function Widget:removeAllChildren()
 	for _, child in ipairs(self.children) do
 		child.parent = nil
 		child.transform:setParent()
@@ -86,19 +140,19 @@ end
 -- Destroy
 --------------------------------------------------
 
-function Widget:Destroy()
+function Widget:destroy()
 	local temp_children = self.children
-	self:RemoveAllChildren()
+	self:removeAllChildren()
 	for _, child in ipairs(temp_children) do
-		child:Destroy()
+		child:destroy()
 	end
 	if self.parent then
-		self.parent:RemoveChild(self)
+		self.parent:removeChild(self)
 	end
 	self._valid = false
 end
 
-function Widget:IsValid()
+function Widget:isValid()
 	return self._valid == true
 end
 
@@ -106,35 +160,36 @@ end
 -- Update & Draw
 --------------------------------------------------
 
-function Widget:ShouldDraw()
+function Widget:shouldDraw()
 	return self._valid and self.shown
 end
 
-function Widget:ShouldUpdate()
+function Widget:shouldUpdate()
 	return self._valid and self.enabled
 end
 
-function Widget:Update(dt)
-	if not self:ShouldUpdate() then
+function Widget:update(dt)
+	self.transform:onUpdate()
+	if not self:shouldUpdate() then
 		return
 	end
 	if self.OnUpdate then
 		self:OnUpdate(dt)
 	end
 	for _, child in ipairs(self.children) do
-		child:Update(dt)
+		child:update(dt)
 	end
 end
 
-function Widget:Draw()
-	if not self:ShouldDraw() then
+function Widget:draw()
+	if not self:shouldDraw() then
 		return
 	end
-	if self.OnDraw then
-		self:OnDraw()
+	if self.onDraw then
+		self:onDraw()
 	end
 	for _, child in ipairs(self.children) do
-		child:Draw()
+		child:draw()
 	end
 end
 
@@ -142,15 +197,15 @@ end
 -- Show & Hide
 --------------------------------------------------
 
-function Widget:IsShown()
+function Widget:isShown()
 	return self.shown
 end
 
-function Widget:Show()
+function Widget:show()
 	self.shown = true
 end
 
-function Widget:Hide()
+function Widget:hide()
 	self.shown = false
 end
 
@@ -158,15 +213,15 @@ end
 -- Enable & Disable
 --------------------------------------------------
 
-function Widget:Enable()
+function Widget:enable()
 	self.enabled = true
 end
 
-function Widget:Disable()
+function Widget:disable()
 	self.enabled = false
 end
 
-function Widget:IsEnabled()
+function Widget:isEnabled()
 	return self.enabled
 end
 
@@ -174,21 +229,21 @@ end
 -- Focus
 --------------------------------------------------
 
-function Widget:SetFocus()
+function Widget:setFocus()
 	self.focus = true
-	if self.OnFocus then
-		self:OnFocus()
+	if self.onFocus then
+		self:onFocus()
 	end
 end
 
-function Widget:RemoveFocus()
+function Widget:removeFocus()
 	self.focus = false
-	if self.OnRemoveFocus then
-		self:OnRemoveFocus()
+	if self.onRemoveFocus then
+		self:onRemoveFocus()
 	end
 end
 
-function Widget:IsFocus()
+function Widget:isFocus()
 	return self.focus
 end
 
@@ -196,7 +251,7 @@ end
 -- Z-axis Movement
 --------------------------------------------------
 
-function Widget:MoveToTop()
+function Widget:moveToTop()
 	if self.parent then
 		for k, v in ipairs(self.parent.children) do
 			if v == self then
@@ -206,11 +261,11 @@ function Widget:MoveToTop()
 			end
 		end
 	else
-		UiManager:MoveToTop(self)
+		UiManager:moveToTop(self)
 	end
 end
 
-function Widget:MoveToBottom()
+function Widget:moveToBottom()
 	if self.parent then
 		for k, v in ipairs(self.parent.children) do
 			if v == self then
@@ -220,7 +275,7 @@ function Widget:MoveToBottom()
 			end
 		end
 	else
-		UiManager:MoveToBottom(self)
+		UiManager:moveToBottom(self)
 	end
 end
 
@@ -229,17 +284,17 @@ end
 -- Event Handler
 --------------------------------------------------
 
-function Widget:IsOperational()
+function Widget:isOperational()
 	return self._valid and self.enabled and self.shown
 end
 
-function Widget:HandleEvent(event_type, ...)
-	if not self:IsOperational() then
+function Widget:handleEvent(event_type, ...)
+	if not self:isOperational() then
 		return
 	end
 
 	for i = #self.children, 1, -1 do
-		if self.children[i]:HandleEvent(event_type, ...) then
+		if self.children[i]:handleEvent(event_type, ...) then
 			return true -- 事件被拦截
 		end
 	end
@@ -260,7 +315,7 @@ function Widget:__tostring()
 	return self._name
 end
 
-function Widget:EnableDebug(enable)
+function Widget:enableDebug(enable)
 	self._debug = enable == true
 end
 

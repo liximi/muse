@@ -29,36 +29,30 @@ local Button = Class(Widget, function (self, text)
 		}
 	}
 
-	self.text = self:AddChild(Text(text or "Button"))
-	self.text:SetTextColor(self.state_defs.normal.text_color)
-	self.text:SetHAlign("center")
+	self.text = self:addChild(Text(text or "Button"))
+	self.text:setTextColor(self.state_defs.normal.text_color)
+	self.text:setHAlign("center")
 
-	self:SetSize(120, 50)
+	self.transform:setSize(120, 50)
 end)
 
 
 --- 设置按钮在某个状态下的样子
 ---@param state "normal"|"pressed"|"disabled"|"seleted"|"hover"|"seleted_hover"
 ---@param def {text:string, text_color:table, bg_color:table, outline_color:table, offset:table, scale:table} 配置信息表 
-function Button:SetStateDef(state, def)
+function Button:setStateDef(state, def)
 	if not BTN_STATES[state] then
-		print("Button:SetStateDef|Invalid state:", state)
+		print("Button:setStateDef|Invalid state:", state)
 		return
 	end
 	self.state_defs[state] = def
-	self:SetState(self.cur_state)
+	self:setState(self.cur_state)
 end
 
 
-function Button:OnSetSize(w, h)
-	self.text:SetMaxWidth(w)
-	local textw, texth = self.text:GetSize()
-	self.text:setPosition(0, (h-texth)*0.5)
-end
-
-function Button:SetState(new_state)
+function Button:setState(new_state)
 	if not BTN_STATES[new_state] then
-		print("Button:SetStateDef|Invalid state:", new_state)
+		print("Button:setStateDef|Invalid state:", new_state)
 		return
 	end
 	local old_state = self.cur_state
@@ -66,11 +60,11 @@ function Button:SetState(new_state)
 
 	local new_text = self.state_defs[new_state] and self.state_defs[new_state].text
 	if new_text then
-		self.text:SetText(new_text)
+		self.text:setText(new_text)
 	end
 	local new_text_color = self.state_defs[new_state] and self.state_defs[new_state].text_color
 	if new_text_color then
-		self.text:SetTextColor(new_text_color)
+		self.text:setTextColor(new_text_color)
 	end
 
 	local old_offset = self.state_defs[old_state] and self.state_defs[old_state].offset or {0, 0}
@@ -83,56 +77,56 @@ function Button:SetState(new_state)
 	self.transform:setScale(scale[1], scale[2])
 end
 
-function Button:OnFocus()
+function Button:onFocus()
 	if self.cur_state == BTN_STATES.normal then
-		self:SetState(BTN_STATES.hover)
+		self:setState(BTN_STATES.hover)
 	elseif self.cur_state == BTN_STATES.seleted then
-		self:SetState(BTN_STATES.seleted_hover)
+		self:setState(BTN_STATES.seleted_hover)
 	end
 end
 
-function Button:OnRemoveFocus()
+function Button:onRemoveFocus()
 	if self.cur_state == BTN_STATES.seleted_hover then
-		self:SetState(BTN_STATES.seleted)
+		self:setState(BTN_STATES.seleted)
 	elseif self.cur_state == BTN_STATES.hover then
-		self:SetState(BTN_STATES.normal)
+		self:setState(BTN_STATES.normal)
 	end
 end
 
 
-function Button:OnMousePressed(x, y, button)
-	if button == 1 and self:IsInUIScope(x, y) then
+function Button:onMousePressed(x, y, button)
+	if button == 1 and self:isInUIScope(x, y) then
 		if self.cur_state == BTN_STATES.normal or self.cur_state == BTN_STATES.hover then
-			self:SetState(BTN_STATES.pressed)
+			self:setState(BTN_STATES.pressed)
 		end
 	end
 end
 
-function Button:OnMouseReleased(x, y, button)
+function Button:onMouseReleased(x, y, button)
 	if button == 1 and self.cur_state == BTN_STATES.pressed then
-		self:SetState(BTN_STATES.normal)
-		if self.OnClick then
-			self:OnClick()
+		self:setState(BTN_STATES.normal)
+		if self.onClick then
+			self:onClick()
 		end
 	end
 end
 
-function Button:OnMouseMoved(x, y, dx, dy)
-	if self:IsInUIScope(x, y) then
-		if not self:IsFocus() then
-			self:SetFocus()
+function Button:onMouseMoved(x, y, dx, dy)
+	if self:isInUIScope(x, y) then
+		if not self:isFocus() then
+			self:setFocus()
 		end
-	elseif self:IsFocus() then
-		self:RemoveFocus()
+	elseif self:isFocus() then
+		self:removeFocus()
 	end
 end
 
 
 
-function Button:OnDraw()
+function Button:onDraw()
 	local cur_state_def = self.state_defs[self.cur_state]
 	local x, y = self:getGlobalPosition()
-	local w, h = self:GetGlobalScaledSize()
+	local w, h = self:getGlobalScaledSize()
 	local bg_color = cur_state_def.bg_color or self.state_defs.normal.bg_color
 	local outline_color = cur_state_def.outline_color or self.state_defs.normal.outline_color
 
@@ -148,7 +142,7 @@ function Button:OnDraw()
 	if self._debug then
 		love.graphics.setColor(unpack(Utils.debug_color1))
 		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
-		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:GetFont("default", 16), x, y + h, self.width)
+		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, self.width)
 	end
 end
 

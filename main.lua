@@ -33,57 +33,66 @@ love.load = function()
     love.keyboard.setKeyRepeat(true)
 
     --UI
-    UI_ROOT = UiManager:AddWidget(Widget("UI_ROOT"))
+    UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
 
-    local root_panel = UI_ROOT:AddChild(CollapsibleScreenEdgePanel(300))
+    -- local root_panel = UI_ROOT:addChild(CollapsibleScreenEdgePanel(300))
+    local root_panel = UiManager:addWidget(Panel({
+        pivot = {0.5, 0.5},
+        w = 300,
+        h = 300,
+        anchors = {0.5,0.5,0.5,0.5},
+        -- padding = {nil, nil, 0, 0},
+    }))
+    root_panel:setPosition(0, 0)
+    root_panel:enableDebug(true)
 
-    local title = root_panel:AddChild(Text("Widget Examples"))
-    title:SetTextColor(UiUtils.UI_COLORS.PRIMARY_TEXT)
-    title:SetFont("default", 20)
-    title:setPosition(10, 0)
+    -- local title = root_panel:addChild(Text("Widget Examples"))
+    -- title:setTextColor(UiUtils.UI_COLORS.PRIMARY_TEXT)
+    -- title:setFont("default", 20)
+    -- title:setPosition(10, 0)
 
-    local list = root_panel:AddChild(ScrollableList(280, 675))
-    list:setPosition(10, 36)
+    -- local list = root_panel:addChild(ScrollableList(280, 675))
+    -- list:setPosition(10, 36)
 
-    local example_btn_1 = Button("Panel")
-    example_btn_1:SetSize(276, 50)
-    example_btn_1.OnClick = function(self)
+    -- local example_btn_1 = Button("Panel")
+    -- example_btn_1.transform:setSize(276, 50)
+    -- example_btn_1.onClick = function(self)
 
-    end
-    local example_btn_2 = Button("Text")
-    example_btn_2:SetSize(276, 50)
-    example_btn_2.OnClick = function(self)
+    -- end
+    -- local example_btn_2 = Button("Text")
+    -- example_btn_2.transform:setSize(276, 50)
+    -- example_btn_2.onClick = function(self)
 
-    end
-    local example_btn_3 = Button("Image")
-    example_btn_3:SetSize(276, 50)
-    example_btn_3.OnClick = function(self)
+    -- end
+    -- local example_btn_3 = Button("Image")
+    -- example_btn_3.transform:setSize(276, 50)
+    -- example_btn_3.onClick = function(self)
 
-    end
-    local example_btn_4 = Button("Button")
-    example_btn_4:SetSize(276, 50)
-    example_btn_4.OnClick = function(self)
+    -- end
+    -- local example_btn_4 = Button("Button")
+    -- example_btn_4.transform:setSize(276, 50)
+    -- example_btn_4.onClick = function(self)
 
-    end
-    local example_btn_5 = Button("ImageButton")
-    example_btn_5:SetSize(276, 50)
-    example_btn_5.OnClick = function(self)
+    -- end
+    -- local example_btn_5 = Button("ImageButton")
+    -- example_btn_5.transform:setSize(276, 50)
+    -- example_btn_5.onClick = function(self)
 
-    end
-    local example_btn_6 = Button("TextInput")
-    example_btn_6:SetSize(276, 50)
-    example_btn_6.OnClick = function(self)
+    -- end
+    -- local example_btn_6 = Button("TextInput")
+    -- example_btn_6.transform:setSize(276, 50)
+    -- example_btn_6.onClick = function(self)
 
-    end
-    list:SetItems({
-        example_btn_1,
-        example_btn_2,
-        example_btn_3,
-        example_btn_4,
-        example_btn_5,
-        example_btn_6,
-    })
-    list:SetXOffset(2)
+    -- end
+    -- list:SetItems({
+    --     example_btn_1,
+    --     example_btn_2,
+    --     example_btn_3,
+    --     example_btn_4,
+    --     example_btn_5,
+    --     example_btn_6,
+    -- })
+    -- list:SetXOffset(2)
 end
 
 
@@ -93,7 +102,7 @@ love.update = function(dt)
     -- 在浏览器里打开'127.0.0.1:8000'来查看控制台
     Lovebird.update(dt)
 
-    UiManager:Update(dt)
+    UiManager:update(dt)
 
     FPS = 1/dt
 end
@@ -119,7 +128,7 @@ end
 local function DrawPerformanceInfo()
     love.graphics.setColor(0, 0.6, 0)
     local str = string.format("FPS: %.2f", FPS)
-    local font = Fonts:GetFont("default", 16) ---@type love.Font
+    local font = Fonts:getFont("default", 16) ---@type love.Font
     local w = font:getWidth(str)
     love.graphics.printf(str, font, love.graphics.getWidth()-w-5, 5, w)
 end
@@ -128,7 +137,7 @@ love.draw = function()
     love.graphics.clear(0.85, 0.85, 0.849, 1)
     DrawGridBG()
 
-    UiManager:Draw()
+    UiManager:draw()
 
     DrawPerformanceInfo()
 end
@@ -144,6 +153,9 @@ end
 
 function love.keyreleased(key, scancode)
     UiManager:KeyReleased(key)
+    if key == "escape" then
+        love.event.quit()
+    end
 end
 
 function love.wheelmoved(x, y)
