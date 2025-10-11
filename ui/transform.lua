@@ -1,7 +1,7 @@
 local function _updateLeftRight(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
 	transform.left = transform.x - transform.w * transform.pivot[1]
-	transform.right = parent_w * transform.anchors_max[1] - transform.x + transform.w * (1 - transform.pivot[1])
+	transform.right = parent_w * transform.anchors_max[1] - transform.x - transform.w * (1 - transform.pivot[1])
 end
 
 local function _updateTopBottom(transform)
@@ -10,26 +10,20 @@ local function _updateTopBottom(transform)
 	transform.bottom = parent_h * transform.anchors_max[2] - transform.y - transform.h * (1 - transform.pivot[2])
 end
 
-local function _updateWidth(transform)
+local function _updateWidthAndX(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	local parent_pivot_x = transform.parent and transform.parent.pivot[1] or 0
-	local parent_left_begin = parent_w * transform.anchors_min[1] - parent_pivot_x * parent_w
-	local parent_right_begin = parent_w * transform.anchors_max[1] - parent_pivot_x * parent_w
-	local w = parent_right_begin - parent_left_begin - transform.left - transform.right
-	if w ~= transform.w then
-		transform.w = w
-	end
+	local anchor_w = parent_w * (transform.anchors_max[1] - transform.anchors_min[1])
+	local w = anchor_w - transform.left - transform.right
+	transform.w = w
+	transform.x = anchor_w / 2
 end
 
-local function _updateHeight(transform)
+local function _updateHeightAndY(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	local parent_pivot_y = transform.parent and transform.parent.pivot[2] or 0
-	local parent_top_begin = parent_h * transform.anchors_min[2] - parent_pivot_y * parent_h
-	local parent_bottom_begin = parent_h * transform.anchors_max[2] - parent_pivot_y * parent_h
-	local h = parent_bottom_begin - parent_top_begin - transform.top - transform.bottom
-	if h ~= transform.h then
-		transform.h = h
-	end
+	local anchor_h = parent_h * (transform.anchors_max[2] - transform.anchors_min[2])
+	local h = anchor_h - transform.top - transform.bottom
+	transform.h = h
+	transform.y = anchor_h / 2
 end
 
 
@@ -88,13 +82,13 @@ local function setPadding(transform, left, right, top, bottom)
 	end
 	if left or right then
 		local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-		local w = parent_w - transform.right - transform.left
+		local w = parent_w * (transform.anchors_max[1] - transform.anchors_min[1]) - transform.right - transform.left
 		transform.w = w
 		transform.x = transform.left + w * transform.pivot[1]
 	end
 	if top or bottom then
 		local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-		local h = parent_h - transform.top - transform.bottom
+		local h = parent_h * (transform.anchors_max[2] - transform.anchors_min[2]) - transform.top - transform.bottom
 		transform.h = h
 		transform.y = transform.top + h * transform.pivot[2]
 	end
@@ -305,12 +299,12 @@ local function Transform()
 			if self.anchors_min[1] == self.anchors_max[1] then
 				_updateLeftRight(self)
 			else
-				_updateWidth(self)
+				_updateWidthAndX(self)
 			end
 			if self.anchors_min[2] == self.anchors_max[2] then
 				_updateTopBottom(self)
 			else
-				_updateHeight(self)
+				_updateHeightAndY(self)
 			end
 		end,
 
