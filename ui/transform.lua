@@ -186,15 +186,18 @@ local function getGlobalPosition(self)
 	local parent_x, parent_y = 0, 0
 	local parent_sx, parent_sy = 1, 1
 	local parent_w, parent_h
+	local parent_pivot = {0, 0}
 	if self.parent then
 		parent_x, parent_y = self.parent:getGlobalPosition()
 		parent_sx, parent_sy = self.parent:getGlobalScale()
-		parent_w, parent_h = self.parent:getSize()
+		parent_w, parent_h = self.parent:getGlobalScaledSize()
+		parent_pivot = self.parent.pivot
 	else
 		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
-	local x_begin = parent_w * self.anchors_min[1] + parent_x
-	local y_begin = parent_h * self.anchors_min[2] + parent_y
+
+	local x_begin = parent_x - parent_w * parent_pivot[1]
+	local y_begin = parent_y - parent_h * parent_pivot[2]
 	return x_begin + self.x * parent_sx, y_begin + self.y * parent_sy
 end
 
