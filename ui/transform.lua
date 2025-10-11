@@ -43,104 +43,104 @@ end
 
 
 --- 会额外影响Padding
-local function setPosition(transform, x, y)
+local function setPosition(self, x, y)
 	if x then
-		transform.x = x
-		_updateLeftRight(transform)
+		self.x = x
+		_updateLeftRight(self)
 	end
 	if y then
-		transform.y = y
-		_updateTopBottom(transform)
+		self.y = y
+		_updateTopBottom(self)
 	end
 end
 
 --- 会额外影响Padding
-local function setSize(transform, w, h)
+local function setSize(self, w, h)
 	if w then
-		transform.w = w
-		_updateLeftRight(transform)
+		self.w = w
+		_updateLeftRight(self)
 	end
 	if h then
-		transform.h = h
-		_updateTopBottom(transform)
+		self.h = h
+		_updateTopBottom(self)
 	end
 end
 
 --- 会额外影响坐标和尺寸
-local function setPadding(transform, left, right, top, bottom)
+local function setPadding(self, left, right, top, bottom)
 	if left then
-		transform.left = left
+		self.left = left
 	end
 	if right then
-		transform.right = right
+		self.right = right
 	end
 	if top then
-		transform.top = top
+		self.top = top
 	end
 	if bottom then
-		transform.bottom = bottom
+		self.bottom = bottom
 	end
 	if left or right then
-		local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-		local w = parent_w * (transform.anchors_max[1] - transform.anchors_min[1]) - transform.right - transform.left
-		transform.w = w
-		transform.x = transform.left + w * transform.pivot[1]
+		local parent_w = self.parent and self.parent.w or love.graphics.getWidth()
+		local w = parent_w * (self.anchors_max[1] - self.anchors_min[1]) - self.right - self.left
+		self.w = w
+		self.x = self.left + w * self.pivot[1]
 	end
 	if top or bottom then
-		local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-		local h = parent_h * (transform.anchors_max[2] - transform.anchors_min[2]) - transform.top - transform.bottom
-		transform.h = h
-		transform.y = transform.top + h * transform.pivot[2]
+		local parent_h = self.parent and self.parent.h or love.graphics.getHeight()
+		local h = parent_h * (self.anchors_max[2] - self.anchors_min[2]) - self.top - self.bottom
+		self.h = h
+		self.y = self.top + h * self.pivot[2]
 	end
 end
 
-local function setScale(transform, sx, sy)
+local function setScale(self, sx, sy)
 	if sx then
-		transform.scale_x = sx
+		self.scale_x = sx
 	end
 	if sy then
-		transform.scale_y = sy
+		self.scale_y = sy
 	end
 end
 
 --- 会额外影响坐标
-local function setPivot(transform, px, py)
+local function setPivot(self, px, py)
 	local x, y
 	if px then
-		x = transform.x + (px - transform.pivot[1]) * transform.w
-		transform.pivot[1] = px
+		x = self.x + (px - self.pivot[1]) * self.w
+		self.pivot[1] = px
 	end
 	if py then
-		y = transform.y + (py - transform.pivot[2]) * transform.h
-		transform.pivot[2] = py
+		y = self.y + (py - self.pivot[2]) * self.h
+		self.pivot[2] = py
 	end
-	setPosition(transform, x, y)
+	setPosition(self, x, y)
 end
 
 --- 会额外影响Padding
-local function setAnchors(transform, minx, miny, maxx, maxy)
+local function setAnchors(self, minx, miny, maxx, maxy)
 	if minx then
-		transform.anchors_min[1] = minx
+		self.anchors_min[1] = minx
 	end
 	if miny then
-		transform.anchors_min[2] = miny
+		self.anchors_min[2] = miny
 	end
 	if maxx then
-		transform.anchors_max[1] = maxx
+		self.anchors_max[1] = maxx
 	end
 	if maxy then
-		transform.anchors_max[2] = maxy
+		self.anchors_max[2] = maxy
 	end
 	if minx or maxx then
-		_updateLeftRight(transform)
+		_updateLeftRight(self)
 	end
 	if miny or maxy then
-		_updateTopBottom(transform)
+		_updateTopBottom(self)
 	end
 end
 
-local function setRotation(transform, rot)
-	transform.rotation = rot
+local function setRotation(self, rot)
+	self.rotation = rot
 end
 
 
@@ -149,82 +149,82 @@ end
 --------------------------------------------------
 
 
-local function getPosition(transform)
-	return transform.x, transform.y
+local function getPosition(self)
+	return self.x, self.y
 end
 
-local function getSize(transform)
-	return transform.w, transform.h
+local function getSize(self)
+	return self.w, self.h
 end
 
-local function getScale(transform)
-	return transform.scale_x, transform.scale_y
+local function getScale(self)
+	return self.scale_x, self.scale_y
 end
 
-local function getScaledSize(transform)
-	return transform.w * transform.scale_x, transform.h * transform.scale_y
+local function getScaledSize(self)
+	return self.w * self.scale_x, self.h * self.scale_y
 end
 
-local function getAnchors(transform)
-	return transform.anchors_min[1], transform.anchors_min[2], transform.anchors_max[1], transform.anchors_max[2]
+local function getAnchors(self)
+	return self.anchors_min[1], self.anchors_min[2], self.anchors_max[1], self.anchors_max[2]
 end
 
-local function getPivot(transform)
-	return transform.pivot[1], transform.pivot[2]
+local function getPivot(self)
+	return self.pivot[1], self.pivot[2]
 end
 
-local function getPadding(transform)
+local function getPadding(self)
 	return {
-		left = transform.left,
-		right = transform.right,
-		top = transform.top,
-		bottom = transform.bottom,
+		left = self.left,
+		right = self.right,
+		top = self.top,
+		bottom = self.bottom,
 	}
 end
 
-local function getGlobalPosition(transform)
+local function getGlobalPosition(self)
 	local parent_x, parent_y = 0, 0
 	local parent_sx, parent_sy = 1, 1
 	local parent_w, parent_h
-	if transform.parent then
-		parent_x, parent_y = transform.parent:getGlobalPosition()
-		parent_sx, parent_sy = transform.parent:getGlobalScale()
-		parent_w, parent_h = transform.parent:getSize()
+	if self.parent then
+		parent_x, parent_y = self.parent:getGlobalPosition()
+		parent_sx, parent_sy = self.parent:getGlobalScale()
+		parent_w, parent_h = self.parent:getSize()
 	else
 		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
-	local x_begin = parent_w * transform.anchors_min[1] + parent_x
-	local y_begin = parent_h * transform.anchors_min[2] + parent_y
-	return x_begin + transform.x * parent_sx, y_begin + transform.y * parent_sy
+	local x_begin = parent_w * self.anchors_min[1] + parent_x
+	local y_begin = parent_h * self.anchors_min[2] + parent_y
+	return x_begin + self.x * parent_sx, y_begin + self.y * parent_sy
 end
 
-local function getGlobalScale(transform)
+local function getGlobalScale(self)
 	local parent_sx, parent_sy = 1, 1
-	if transform.parent then
-		parent_sx, parent_sy = transform.parent:getGlobalScale()
+	if self.parent then
+		parent_sx, parent_sy = self.parent:getGlobalScale()
 	end
-	return transform.scale_x * parent_sx, transform.scale_y * parent_sy
+	return self.scale_x * parent_sx, self.scale_y * parent_sy
 end
 
-local function getGlobalScaledSize(transform)
-	local sx, sy = transform:getGlobalScale()
-	return transform.w * sx, transform.h * sy
+local function getGlobalScaledSize(self)
+	local sx, sy = self:getGlobalScale()
+	return self.w * sx, self.h * sy
 end
 
-local function getGlobalRotation(transform)
-	local parent_r = transform.parent and transform.parent:getGlobalRotation() or 0
-	return normalizeRadians(parent_r + transform.rotation)
+local function getGlobalRotation(self)
+	local parent_r = self.parent and self.parent:getGlobalRotation() or 0
+	return normalizeRadians(parent_r + self.rotation)
 end
 
 ---@return number x 左上角 X 坐标
 ---@return number y 左上角 Y 坐标
 ---@return number w
 ---@return number h
-local function getAABB(transform)
-	local sw, sh = getScaledSize(transform)
+local function getAABB(self)
+	local sw, sh = getScaledSize(self)
 	return
-		transform.x - sw * transform.pivot[1],
-		transform.y - sh * transform.pivot[2],
+		self.x - sw * self.pivot[1],
+		self.y - sh * self.pivot[2],
 		sw, sh
 end
 
@@ -232,12 +232,12 @@ end
 ---@return number y
 ---@return number w
 ---@return number h
-local function getGlobalAABB(transform)
-	local x, y = getGlobalPosition(transform)
-	local sw, sh = getGlobalScaledSize(transform)
+local function getGlobalAABB(self)
+	local x, y = getGlobalPosition(self)
+	local sw, sh = getGlobalScaledSize(self)
 	return
-		x - sw * transform.pivot[1],
-		y - sh * transform.pivot[2],
+		x - sw * self.pivot[1],
+		y - sh * self.pivot[2],
 		sw, sh
 end
 
