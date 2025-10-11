@@ -33,23 +33,34 @@ love.load = function()
     love.keyboard.setKeyRepeat(true)
 
     --UI
-    UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
+    -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
 
     -- local root_panel = UI_ROOT:addChild(CollapsibleScreenEdgePanel(300))
     local root_panel = UiManager:addWidget(Panel({
         pivot = {0.5, 0.5},
         w = 300,
         h = 300,
-        anchors = {0.5,0.5,0.5,0.5},
-        -- padding = {nil, nil, 0, 0},
+        anchors = {0.25,0.5,0.25,0.5},
+        padding = {170, 170, nil, nil},
     }))
-    root_panel:setPosition(0, 0)
     root_panel:enableDebug(true)
 
-    -- local title = root_panel:addChild(Text("Widget Examples"))
-    -- title:setTextColor(UiUtils.UI_COLORS.PRIMARY_TEXT)
-    -- title:setFont("default", 20)
-    -- title:setPosition(10, 0)
+    -- local panel1 = root_panel:addChild(Panel({
+    --     pivot = {0.5, 0.5},
+    --     w = 100, h = 200,
+    --     bg_color = UiUtils.UI_COLORS.LIGHT_PRIMARY
+    -- }))
+
+    -- local title = root_panel:addChild(Text({
+    --     text = "Widget Examples",
+    --     text_color = UiUtils.UI_COLORS.PRIMARY_TEXT,
+    --     font = "default",
+    --     font_size = 20,
+    --     x = 10,
+    --     w = 300,
+    --     h = 20,
+    -- }))
+    -- title:enableDebug(true)
 
     -- local list = root_panel:addChild(ScrollableList(280, 675))
     -- list:setPosition(10, 36)

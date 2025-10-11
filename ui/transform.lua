@@ -1,20 +1,13 @@
 local function _updateLeftRight(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	local parent_pivot_x = transform.parent and transform.parent.pivot[1] or 0
-	local parent_left_begin = parent_w * transform.anchors_min[1] - parent_pivot_x * parent_w
-	local parent_right_begin = parent_w * transform.anchors_max[1] - parent_pivot_x * parent_w
-	transform.left = transform.x - transform.w * transform.pivot[1] - parent_left_begin
-	transform.right = parent_right_begin - transform.x - transform.w * (1 - transform.pivot[1])
-	print(transform.left, transform.right)
+	transform.left = transform.x - transform.w * transform.pivot[1]
+	transform.right = parent_w * transform.anchors_max[1] - transform.x + transform.w * (1 - transform.pivot[1])
 end
 
 local function _updateTopBottom(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	local parent_pivot_y = transform.parent and transform.parent.pivot[2] or 0
-	local parent_top_begin = parent_h * transform.anchors_min[2] - parent_pivot_y * parent_h
-	local parent_bottom_begin = parent_h * transform.anchors_max[2] - parent_pivot_y * parent_h
-	transform.top = transform.y - transform.h * transform.pivot[2] - parent_top_begin
-	transform.bottom = parent_bottom_begin - transform.y - transform.h * (1 - transform.pivot[2])
+	transform.top = transform.y - transform.h * transform.pivot[2]
+	transform.bottom = parent_h * transform.anchors_max[2] - transform.y - transform.h * (1 - transform.pivot[2])
 end
 
 local function _updateWidth(transform)
@@ -198,11 +191,17 @@ end
 local function getGlobalPosition(transform)
 	local parent_x, parent_y = 0, 0
 	local parent_sx, parent_sy = 1, 1
+	local parent_w, parent_h
 	if transform.parent then
 		parent_x, parent_y = transform.parent:getGlobalPosition()
 		parent_sx, parent_sy = transform.parent:getGlobalScale()
+		parent_w, parent_h = transform.parent:getSize()
+	else
+		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
-	return parent_x + transform.x * parent_sx, parent_y + transform.y * parent_sy
+	local x_begin = parent_w * transform.anchors_min[1] + parent_x
+	local y_begin = parent_h * transform.anchors_min[2] + parent_y
+	return x_begin + transform.x * parent_sx, y_begin + transform.y * parent_sy
 end
 
 local function getGlobalScale(transform)
@@ -223,14 +222,39 @@ local function getGlobalRotation(transform)
 	return normalizeRadians(parent_r + transform.rotation)
 end
 
+---@return number x 左上角 X 坐标
+---@return number y 左上角 Y 坐标
+---@return number w
+---@return number h
+local function getAABB(transform)
+	local sw, sh = getScaledSize(transform)
+	return
+		transform.x - sw * transform.pivot[1],
+		transform.y - sh * transform.pivot[2],
+		sw, sh
+end
+
+---@return number x
+---@return number y
+---@return number w
+---@return number h
+local function getGlobalAABB(transform)
+	local x, y = getGlobalPosition(transform)
+	local sw, sh = getGlobalScaledSize(transform)
+	return
+		x - sw * transform.pivot[1],
+		y - sh * transform.pivot[2],
+		sw, sh
+end
+
 
 
 
 local function Transform()
 	return {
 		-- parent = Transform(),
-		x = 0,
-		y = 0,
+		x = 0,--pivot相对锚点范围左边缘的偏移量（像素）
+		y = 0,--pivot相对锚点范围上边缘的偏移量（像素）
 
 		w = 0,
 		h = 0,
@@ -269,11 +293,13 @@ local function Transform()
 		getAnchors = getAnchors,
 		getPivot = getPivot,
 		getPadding = getPadding,
+		getAABB = getAABB,
 
 		getGlobalPosition = getGlobalPosition,
 		getGlobalScale = getGlobalScale,
 		getGlobalScaledSize = getGlobalScaledSize,
 		getGlobalRotation = getGlobalRotation,
+		getGlobalAABB = getGlobalAABB,
 
 		onUpdate = function(self)
 			if self.anchors_min[1] == self.anchors_max[1] then
@@ -289,7 +315,7 @@ local function Transform()
 		end,
 
 		__tostring = function(self)
-			return string.format("Transform position:[%.2f, %.2f] size:[%.2f, %.2f] rotation:%.2f scale:[%.2f, %.2f] anchors:[%.2f, %.2f, %.2f, %.2f] pivot:[%.2f, %.2f] padding:[l:%.2f, r:%.2f, t:%.2f b:%.2f]",
+			return string.format("position:[%.2f, %.2f] size:[%.2f, %.2f] rotation:%.2f scale:[%.2f, %.2f] anchors:[%.2f, %.2f, %.2f, %.2f] pivot:[%.2f, %.2f] padding:[l:%.2f, r:%.2f, t:%.2f b:%.2f]",
 				self.x, self.y, self.w, self.h, self.rotation, self.scale_x, self.scale_y, self.anchors_min[1], self.anchors_min[2], self.anchors_max[1], self.anchors_max[2], self.pivot[1], self.pivot[2], self.left, self.right, self.top, self.bottom)
 		end
 	}

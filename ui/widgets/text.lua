@@ -3,17 +3,17 @@ local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
 
 
-local Text = Class(Widget, function(self, text)
-	Widget.new(self, "Text")
+local Text = Class(Widget, function(self, datas)
+	Widget.new(self, "Text", datas)
 
-	self.font_key = "default"
-	self.font_size = 16
+	self.font_key = datas and datas.font or "default"
+	self.font_size = datas and datas.font_size or 16
 
-	self.text = text or ""
-	self.text_color = Utils.UI_COLORS.TEXT
-	self.horizontal_align = "left"	--"left"|"right"|"center"|"justify"
-	self.vertical_align = "center"	--"top"|"bottom"|"center"
-	self.max_width = love.graphics.getWidth()
+	self.text = datas and datas.text or ""
+	self.text_color = datas and datas.text_color or Utils.UI_COLORS.TEXT
+	self.horizontal_align = datas and datas.h_align or "left"	--"left"|"right"|"center"|"justify"
+	self.vertical_align = datas and datas.v_align or "center"	--"top"|"bottom"|"center"
+	self.max_width = datas and datas.w or love.graphics.getWidth()
 end)
 
 
@@ -116,7 +116,7 @@ end
 
 
 function Text:onDraw()
-	local x, y = self:getGlobalPosition()
+	local x, y, w, h = self.transform:getGlobalAABB()
 	local sx, sy = self:getGlobalScale()
 	local rot = self.transform:getGlobalRotation()
 	local font = Fonts:getFont(self.font_key, self.font_size)
@@ -126,7 +126,6 @@ function Text:onDraw()
 	if self._debug then
 		local debug_font = Fonts:getFont("default", 12)
 		love.graphics.setColor(unpack(Utils.debug_color1))
-		local w, h = self:getGlobalScaledSize()
 		local max_w = self.max_width * sx
 		love.graphics.rectangle("line", x, y, max_w, h)
 		love.graphics.setColor(unpack(Utils.debug_color2))

@@ -62,36 +62,6 @@ function Widget:getGlobalScaledSize()
 end
 
 --------------------------------------------------
--- AABB (Axis-Aligned Bounding Box)
---------------------------------------------------
-
---- 返回一个包含 x,y,w,h 的 table，x 和 y 是该包围框的左上角坐标
-function Widget:getAABB()
-	local x, y = self.transform:getPosition()
-	local px, py = self.transform:getPivot()
-	local w, h = self.transform:getScaledSize()
-	return {
-		x = x - px * w,
-		y = y - py * h,
-		w = w,
-		h = h
-	}
-end
-
---- 获取 Widget 基于全局坐标系的AABB
-function Widget:getGlobalAABB()
-	local x, y = self.transform:getGlobalPosition()
-	local px, py = self.transform:getPivot()
-	local w, h = self.transform:getGlobalScaledSize()
-	return {
-		x = x - px * w,
-		y = y - py * h,
-		w = w,
-		h = h
-	}
-end
-
---------------------------------------------------
 -- Children
 --------------------------------------------------
 
