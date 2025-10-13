@@ -15,8 +15,8 @@ local Button = Class(Widget, function (self, text)
 		normal = {
 			text = text or "Button",
 			text_color = Utils.UI_COLORS.PRIMARY_TEXT,
-			bg_color = Utils.UI_COLORS.ACCENT,
-			outline_color = Utils.UI_COLORS.DARK_PRIMARY,
+			bg_color = Utils.UI_COLORS.BLACK,
+			outline_color = Utils.UI_COLORS.WHITE,
 		},
 		pressed = {
 			outline_color = Utils.UI_COLORS.LIGHT_PRIMARY,

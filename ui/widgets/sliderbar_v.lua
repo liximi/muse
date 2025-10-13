@@ -7,7 +7,7 @@ local AddSizeComponent = require "ui.components".AddSize
 local SliderBar = Class(Widget, function (self, w, h)
 	Widget.new(self, "SliderBar Vertical")
 
-	self.bg_color = Utils.UI_COLORS.TEXT
+	self.bg_color = Utils.UI_COLORS.WHITE
 	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
 
 	AddSizeComponent(self)

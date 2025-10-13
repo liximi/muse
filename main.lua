@@ -19,7 +19,7 @@ local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
 local languages = {"zh-cn"}
 
 local UI_ROOT
-
+local root_panel
 
 love.load = function()
     -- 加载本地化文本
@@ -36,12 +36,13 @@ love.load = function()
     -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
 
     -- local root_panel = UI_ROOT:addChild(CollapsibleScreenEdgePanel(300))
-    local root_panel = UiManager:addWidget(Panel({
+    root_panel = UiManager:addWidget(Panel({
         pivot = {0.5, 0.5},
         w = 300,
         h = 300,
-        anchors = {0.25,0.5,0.25,0.5},
-        padding = {170, 170, nil, nil},
+        sx = 0.5,
+        anchors = {0.5,0.5,0.5,0.5},
+        r = 2
     }))
     root_panel:enableDebug(true)
 
@@ -119,11 +120,14 @@ love.update = function(dt)
 end
 
 
+local line_color1 = UiUtils.RGB(190, 190, 190)
+local line_color2 = UiUtils.RGB(220, 220, 220)
 local function DrawGridBG()
+    love.graphics.setLineWidth(1)
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     for i = 1, w+100, 100 do
         for j = 1, h+100, 100 do
-            love.graphics.setColor(0.5, 0.5, 0.5)
+            love.graphics.setColor(unpack(line_color1))
             for k = 20, 80, 20 do
                 love.graphics.line(i-2, j+k, i+2, j+k)
                 love.graphics.line(i+k, j+2, i+k, j-2)
@@ -131,7 +135,7 @@ local function DrawGridBG()
             love.graphics.line(i, j+50, i+100, j+50)
             love.graphics.line(i+50, j, i+50, j+100)
 
-            love.graphics.setColor(0, 0, 0)
+            love.graphics.setColor(unpack(line_color2))
             love.graphics.line(i, j, i+99, j, i+99, j+99)
         end
     end
@@ -144,8 +148,7 @@ local function DrawPerformanceInfo()
     love.graphics.printf(str, font, love.graphics.getWidth()-w-5, 5, w)
 end
 love.draw = function()
-    -- love.graphics.clear(0.4, 0.9, 0.7, 1)
-    love.graphics.clear(0.85, 0.85, 0.849, 1)
+    love.graphics.clear(unpack(UiUtils.UI_COLORS.BLACK))
     DrawGridBG()
 
     UiManager:draw()

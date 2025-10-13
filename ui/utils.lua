@@ -24,15 +24,10 @@ function Utils.RGB(r, g, b, a)
 end
 
 Utils.UI_COLORS = {
-    PRIMARY = Utils.RGB(3, 169, 244),   --原色
-    DARK_PRIMARY = Utils.RGB(2, 136, 209),  --深原色
-    LIGHT_PRIMARY = Utils.RGB(179, 229, 252),   --浅原色
-    ACCENT = Utils.RGB(83, 109, 254),   --强调色
-    TEXT = Utils.RGB(255, 255, 255),    --文本颜色
-    ICONS = Utils.RGB(255, 255, 255),   --图标颜色
-    PRIMARY_TEXT = Utils.RGB(33, 33, 33),   --主要文本颜色
-    SECONDARY_TEXT = Utils.RGB(117, 117, 117),   --次要文本颜色
-    DIVIDER = Utils.RGB(189, 189, 189), --分隔线颜色
+    WHITE = Utils.RGB(220, 220, 220),
+    BLACK = Utils.RGB(37, 37, 37),
+    PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
+    SECONDARY_TEXT = Utils.RGB(120, 120, 120),   --次要文本颜色
 
     DEBUG1 = Utils.RGB(255, 70, 150),
     DEBUG2 = Utils.RGB(240, 255, 70),

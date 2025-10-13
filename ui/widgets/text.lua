@@ -10,7 +10,7 @@ local Text = Class(Widget, function(self, datas)
 	self.font_size = datas and datas.font_size or 16
 
 	self.text = datas and datas.text or ""
-	self.text_color = datas and datas.text_color or Utils.UI_COLORS.TEXT
+	self.text_color = datas and datas.text_color or Utils.UI_COLORS.WHITE
 	self.horizontal_align = datas and datas.h_align or "left"	--"left"|"right"|"center"|"justify"
 	self.vertical_align = datas and datas.v_align or "center"	--"top"|"bottom"|"center"
 	self.max_width = datas and datas.w or love.graphics.getWidth()

@@ -12,14 +12,14 @@ local TextInput = Class(Widget, function(self, w, h, hint, enable_background, he
 	Widget.new(self, "TextInput")
 
 	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
-	self.hovered_outline_color = Utils.UI_COLORS.ACCENT
+	self.hovered_outline_color = Utils.UI_COLORS.WHITE
 
 	self.height_adaptive = height_adaptive == true
 	self.min_height = min_height or h or 75
 
 	if enable_background then
 		self.bg = self:addChild(Panel(w or 200, h or 75))
-		self.bg:SetBGColor(Utils.UI_COLORS.TEXT)
+		self.bg:SetBGColor(Utils.UI_COLORS.WHITE)
 		self.bg:SetOutlineColor(self.outline_color)
 	end
 

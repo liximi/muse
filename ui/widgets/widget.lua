@@ -29,6 +29,9 @@ local Widget = Class(function(self, name, datas)
 		if datas.padding then
 			self.transform:setPadding(unpack(datas.padding))
 		end
+		if datas.r then
+			self.transform:setRotation(datas.r)
+		end
 	end
 
 	self.children = {}
