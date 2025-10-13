@@ -15,7 +15,7 @@ local function _updateWidthAndX(transform)
 	local anchor_w = parent_w * (transform.anchors_max[1] - transform.anchors_min[1])
 	local w = anchor_w - transform.left - transform.right
 	transform.w = w
-	transform.x = anchor_w / 2
+	transform.x = transform.left + w * transform.pivot[1]
 end
 
 local function _updateHeightAndY(transform)
@@ -23,7 +23,7 @@ local function _updateHeightAndY(transform)
 	local anchor_h = parent_h * (transform.anchors_max[2] - transform.anchors_min[2])
 	local h = anchor_h - transform.top - transform.bottom
 	transform.h = h
-	transform.y = anchor_h / 2
+	transform.y = transform.top + h * transform.pivot[2]
 end
 
 
@@ -196,8 +196,8 @@ local function getGlobalPosition(self)
 		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
 
-	local x_begin = parent_x - parent_w * parent_pivot[1]
-	local y_begin = parent_y - parent_h * parent_pivot[2]
+	local x_begin = parent_x + parent_w * (self.anchors_min[1] - parent_pivot[1])
+	local y_begin = parent_y + parent_h * (self.anchors_min[2] - parent_pivot[2])
 	return x_begin + self.x * parent_sx, y_begin + self.y * parent_sy
 end
 
