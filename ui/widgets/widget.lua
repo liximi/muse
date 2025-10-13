@@ -1,5 +1,8 @@
 local UiManager = require "ui.ui_manager":GetInstance()
+local Utils = require "ui.utils"
 local Transform = require "ui.transform"
+
+
 ---@class Widget
 local Widget = Class(function(self, name, datas)
 	self._name = name or "widget"
@@ -158,9 +161,33 @@ function Widget:draw()
 	if self.onDraw then
 		self:onDraw()
 	end
+	if self._debug then
+		self:drawBound()
+		self:drawAABB()
+	end
 	for _, child in ipairs(self.children) do
 		child:draw()
 	end
+end
+
+function Widget:drawAABB()
+	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
+	local x, y, w, h = self.transform:getGlobalAABB()
+	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
+end
+
+function Widget:drawBound()
+	local px, py = self.transform:getGlobalPosition()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	love.graphics.push()
+	if r ~= 0 and r ~= two_pi then
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG2))
+	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
+	love.graphics.pop()
 end
 
 --------------------------------------------------

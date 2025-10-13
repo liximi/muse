@@ -57,14 +57,14 @@ function Image:onDraw()
 		love.graphics.draw(self.texture, x, y, self.rotation, sx, sy)
 
 		if self._debug then
-			love.graphics.setColor(unpack(Utils.debug_color1))
+			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
 			love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
 			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("default", 16), x, y + h, w)
 		end
 	else
 		if self._debug then
 			local x, y = self:getGlobalPosition()
-			love.graphics.setColor(unpack(Utils.debug_color1))
+			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
 			love.graphics.rectangle("line", x-1, y-1, 2, 2)
 			love.graphics.setFont(Fonts:getFont("default", 16))
 			love.graphics.print("No Texture", x, y + 1)

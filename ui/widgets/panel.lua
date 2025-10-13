@@ -35,17 +35,21 @@ function Panel:SetOutlineColor(r, g, b)
 	end
 end
 
+local two_pi = 2 * math.pi
 function Panel:onDraw()
+	local px, py = self.transform:getGlobalPosition()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	love.graphics.push()
+	if r ~= 0 and r ~= two_pi then
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
 	love.graphics.setColor(unpack(self.bg_color))
-	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.rectangle("fill", x, y, w, h)
 	love.graphics.setColor(unpack(self.outline_color))
 	love.graphics.rectangle("line", x, y, w, h)
-	if self._debug then
-		love.graphics.setColor(unpack(Utils.debug_color1))
-		love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
-		love.graphics.printf(self.transform:__tostring(), Fonts:getFont("default", 16), x, y + h, math.max(300, w))
-	end
+	love.graphics.pop()
 end
 
 

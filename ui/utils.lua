@@ -33,10 +33,10 @@ Utils.UI_COLORS = {
     PRIMARY_TEXT = Utils.RGB(33, 33, 33),   --主要文本颜色
     SECONDARY_TEXT = Utils.RGB(117, 117, 117),   --次要文本颜色
     DIVIDER = Utils.RGB(189, 189, 189), --分隔线颜色
-}
 
-Utils.debug_color1 = Utils.RGB(255, 70, 150)
-Utils.debug_color2 = Utils.RGB(240, 255, 70)
+    DEBUG1 = Utils.RGB(255, 70, 150),
+    DEBUG2 = Utils.RGB(240, 255, 70),
+}
 
 Utils.BTN_STATES = {
     normal = "normal",

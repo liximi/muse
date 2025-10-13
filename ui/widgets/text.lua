@@ -125,10 +125,10 @@ function Text:onDraw()
 
 	if self._debug then
 		local debug_font = Fonts:getFont("default", 12)
-		love.graphics.setColor(unpack(Utils.debug_color1))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
 		local max_w = self.max_width * sx
 		love.graphics.rectangle("line", x, y, max_w, h)
-		love.graphics.setColor(unpack(Utils.debug_color2))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG2))
 		if self.horizontal_align == "left" then
 			love.graphics.rectangle("line", x, y, w, h)
 		elseif self.horizontal_align == "right" then
