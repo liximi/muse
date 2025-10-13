@@ -1,13 +1,15 @@
 local function _updateLeftRight(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	transform.left = transform.x - transform.w * transform.pivot[1]
-	transform.right = parent_w * transform.anchors_max[1] - transform.x - transform.w * (1 - transform.pivot[1])
+	local left = transform.x - transform.w * transform.pivot[1]
+	transform.left = left
+	transform.right = parent_w * transform.anchors_max[1] - left - transform.w
 end
 
 local function _updateTopBottom(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	transform.top = transform.y - transform.h * transform.pivot[2]
-	transform.bottom = parent_h * transform.anchors_max[2] - transform.y - transform.h * (1 - transform.pivot[2])
+	local top = transform.y - transform.h * transform.pivot[2]
+	transform.top = top
+	transform.bottom = parent_h * transform.anchors_max[2] - top - transform.h
 end
 
 local function _updateWidthAndX(transform)
@@ -81,16 +83,10 @@ local function setPadding(self, left, right, top, bottom)
 		self.bottom = bottom
 	end
 	if left or right then
-		local parent_w = self.parent and self.parent.w or love.graphics.getWidth()
-		local w = parent_w * (self.anchors_max[1] - self.anchors_min[1]) - self.right - self.left
-		self.w = w
-		self.x = self.left + w * self.pivot[1]
+		_updateWidthAndX(self)
 	end
 	if top or bottom then
-		local parent_h = self.parent and self.parent.h or love.graphics.getHeight()
-		local h = parent_h * (self.anchors_max[2] - self.anchors_min[2]) - self.top - self.bottom
-		self.h = h
-		self.y = self.top + h * self.pivot[2]
+		_updateHeightAndY(self)
 	end
 end
 
