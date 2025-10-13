@@ -192,9 +192,9 @@ local function getGlobalPosition(self)
 		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
 
-	local x_begin = parent_x + parent_w * (self.anchors_min[1] - parent_pivot[1])
-	local y_begin = parent_y + parent_h * (self.anchors_min[2] - parent_pivot[2])
-	return x_begin + self.x * parent_sx, y_begin + self.y * parent_sy
+	local anchor_begin_x = parent_x + parent_w * (self.anchors_min[1] - parent_pivot[1])
+	local anchor_begin_y = parent_y + parent_h * (self.anchors_min[2] - parent_pivot[2])
+	return anchor_begin_x + self.x * parent_sx, anchor_begin_y + self.y * parent_sy
 end
 
 local function getGlobalScale(self)
@@ -210,9 +210,9 @@ local function getGlobalScaledSize(self)
 	return self.w * sx, self.h * sy
 end
 
-local function getGlobalRotation(self)
-	local parent_r = self.parent and self.parent:getGlobalRotation() or 0
-	return normalizeRadians(parent_r + self.rotation)
+local function getGlobalRotation(self, no_normalize)
+	local parent_r = self.parent and self.parent:getGlobalRotation(true) or 0
+	return no_normalize and (parent_r + self.rotation) or normalizeRadians(parent_r + self.rotation)
 end
 
 ---@return number x 左上角 X 坐标
