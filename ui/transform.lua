@@ -29,13 +29,56 @@ local function _updateHeightAndY(transform)
 end
 
 
+local twoPi = 2 * math.pi
 local function normalizeRadians(rad)
-    local twoPi = 2 * math.pi
+	if rad > 0 and rad < twoPi then
+		return rad
+	end
     local normalized = math.fmod(rad, twoPi)
     if normalized < 0 then
         normalized = normalized + twoPi
     end
     return normalized
+end
+
+
+local function _calcAABB(x, y, sw, sh, px, py, r)
+	local dx_left = -sw * px
+	local dx_right = sw + dx_left
+	local dy_top = -sh * py
+	local dy_bottom = sh + dy_top
+	local sin, cos = math.sin(r), math.cos(r)
+	local cos_dx_l = dx_left * cos
+	local cos_dx_r = dx_right * cos
+	local sin_dy_t = dy_top * sin
+	local sin_dy_b = dy_bottom * sin
+	local sin_dx_l = dx_left * sin
+	local sin_dx_r = dx_right * sin
+	local cos_dy_t = dy_top * cos
+	local cos_dy_b = dy_bottom * cos
+	local verts = {
+		{x + cos_dx_l - sin_dy_t, y + sin_dx_l + cos_dy_t},--Left Top
+		{x + cos_dx_r - sin_dy_t, y + sin_dx_r + cos_dy_t},--Right Top
+		{x + cos_dx_l - sin_dy_b, y + sin_dx_l + cos_dy_b},--Left Bottom
+		{x + cos_dx_r - sin_dy_b, y + sin_dx_r + cos_dy_b},--Right Bottom
+	}
+	local minx, maxx, miny, maxy = verts[1][1], verts[1][1], verts[1][2], verts[1][2]
+	for i, v in ipairs(verts) do
+		if i ~= 1 then
+			local vx, vy = v[1], v[2]
+			if vx < minx then
+				minx = vx
+			elseif vx > maxx then
+				maxx = vx
+			end
+			if vy < miny then
+				miny = vy
+			elseif vy > maxy then
+				maxy = vy
+			end
+		end
+	end
+	return minx, miny, maxx - minx, maxy - miny
 end
 
 
@@ -136,7 +179,7 @@ local function setAnchors(self, minx, miny, maxx, maxy)
 end
 
 local function setRotation(self, rot)
-	self.rotation = rot
+	self.rotation = normalizeRadians(rot)
 end
 
 
@@ -221,10 +264,7 @@ end
 ---@return number h
 local function getAABB(self)
 	local sw, sh = getScaledSize(self)
-	return
-		self.x - sw * self.pivot[1],
-		self.y - sh * self.pivot[2],
-		sw, sh
+	return _calcAABB(self.x, self.y, sw, sh, self.pivot[1], self.pivot[2], self.rotation)
 end
 
 ---@return number x
@@ -234,10 +274,34 @@ end
 local function getGlobalAABB(self)
 	local x, y = getGlobalPosition(self)
 	local sw, sh = getGlobalScaledSize(self)
+	return _calcAABB(x, y, sw, sh, self.pivot[1], self.pivot[2], self:getGlobalRotation())
+end
+
+---@return number x
+---@return number y
+---@return number w
+---@return number h
+---@return number r
+local function getBounds(self)
+	local sw, sh = getScaledSize(self)
+	return
+		self.x - sw * self.pivot[1],
+		self.y - sh * self.pivot[2],
+		sw, sh, self.rotation
+end
+
+---@return number x
+---@return number y
+---@return number w
+---@return number h
+---@return number r
+local function getGlobalBounds(self)
+	local x, y = getGlobalPosition(self)
+	local sw, sh = getGlobalScaledSize(self)
 	return
 		x - sw * self.pivot[1],
 		y - sh * self.pivot[2],
-		sw, sh
+		sw, sh, self:getGlobalRotation()
 end
 
 
@@ -287,12 +351,14 @@ local function Transform()
 		getPivot = getPivot,
 		getPadding = getPadding,
 		getAABB = getAABB,
+		getBounds = getBounds,
 
 		getGlobalPosition = getGlobalPosition,
 		getGlobalScale = getGlobalScale,
 		getGlobalScaledSize = getGlobalScaledSize,
 		getGlobalRotation = getGlobalRotation,
 		getGlobalAABB = getGlobalAABB,
+		getGlobalBounds = getGlobalBounds,
 
 		onUpdate = function(self)
 			if self.anchors_min[1] == self.anchors_max[1] then
