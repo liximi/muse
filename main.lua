@@ -120,37 +120,49 @@ love.update = function(dt)
 end
 
 
-local line_color1 = UiUtils.RGB(190, 190, 190)
-local line_color2 = UiUtils.RGB(220, 220, 220)
+local line_color1 = UiUtils.RGB(160, 160, 160, 0.1)
+local line_color2 = UiUtils.RGB(200, 200, 200, 0.25)
 local function DrawGridBG()
     love.graphics.setLineWidth(1)
+    love.graphics.setLineStyle("rough")
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-    for i = 1, w+100, 100 do
-        for j = 1, h+100, 100 do
+    for i = 0, w+100, 100 do
+        for j = 0, h+100, 100 do
             love.graphics.setColor(unpack(line_color1))
-            for k = 20, 80, 20 do
-                love.graphics.line(i-2, j+k, i+2, j+k)
-                love.graphics.line(i+k, j+2, i+k, j-2)
-            end
+            -- for k = 25, 75, 25 do
+            --     love.graphics.line(i-2, j+k, i+2, j+k)
+            --     love.graphics.line(i+k, j+2, i+k, j-2)
+            -- end
+            love.graphics.line(i, j+25, i+100, j+25)
+            love.graphics.line(i+25, j, i+25, j+100)
             love.graphics.line(i, j+50, i+100, j+50)
             love.graphics.line(i+50, j, i+50, j+100)
+            love.graphics.line(i, j+75, i+100, j+75)
+            love.graphics.line(i+75, j, i+75, j+100)
 
             love.graphics.setColor(unpack(line_color2))
-            love.graphics.line(i, j, i+99, j, i+99, j+99)
+            love.graphics.line(i, j, i+100, j, i+100, j+100)
         end
     end
 end
 local function DrawPerformanceInfo()
     love.graphics.setColor(0, 0.6, 0)
+    local window_w = love.graphics.getWidth()
     local str = string.format("FPS: %.2f", FPS)
-    local font = Fonts:getFont("default", 16) ---@type love.Font
+    local font = Fonts:getFont("default", 14) ---@type love.Font
     local w = font:getWidth(str)
-    love.graphics.printf(str, font, love.graphics.getWidth()-w-5, 5, w)
+    love.graphics.printf(str, font, window_w-w, -2, w)
+
+    local memo = collectgarbage("count")
+    str = string.format("RAM: %.2f kb", memo)
+    w = font:getWidth(str)
+    love.graphics.printf(str, font, window_w-w, 12, w)
 end
 love.draw = function()
     love.graphics.clear(unpack(UiUtils.UI_COLORS.BLACK))
     DrawGridBG()
 
+    love.graphics.setLineStyle("smooth")
     UiManager:draw()
 
     DrawPerformanceInfo()

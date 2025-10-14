@@ -47,7 +47,7 @@ function ImageButton:onDraw()
 	local w, h = self:getGlobalScaledSize()
 
 	if self._debug then
-		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
 		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
 		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, self.width)
 	end

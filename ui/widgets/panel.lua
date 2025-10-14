@@ -6,8 +6,9 @@ local Fonts = require "ui.fonts"
 --一个纯色的面板，可设置面板颜色和边框颜色
 local Panel = Class(Widget, function(self, datas)
 	Widget.new(self, "Panel", datas)
-	self.bg_color = datas.bg_color or Utils.UI_COLORS.BLACK
-	self.outline_color = datas.outline_color or Utils.UI_COLORS.WHITE
+	self.bg_color = datas and datas.bg_color or Utils.UI_COLORS.BLACK
+	self.outline_color = datas and datas.outline_color or Utils.UI_COLORS.WHITE
+	self.rounding_radius = datas and datas.rounding_radius or 0
 end)
 
 
@@ -47,9 +48,9 @@ function Panel:onDraw()
 		love.graphics.translate(-px, -py)
 	end
 	love.graphics.setColor(unpack(self.bg_color))
-	love.graphics.rectangle("fill", x, y, w, h)
+	love.graphics.rectangle("fill", x, y, w, h, self.rounding_radius, self.rounding_radius, self.rounding_radius * 2)
 	love.graphics.setColor(unpack(self.outline_color))
-	love.graphics.rectangle("line", x, y, w, h)
+	love.graphics.rectangle("line", x, y, w, h, self.rounding_radius, self.rounding_radius, self.rounding_radius * 2)
 	love.graphics.pop()
 	love.graphics.setLineWidth(1)
 end

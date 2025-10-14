@@ -149,8 +149,8 @@ function Widget:update(dt)
 	if not self:shouldUpdate() then
 		return
 	end
-	if self.OnUpdate then
-		self:OnUpdate(dt)
+	if self.onUpdate then
+		self:onUpdate(dt)
 	end
 	for _, child in ipairs(self.children) do
 		child:update(dt)
@@ -165,6 +165,7 @@ function Widget:draw()
 		self:onDraw()
 	end
 	if self._debug then
+		love.graphics.setLineWidth(1)
 		self:drawBound()
 		self:drawAABB()
 	end
@@ -174,21 +175,23 @@ function Widget:draw()
 end
 
 function Widget:drawAABB()
-	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
+	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
 	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 end
 
+local two_pi = 2 * math.pi
 function Widget:drawBound()
-	local px, py = self.transform:getGlobalPosition()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
-	love.graphics.push()
-	if r ~= 0 and r ~= two_pi then
-		love.graphics.translate(px, py)
-		love.graphics.rotate(r)
-		love.graphics.translate(-px, -py)
+	if r == 0 or r == two_pi then
+		return
 	end
-	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG2))
+	local px, py = self.transform:getGlobalPosition()
+	love.graphics.push()
+	love.graphics.translate(px, py)
+	love.graphics.rotate(r)
+	love.graphics.translate(-px, -py)
+	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_YELLOW))
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 	love.graphics.pop()
 end

@@ -125,7 +125,7 @@ function List:onDraw()
 	if self._debug then
 		local x, y = self:getGlobalPosition()
 		local w, h = self:getGlobalScaledSize()
-		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG1))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
 		love.graphics.rectangle("line", x, y, w, h)
 		love.graphics.printf(string.format("Offset: %.1f|Total Height: %.1f", self.offset, self.list_total_height),
 			Fonts:getFont("default", 16), x, y+h, w)

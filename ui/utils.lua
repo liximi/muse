@@ -29,8 +29,9 @@ Utils.UI_COLORS = {
     PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
     SECONDARY_TEXT = Utils.RGB(120, 120, 120),   --次要文本颜色
 
-    DEBUG1 = Utils.RGB(255, 70, 150),
-    DEBUG2 = Utils.RGB(240, 255, 70),
+    DEBUG_PINK = Utils.RGB(255, 70, 150),
+    DEBUG_YELLOW = Utils.RGB(240, 255, 70),
+    DEBUG_WHITE = Utils.RGB(255, 255, 255),
 }
 
 Utils.BTN_STATES = {
