@@ -19,7 +19,6 @@ local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
 local languages = {"zh-cn"}
 
 local UI_ROOT
-local root_panel
 
 love.load = function()
     -- 加载本地化文本
@@ -36,15 +35,24 @@ love.load = function()
     -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
 
     -- local root_panel = UI_ROOT:addChild(CollapsibleScreenEdgePanel(300))
-    root_panel = UiManager:addWidget(Panel({
+    local root_panel = UiManager:addWidget(Panel({
         pivot = {0.5, 0.5},
         w = 300,
         h = 300,
-        sx = 0.5,
-        anchors = {0.5,0.5,0.5,0.5},
-        r = 2
+        anchors = {0.4, 0.25, 0.6, 0.75},
+        padding = {0, 0, 0, 0},
+        rounding_radius = 5,
     }))
-    root_panel:enableDebug(true)
+    -- root_panel:enableDebug(true)
+
+    local text = root_panel:addChild(Text({
+        pivot = {0.5, 0.5},
+        anchors = {0, 0, 1, 1},
+        padding = {8, 8, 8, 8},
+        h_align = "left",
+        text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"
+    }))
+    text:enableDebug(true)
 
     -- local panel1 = root_panel:addChild(Panel({
     --     pivot = {0.5, 0.5},
