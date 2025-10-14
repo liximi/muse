@@ -18,6 +18,7 @@ local Text = Class(Widget, function(self, datas)
 
 	self.__text = love.graphics.newText(Fonts:getFont(self.font_key, self.font_size))
 	self:updateTextLayout()
+	self:enableSizeChangedEvent(true)
 end)
 
 
@@ -125,27 +126,14 @@ function Text:getWrap()
 			if tempw > max_w then
 				break
 			end
-		end
-
-		local new_next_str = next_str
-		for j = 1, utf8.len(next_str) do
-			local byteoffset1 = utf8.offset(next_str, j)
-			local byteoffset2 = utf8.offset(next_str, j + 1)
-			local char = string.sub(next_str, byteoffset1, byteoffset2 - 1)
-			local temp_text = str .. char
-			local w = font:getWidth(temp_text)
-			if w > max_w then
-				break
-			else
-				str = temp_text
-				if w > wrap_w then
-					wrap_w = w
-				end
-				new_next_str = string.sub(next_str, byteoffset2)
+			str = tempstr
+			if tempw > wrap_w then
+				wrap_w = tempw
 			end
+			next_str = string.sub(next_str, byteoffset)
 		end
 		wrapped_text[i] = str
-		wrapped_text[i+1] = new_next_str
+		wrapped_text[i+1] = next_str ~= "" and next_str or nil
 	end
 	return wrap_w, wrapped_text
 end
@@ -175,27 +163,30 @@ function Text:updateTextLayout()
 	local font = self:getFont()
 	local width, wrapped_text = self:getWrap()
 	local line_h = font:getHeight() * font:getLineHeight()
-	for i, str in ipairs(wrapped_text) do
+	for i, str in pairs(wrapped_text) do
 		self.__text:addf(str, self.transform.w, self.horizontal_align, 0, line_h * (i - 1))
 	end
+end
+
+function Text:onSizeChanged(w, h)
+	self:updateTextLayout()
 end
 
 
 
 
 function Text:onDraw()
-	local x, y, w, h = self.transform:getGlobalAABB()
+	local px, py = self.transform:getGlobalPosition()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local sx, sy = self:getGlobalScale()
-	local rot = self.transform:getGlobalRotation()
-	-- local font = Fonts:getFont(self.font_key, self.font_size)
+	love.graphics.push()
 	love.graphics.setColor(unpack(self.text_color))
-	-- love.graphics.printf(self.text, font, x, y, self.transform.w, self.horizontal_align, rot, sx, sy)
-	-- local textw, wrapped_text = self:getWrap()
-	-- local line_h = font:getHeight() * font:getLineHeight()
-	-- for i, str in ipairs(wrapped_text) do
-	-- 	love.graphics.printf(str, font, x, y + line_h * (i - 1), self.transform.w, self.horizontal_align, rot, sx, sy)
-	-- end
-	love.graphics.draw(self.__text, x, y, rot, sx, sy)
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+	love.graphics.draw(self.__text, x, y, nil, sx, sy)
 
 	if self._debug then
 		local textw, texth = self:getGlobalScaledDimensions()
@@ -210,6 +201,7 @@ function Text:onDraw()
 			love.graphics.rectangle("line", x, y, w, texth)
 		end
 	end
+	love.graphics.pop()
 end
 
 

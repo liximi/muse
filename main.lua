@@ -50,7 +50,7 @@ love.load = function()
         anchors = {0, 0, 1, 1},
         padding = {8, 8, 8, 8},
         h_align = "left",
-        text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"
+        text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。",
     }))
     text:enableDebug(true)
 

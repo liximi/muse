@@ -146,6 +146,13 @@ end
 
 function Widget:update(dt)
 	self.transform:onUpdate()
+	if self.__enable_size_changed_event then
+		if self.__oldw ~= self.transform.w or self.__oldh ~= self.transform.h then
+			self:handleEvent("SizeChanged", self.transform.w, self.transform.h)
+			self.__oldw = self.transform.w
+			self.__oldh = self.transform.h
+		end
+	end
 	if not self:shouldUpdate() then
 		return
 	end
@@ -180,10 +187,9 @@ function Widget:drawAABB()
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 end
 
-local two_pi = 2 * math.pi
 function Widget:drawBound()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
-	if r == 0 or r == two_pi then
+	if r == 0 or r == Utils.TWO_PI then
 		return
 	end
 	local px, py = self.transform:getGlobalPosition()
@@ -302,10 +308,22 @@ function Widget:handleEvent(event_type, ...)
 		end
 	end
 
-	local handler_name = "On" .. event_type
+	local handler_name = "on" .. event_type
 	local handler = self[handler_name]
 	if handler then
 		return handler(self, ...)
+	end
+end
+
+function Widget:enableSizeChangedEvent(enable)
+	if enable then
+		self.__enable_size_changed_event = true
+		self.__oldw = self.transform.w
+		self.__oldh = self.transform.h
+	else
+		self.__enable_size_changed_event = nil
+		self.__oldw = nil
+		self.__oldh = nil
 	end
 end
 

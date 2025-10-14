@@ -36,13 +36,15 @@ function Panel:SetOutlineColor(r, g, b)
 	end
 end
 
-local two_pi = 2 * math.pi
+
+
+
 function Panel:onDraw()
 	local px, py = self.transform:getGlobalPosition()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
-	    love.graphics.setLineWidth(2)
-	if r ~= 0 and r ~= two_pi then
+	love.graphics.setLineWidth(2)
+	if r ~= 0 and r ~= Utils.TWO_PI then
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)

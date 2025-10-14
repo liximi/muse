@@ -1,4 +1,5 @@
 local Utils = {
+    TWO_PI = math.pi * 2,
     ---@enum Utils.ANCHORS_HORI
     ANCHORS_HORI = {
         LEFT = "left",
