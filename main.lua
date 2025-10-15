@@ -20,6 +20,34 @@ local languages = {"zh-cn"}
 
 local UI_ROOT
 
+local STR = ""
+for i = 1, 10000 do
+    STR = STR .. "你"
+end
+local limits = {500, 500}
+local utf8 = require "utf8"
+local function getWrap(font, str, limit)
+    --初步测试该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
+    local width, wrappedtext = 0, {}
+    local line_start = 1
+    local linew = 0
+    for pos, code in utf8.codes(str) do
+        local char = utf8.char(code)
+        local cw = font:getWidth(char)
+        local neww = linew + cw
+        if neww > limit then
+            width = math.max(width, linew)
+            local line_str = string.sub(str, line_start, pos - 1)
+            table.insert(wrappedtext, line_str)
+            line_start = pos
+            linew = 0
+        else
+            linew = neww
+        end
+    end
+    return width, wrappedtext
+end
+
 love.load = function()
     -- 加载本地化文本
     for _, lan in ipairs(languages) do
@@ -30,6 +58,13 @@ love.load = function()
 
     --允许键盘重复，这样就可以按住退格一直删除字符
     love.keyboard.setKeyRepeat(true)
+
+
+    local start_c = os.clock()
+    local w, wrappedtext = getWrap(Fonts:getFont("default", 16), STR, limits[1])
+    -- local w, wrappedtext = Fonts:getFont("default", 16):getWrap(STR, limits[1])
+    local end_c = os.clock()
+    print(string.format("Time: %.2f ms, w: %.2f, line: %d", (end_c - start_c) * 1000, w, #wrappedtext))
 
     --UI
     -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
@@ -51,7 +86,7 @@ love.load = function()
         padding = {8, 8, 8, 8},
         -- h_align = "center",
         -- v_align = "bottom",
-        text = {UiUtils.UI_COLORS.WHITE, "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。", UiUtils.UI_COLORS.DEBUG_PINK, "LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"},
+        text = {UiUtils.UI_COLORS.WHITE, "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。\n", UiUtils.UI_COLORS.DEBUG_PINK, "LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"},
     }))
     -- text:setWrapMode(UiUtils.TEXT_WRAP_MODE.OFF)
     text:enableDebug(true)
