@@ -49,9 +49,11 @@ love.load = function()
         pivot = {0.5, 0.5},
         anchors = {0, 0, 1, 1},
         padding = {8, 8, 8, 8},
-        h_align = "left",
-        text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。",
+        -- h_align = "center",
+        -- v_align = "bottom",
+        text = {UiUtils.UI_COLORS.WHITE, "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。", UiUtils.UI_COLORS.DEBUG_PINK, "LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"},
     }))
+    -- text:setWrapMode(UiUtils.TEXT_WRAP_MODE.OFF)
     text:enableDebug(true)
 
     -- local panel1 = root_panel:addChild(Panel({
