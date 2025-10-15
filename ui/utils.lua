@@ -4,6 +4,10 @@ local Utils = {
         OFF = "off",
         DEFAULT = "default",
     },
+    TEXT_OVERFLOW_MODE = {
+        NONE = "none",--不修剪文本
+        CHAR = "char"--逐字符修剪文本
+    },
     ---@enum Utils.ANCHORS_HORI
     ANCHORS_HORI = {
         LEFT = "left",

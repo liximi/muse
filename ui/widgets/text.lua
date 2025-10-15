@@ -14,6 +14,8 @@ local Text = Class(Widget, function(self, datas)
 	self.text_color = datas and datas.text_color or Utils.UI_COLORS.WHITE--当text是一个coloredtext时，该属性将会和文本的颜色组合（相乘）
 
 	self.wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
+	self.overflow_mode = Utils.TEXT_OVERFLOW_MODE.NONE
+	self.overflow_ellipsis_char = "…"
 	self.horizontal_align = datas and datas.h_align or "left"	--"left"|"right"|"center"|"justify"
 	self.vertical_align = datas and datas.v_align or "top"	--"top"|"bottom"|"center"
 
@@ -29,22 +31,22 @@ function Text:setText(text)
 	self:updateTextLayout()
 end
 
-function Text:getText(only_string)
-	if type(self.text) == "table" then
-		if only_string then
-			local text = ""
-			for _, v in ipairs(self.text) do
-				if type(v) == "string" then
-					text = text .. v
-				end
-			end
-			return text
-		else
-			return self.text
+
+local function _getText(coloredtext)
+	local text = ""
+	for _, v in ipairs(coloredtext) do
+		if type(v) == "string" then
+			text = text .. v
 		end
-	else
-		return self.text
 	end
+	return text
+end
+function Text:getText(only_string)
+	local text = self.text
+	if type(self.text) == "table" and only_string then
+		text = _getText(self.text)
+	end
+	return text
 end
 
 function Text:setTextColor(r, g, b, a)
@@ -141,10 +143,12 @@ end
 function Text:updateTextLayout()
 	self.__text:clear()
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.OFF then
-		local width = self.__text:getFont():getWidth(self:getText(true))
-		self.__text:setf(self.text, width, self.horizontal_align, 0, 0)
+		local text = self:getText(true)
+		local width = self.__text:getFont():getWidth(text)
+		self.__text:setf(text, width, self.horizontal_align, 0, 0)
 	else
-		self.__text:setf(self.text, self.transform.w, self.horizontal_align, 0, 0)
+		local text = self:getText(false)
+		self.__text:setf(text, self.transform.w, self.horizontal_align, 0, 0)
 	end
 end
 
