@@ -14,39 +14,9 @@ local TextInput = require "ui.widgets.textinput"
 local ScrollableList = require "ui.widgets.scrollable_list"
 local UiUtils = require "ui.utils"
 
-local CollapsibleScreenEdgePanel = require "ui.collapsible_h_screen_edge_panel"
-
 local languages = {"zh-cn"}
 
 local UI_ROOT
-
-local STR = ""
-for i = 1, 10000 do
-    STR = STR .. "你"
-end
-local limits = {500, 500}
-local utf8 = require "utf8"
-local function getWrap(font, str, limit)
-    --初步测试该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
-    local width, wrappedtext = 0, {}
-    local line_start = 1
-    local linew = 0
-    for pos, code in utf8.codes(str) do
-        local char = utf8.char(code)
-        local cw = font:getWidth(char)
-        local neww = linew + cw
-        if neww > limit then
-            width = math.max(width, linew)
-            local line_str = string.sub(str, line_start, pos - 1)
-            table.insert(wrappedtext, line_str)
-            line_start = pos
-            linew = 0
-        else
-            linew = neww
-        end
-    end
-    return width, wrappedtext
-end
 
 love.load = function()
     -- 加载本地化文本
@@ -59,12 +29,6 @@ love.load = function()
     --允许键盘重复，这样就可以按住退格一直删除字符
     love.keyboard.setKeyRepeat(true)
 
-
-    local start_c = os.clock()
-    local w, wrappedtext = getWrap(Fonts:getFont("default", 16), STR, limits[1])
-    -- local w, wrappedtext = Fonts:getFont("default", 16):getWrap(STR, limits[1])
-    local end_c = os.clock()
-    print(string.format("Time: %.2f ms, w: %.2f, line: %d", (end_c - start_c) * 1000, w, #wrappedtext))
 
     --UI
     -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
@@ -86,70 +50,12 @@ love.load = function()
         padding = {8, 8, 8, 8},
         -- h_align = "center",
         -- v_align = "bottom",
-        text = {UiUtils.UI_COLORS.WHITE, "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。\n", UiUtils.UI_COLORS.DEBUG_PINK, "LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"},
+        text = {UiUtils.UI_COLORS.WHITE, "The width of the text. If multiple sub-strings have been added with Text:add,\n", UiUtils.UI_COLORS.DEBUG_PINK, "the width of the last sub-string is returned."},
+        -- text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。",
     }))
     -- text:setWrapMode(UiUtils.TEXT_WRAP_MODE.OFF)
     text:enableDebug(true)
 
-    -- local panel1 = root_panel:addChild(Panel({
-    --     pivot = {0.5, 0.5},
-    --     w = 100, h = 200,
-    --     bg_color = UiUtils.UI_COLORS.LIGHT_PRIMARY
-    -- }))
-
-    -- local title = root_panel:addChild(Text({
-    --     text = "Widget Examples",
-    --     text_color = UiUtils.UI_COLORS.PRIMARY_TEXT,
-    --     font = "default",
-    --     font_size = 20,
-    --     x = 10,
-    --     w = 300,
-    --     h = 20,
-    -- }))
-    -- title:enableDebug(true)
-
-    -- local list = root_panel:addChild(ScrollableList(280, 675))
-    -- list:setPosition(10, 36)
-
-    -- local example_btn_1 = Button("Panel")
-    -- example_btn_1.transform:setSize(276, 50)
-    -- example_btn_1.onClick = function(self)
-
-    -- end
-    -- local example_btn_2 = Button("Text")
-    -- example_btn_2.transform:setSize(276, 50)
-    -- example_btn_2.onClick = function(self)
-
-    -- end
-    -- local example_btn_3 = Button("Image")
-    -- example_btn_3.transform:setSize(276, 50)
-    -- example_btn_3.onClick = function(self)
-
-    -- end
-    -- local example_btn_4 = Button("Button")
-    -- example_btn_4.transform:setSize(276, 50)
-    -- example_btn_4.onClick = function(self)
-
-    -- end
-    -- local example_btn_5 = Button("ImageButton")
-    -- example_btn_5.transform:setSize(276, 50)
-    -- example_btn_5.onClick = function(self)
-
-    -- end
-    -- local example_btn_6 = Button("TextInput")
-    -- example_btn_6.transform:setSize(276, 50)
-    -- example_btn_6.onClick = function(self)
-
-    -- end
-    -- list:SetItems({
-    --     example_btn_1,
-    --     example_btn_2,
-    --     example_btn_3,
-    --     example_btn_4,
-    --     example_btn_5,
-    --     example_btn_6,
-    -- })
-    -- list:SetXOffset(2)
 end
 
 

@@ -4,6 +4,58 @@ local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 
 
+local function _getWrap_char(font, str, limit)
+    --该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
+    local char_width_cache = {}
+    local max_width = 0
+    local line_start = 1
+    local linew = 0
+    local line_ranges = {}
+    for pos, code in utf8.codes(str) do
+        if code == 10 then-- 遇到换行符，强制结束当前行（不包含换行符本身）
+            max_width = math.max(max_width, linew)
+            if line_start <= pos - 1 then
+                table.insert(line_ranges, {line_start, pos - 1})
+            else
+                table.insert(line_ranges, {pos, pos - 1})-- 处理连续换行符的情况（如空行）
+            end
+            line_start = pos + 1
+            linew = 0
+            goto continue
+        end
+
+        local char = utf8.char(code)
+        local cw = char_width_cache[char] or font:getWidth(char)
+        if not char_width_cache[char] then
+            char_width_cache[char] = cw
+        end
+        local neww = linew + cw
+        if neww > limit then
+            max_width = math.max(max_width, linew)
+            table.insert(line_ranges, {line_start, pos - 1})
+            line_start = pos
+            linew = cw
+        else
+            linew = neww
+        end
+
+        ::continue::
+    end
+    if line_start <= #str then
+        table.insert(line_ranges, {line_start, #str})
+        max_width = math.max(max_width, linew)
+    end
+
+    local wrappedtext = {}
+    for _, range in ipairs(line_ranges) do
+        table.insert(wrappedtext, string.sub(str, range[1], range[2]))
+    end
+    return max_width, wrappedtext
+end
+
+
+
+
 local Text = Class(Widget, function(self, datas)
 	Widget.new(self, "Text", datas)
 
@@ -143,12 +195,66 @@ end
 function Text:updateTextLayout()
 	self.__text:clear()
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.OFF then
-		local text = self:getText(true)
-		local width = self.__text:getFont():getWidth(text)
-		self.__text:setf(text, width, self.horizontal_align, 0, 0)
+		local width = self.__text:getFont():getWidth(self:getText(true))
+		self.__text:setf(self.text, width, self.horizontal_align, 0, 0)
 	else
-		local text = self:getText(false)
-		self.__text:setf(text, self.transform.w, self.horizontal_align, 0, 0)
+		local font = self.__text:getFont()
+		local lineh = font:getHeight() * font:getLineHeight()
+		if type(self.text) == "string" then
+			local w, wrappedtext = _getWrap_char(font, self.text, self.transform.w)
+			local newt = table.concat(wrappedtext, "\n")
+			self.__text:setf(newt, self.transform.w, self.horizontal_align, 0, 0)
+		else
+			local org_text = self.text
+			local text = self:getText(true)
+			local w, wrappedtext = _getWrap_char(font, text, self.transform.w)
+			local newt = {}
+			local cur_line = 1
+			local cur_len = utf8.len(wrappedtext[cur_line])
+			for i = 1, #org_text, 2 do
+				local color = org_text[i]
+				table.insert(newt, color)
+				local str = org_text[i + 1]
+				local len = utf8.len(str)
+				local start_pos = 1
+				local temp = {}
+				while len > 0 do
+					if len == cur_len then
+						print("AA", string.sub(str, utf8.offset(str, start_pos), #str))
+						table.insert(temp, string.sub(str, utf8.offset(str, start_pos), #str) .. "\n")
+						cur_line = cur_line + 1
+						if not wrappedtext[cur_line] then
+							break
+						end
+						cur_len = utf8.len(wrappedtext[cur_line])
+						break
+					elseif len < cur_len then
+						print("BB", len, string.sub(str, utf8.offset(str, start_pos), #str))
+						table.insert(temp, string.sub(str, utf8.offset(str, start_pos), #str))
+						cur_len = cur_len - len
+						break
+					end
+					local end_pos = start_pos + cur_len
+					print("CC", string.sub(str, utf8.offset(str, start_pos), utf8.offset(str, end_pos)-1))
+					table.insert(temp, string.sub(str, utf8.offset(str, start_pos), utf8.offset(str, end_pos)-1))
+					start_pos = end_pos
+					cur_line = cur_line + 1
+					len = len - cur_len
+					if len == 1 and string.sub(str, utf8.offset(str, start_pos), #str) == "\n" then
+						break
+					end
+					if not wrappedtext[cur_line] then
+						break
+					end
+					cur_len = utf8.len(wrappedtext[cur_line])
+				end
+				table.insert(newt, table.concat(temp, "\n"))
+				for i, v in ipairs(temp) do
+					print(i ,v)
+				end
+			end
+			self.__text:setf(newt, self.transform.w, self.horizontal_align, 0, 0)
+		end
 	end
 end
 
