@@ -54,8 +54,6 @@ local function _getWrap_char(font, str, limit)
 end
 
 
-
-
 local Text = Class(Widget, function(self, datas)
 	Widget.new(self, "Text", datas)
 
@@ -198,63 +196,16 @@ function Text:updateTextLayout()
 		local width = self.__text:getFont():getWidth(self:getText(true))
 		self.__text:setf(self.text, width, self.horizontal_align, 0, 0)
 	else
-		local font = self.__text:getFont()
-		local lineh = font:getHeight() * font:getLineHeight()
-		if type(self.text) == "string" then
-			local w, wrappedtext = _getWrap_char(font, self.text, self.transform.w)
-			local newt = table.concat(wrappedtext, "\n")
-			self.__text:setf(newt, self.transform.w, self.horizontal_align, 0, 0)
-		else
-			local org_text = self.text
-			local text = self:getText(true)
-			local w, wrappedtext = _getWrap_char(font, text, self.transform.w)
-			local newt = {}
-			local cur_line = 1
-			local cur_len = utf8.len(wrappedtext[cur_line])
-			for i = 1, #org_text, 2 do
-				local color = org_text[i]
-				table.insert(newt, color)
-				local str = org_text[i + 1]
-				local len = utf8.len(str)
-				local start_pos = 1
-				local temp = {}
-				while len > 0 do
-					if len == cur_len then
-						print("AA", string.sub(str, utf8.offset(str, start_pos), #str))
-						table.insert(temp, string.sub(str, utf8.offset(str, start_pos), #str) .. "\n")
-						cur_line = cur_line + 1
-						if not wrappedtext[cur_line] then
-							break
-						end
-						cur_len = utf8.len(wrappedtext[cur_line])
-						break
-					elseif len < cur_len then
-						print("BB", len, string.sub(str, utf8.offset(str, start_pos), #str))
-						table.insert(temp, string.sub(str, utf8.offset(str, start_pos), #str))
-						cur_len = cur_len - len
-						break
-					end
-					local end_pos = start_pos + cur_len
-					print("CC", string.sub(str, utf8.offset(str, start_pos), utf8.offset(str, end_pos)-1))
-					table.insert(temp, string.sub(str, utf8.offset(str, start_pos), utf8.offset(str, end_pos)-1))
-					start_pos = end_pos
-					cur_line = cur_line + 1
-					len = len - cur_len
-					if len == 1 and string.sub(str, utf8.offset(str, start_pos), #str) == "\n" then
-						break
-					end
-					if not wrappedtext[cur_line] then
-						break
-					end
-					cur_len = utf8.len(wrappedtext[cur_line])
-				end
-				table.insert(newt, table.concat(temp, "\n"))
-				for i, v in ipairs(temp) do
-					print(i ,v)
-				end
-			end
-			self.__text:setf(newt, self.transform.w, self.horizontal_align, 0, 0)
-		end
+		self.__text:setf(self.text, self.transform.w, self.horizontal_align)
+		-- local font = self.__text:getFont()
+		-- local lineh = font:getHeight() * font:getLineHeight()
+		-- if type(self.text) == "string" then
+		-- 	local w, wrappedtext = _getWrap_char(font, self.text, self.transform.w)
+		-- 	local newt = table.concat(wrappedtext, "\n")
+		-- 	self.__text:setf(newt, self.transform.w, self.horizontal_align)
+		-- else
+		-- 	self.__text:setf(self.text, self.transform.w, self.horizontal_align)
+		-- end
 	end
 end
 
