@@ -57,7 +57,7 @@ end
 
 function Manager:update(dt)
 	for _, widget in ipairs(self.hierarchy) do
-		widget:update(dt)
+		widget:update(dt, true)
 	end
 end
 

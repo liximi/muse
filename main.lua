@@ -41,15 +41,24 @@ function love.load()
         padding = {0, 0, 0, 0},
         rounding_radius = 5,
         -- enable_outline = false,
-        bg_color = UiUtils.UI_COLORS.PALE_GRAY
     }))
     -- root_panel:enableDebug(true)
 
     -- local test_img = love.graphics.newImage("assets/bilibili.png")
-    local btn = UiManager:addWidget(Button({
+    local btn = root_panel:addChild(Button({
         x = 20,
         y = 20
     }))
+    btn:setSelected(true)
+    local btn2 = root_panel:addChild(Button({
+        x = 20,
+        y = 120
+    }))
+    local btn3 = root_panel:addChild(Button({
+        x = 20,
+        y = 220
+    }))
+    btn3:disable()
 end
 
 

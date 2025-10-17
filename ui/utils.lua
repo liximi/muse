@@ -41,12 +41,17 @@ end
 Utils.UI_COLORS = {
     WHITE = Utils.RGB(255, 255, 255),
     PALE_GRAY = Utils.RGB(220, 220, 220),
+    PALE_GRAY2 = Utils.RGB(200, 200, 200),
+    NEUTRAL_GRAY = Utils.RGB(128, 128, 128),
+    DARK_GRAY = Utils.RGB(51, 51, 51),
     BLACK = Utils.RGB(37, 37, 37),
-    DISABLED = Utils.RGB(51, 51, 51),
-    PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
-    SECONDARY_TEXT = Utils.RGB(120, 120, 120),   --次要文本颜色
+    BLACK2 = Utils.RGB(32, 32, 32),
     PINK = Utils.RGB(255, 70, 150),
     YELLOW = Utils.RGB(240, 255, 70),
+    BLUE = Utils.RGB(41, 170, 226),
+
+    PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
+    SECONDARY_TEXT = Utils.RGB(128, 128, 128),   --次要文本颜色
 }
 
 

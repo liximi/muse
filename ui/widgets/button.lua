@@ -1,11 +1,12 @@
 local Widget = require "ui.widgets.widget"
+local ButtonBase = require "ui.widgets.button_base"
 local Text = require "ui.widgets.text"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
 local BTN_STATES = Utils.BTN_STATES
 
 
-local Button = Class(Widget, function (self, datas, theme)
+local Button = Class(ButtonBase, function (self, datas, theme)
 	if not datas then
 		datas = {}
 	end
@@ -15,11 +16,10 @@ local Button = Class(Widget, function (self, datas, theme)
 	if not datas.h then
 		datas.h = 50
 	end
-	Widget.new(self, "Button", datas, theme)
+	ButtonBase.new(self, "Button", datas, theme)
 
 	self.outline_width = datas and datas.outline_width or self.theme.button.outline_width
 
-	self.cur_state = BTN_STATES.NORMAL
 	self.state_styles = {
 		normal = {
 			text = datas and datas.text or "Button",
@@ -70,14 +70,7 @@ function Button:setStateStyle(state, def)
 end
 
 
-function Button:setState(new_state)
-	if not BTN_STATES[string.upper(new_state)] then
-		print("Button:setStateStyle|Invalid state:", new_state)
-		return
-	end
-	local old_state = self.cur_state
-	self.cur_state = new_state
-
+function Button:onSetState(old_state, new_state)
 	local new_text = self.state_styles[new_state] and self.state_styles[new_state].text
 	if new_text then
 		self.text:setText(new_text)
@@ -96,51 +89,6 @@ function Button:setState(new_state)
 	local scale = self.state_styles[new_state] and self.state_styles[new_state].scale or {1, 1}
 	self.transform:setScale(scale[1], scale[2])
 end
-
-function Button:onFocus()
-	if self.cur_state == BTN_STATES.NORMAL then
-		self:setState(BTN_STATES.HOVER)
-	elseif self.cur_state == BTN_STATES.SELECTED then
-		self:setState(BTN_STATES.SELECTED_HOVER)
-	end
-end
-
-function Button:onRemoveFocus()
-	if self.cur_state == BTN_STATES.SELECTED_HOVER then
-		self:setState(BTN_STATES.SELECTED)
-	elseif self.cur_state == BTN_STATES.HOVER then
-		self:setState(BTN_STATES.NORMAL)
-	end
-end
-
-
-function Button:onMousePressed(x, y, button)
-	if button == 1 and self:regionDetection(x, y) then
-		if self.cur_state == BTN_STATES.NORMAL or self.cur_state == BTN_STATES.HOVER then
-			self:setState(BTN_STATES.PRESSED)
-		end
-	end
-end
-
-function Button:onMouseReleased(x, y, button)
-	if button == 1 and self.cur_state == BTN_STATES.PRESSED then
-		self:setState(BTN_STATES.NORMAL)
-		if self.onClick then
-			self:onClick()
-		end
-	end
-end
-
-function Button:onMouseMoved(x, y, dx, dy)
-	if self:regionDetection(x, y) then
-		if not self:isFocus() then
-			self:setFocus()
-		end
-	elseif self:isFocus() then
-		self:removeFocus()
-	end
-end
-
 
 
 function Button:onDraw()

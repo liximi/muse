@@ -154,7 +154,7 @@ function Widget:shouldUpdate()
 	return self._valid and self.enabled
 end
 
-function Widget:update(dt)
+function Widget:update(dt, parent_should_update)
 	self.transform:onUpdate()
 	if self.__enable_size_changed_event then
 		if self.__oldw ~= self.transform.w or self.__oldh ~= self.transform.h then
@@ -163,14 +163,17 @@ function Widget:update(dt)
 			self.__oldh = self.transform.h
 		end
 	end
-	if not self:shouldUpdate() then
+	if not self:shouldUpdate() or not parent_should_update then
+		for _, child in ipairs(self.children) do
+			child:update(dt, false)
+		end
 		return
+	end
+	for _, child in ipairs(self.children) do
+		child:update(dt, true)
 	end
 	if self.onUpdate then
 		self:onUpdate(dt)
-	end
-	for _, child in ipairs(self.children) do
-		child:update(dt)
 	end
 end
 
@@ -234,10 +237,16 @@ end
 
 function Widget:enable()
 	self.enabled = true
+	if self.onEnabled then
+		self:onEnabled()
+	end
 end
 
 function Widget:disable()
 	self.enabled = false
+	if self.onDisabled then
+		self:onDisabled()
+	end
 end
 
 function Widget:isEnabled()
