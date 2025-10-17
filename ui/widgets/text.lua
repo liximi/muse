@@ -192,11 +192,23 @@ function Text:getGlobalScaledDimensions()
 	return w * sx, h * sy
 end
 
+function Text:getSize()
+	return self:getDimensions()
+end
+
+function Text:getScaledSize()
+	return self:getScaledDimensions()
+end
+
+function Text:getGlobalScaledSize()
+	return self:getGlobalScaledDimensions()
+end
+
 function Text:updateTextLayout()
 	self.__text:clear()
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.OFF then
 		local width = self.__text:getFont():getWidth(self:getText(true))
-		self.__text:setf(self.text, width, self.horizontal_align, 0, 0)
+		self.__text:setf(self.text, width, self.horizontal_align)
 	else
 		self.__text:setf(self.text, self.transform.w, self.horizontal_align)
 		-- local font = self.__text:getFont()
@@ -233,11 +245,6 @@ function Text:onDraw()
 	end
 
 	love.graphics.setColor(unpack(self.text_color))
-	if self.horizontal_align == "right" then
-		x = x + w - textw
-	elseif self.horizontal_align == "center" then
-		x = x + (w - textw) * 0.5
-	end
 	if self.vertical_align == "bottom" then
 		y = y + h - texth
 	elseif self.vertical_align == "center" then
@@ -246,6 +253,11 @@ function Text:onDraw()
 	love.graphics.draw(self.__text, x, y, nil, sx, sy)
 
 	if self._debug then
+		if self.horizontal_align == "right" then
+			x = x + w - textw
+		elseif self.horizontal_align == "center" then
+			x = x + (w - textw) * 0.5
+		end
 		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_WHITE))
 		if self.horizontal_align == "justify" then
 			love.graphics.rectangle("line", x, y, w, texth)

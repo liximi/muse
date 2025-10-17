@@ -21,16 +21,20 @@ local Fonts = {
 }
 
 
+
+---@param key string
+---@param size number
 function Fonts:getFont(key, size)
-	if not self[key] or type(size) ~= "number" then
-		return
-	end
 	local font = self[key][size]
 	if not font then
 		font = love.graphics.newFont(self[key]._file, size)
 		self[key][size] = font
 	end
 	return font
+end
+
+function Fonts:hasFont(key)
+	return self[key] ~= nil
 end
 
 
