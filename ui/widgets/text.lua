@@ -54,7 +54,8 @@ local function _getWrap_char(font, str, limit)
     return max_width, wrappedtext
 end
 
-
+--TODO: 设置文本溢出行为
+--如果没看到创建出来的文本，请检查是否设置了该 UI 的尺寸。
 local Text = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Text", datas, theme)
 
@@ -218,7 +219,6 @@ end
 
 
 function Text:onDraw()
-	local px, py = self.transform:getGlobalPosition()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local sx, sy = self:getGlobalScale()
 	local textw, texth = self:getGlobalScaledDimensions()
@@ -226,6 +226,7 @@ function Text:onDraw()
 	love.graphics.push()
 
 	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)

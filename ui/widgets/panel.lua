@@ -39,11 +39,11 @@ end
 
 
 function Panel:onDraw()
-	local px, py = self.transform:getGlobalPosition()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
 	love.graphics.setLineWidth(2)
 	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)
