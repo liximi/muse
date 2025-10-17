@@ -1,14 +1,13 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
-local Fonts = require "ui.fonts"
 
 
 --一个纯色的面板，可设置面板颜色和边框颜色
-local Panel = Class(Widget, function(self, datas)
-	Widget.new(self, "Panel", datas)
-	self.bg_color = datas and datas.bg_color or Utils.UI_COLORS.BLACK
-	self.outline_color = datas and datas.outline_color or Utils.UI_COLORS.WHITE
-	self.rounding_radius = datas and datas.rounding_radius or 0
+local Panel = Class(Widget, function(self, datas, theme)
+	Widget.new(self, "Panel", datas, theme)
+	self.bg_color = datas and datas.bg_color or self.theme.panel.bg_color
+	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color
+	self.rounding_radius = datas and datas.rounding_radius or self.theme.panel.rounding_radius
 end)
 
 

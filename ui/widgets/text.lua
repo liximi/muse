@@ -4,6 +4,7 @@ local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 
 
+--尝试使用自定义的自动换行方法，但是没有成功...
 local function _getWrap_char(font, str, limit)
     --该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
     local char_width_cache = {}
@@ -54,14 +55,14 @@ local function _getWrap_char(font, str, limit)
 end
 
 
-local Text = Class(Widget, function(self, datas)
-	Widget.new(self, "Text", datas)
+local Text = Class(Widget, function(self, datas, theme)
+	Widget.new(self, "Text", datas, theme)
 
-	self.font_key = datas and datas.font or "default"
-	self.font_size = datas and datas.font_size or 16
+	self.font_key = datas and datas.font_key or self.theme.text.font_key
+	self.font_size = datas and datas.font_size or self.theme.text.font_size
+	self.text_color = datas and datas.text_color or self.theme.text.text_color--当text是一个coloredtext时，该属性将会和文本的颜色组合（相乘）
 
 	self.text = datas and datas.text or ""--也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
-	self.text_color = datas and datas.text_color or Utils.UI_COLORS.WHITE--当text是一个coloredtext时，该属性将会和文本的颜色组合（相乘）
 
 	self.wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
 	self.overflow_mode = Utils.TEXT_OVERFLOW_MODE.NONE
@@ -221,13 +222,16 @@ function Text:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local sx, sy = self:getGlobalScale()
 	local textw, texth = self:getGlobalScaledDimensions()
+
 	love.graphics.push()
-	love.graphics.setColor(unpack(self.text_color))
+
 	if r ~= 0 and r ~= Utils.TWO_PI then
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)
 	end
+
+	love.graphics.setColor(unpack(self.text_color))
 	if self.horizontal_align == "right" then
 		x = x + w - textw
 	elseif self.horizontal_align == "center" then
@@ -248,6 +252,7 @@ function Text:onDraw()
 			love.graphics.rectangle("line", x, y, textw, texth)
 		end
 	end
+
 	love.graphics.pop()
 end
 

@@ -1,5 +1,8 @@
+local Theme = require "ui.theme"
+
 local Manager = Class(function(self)
 	self.hierarchy = {}
+	self.default_theme = Theme()
 end)
 
 
@@ -34,6 +37,17 @@ function Manager:moveToBottom(widget)
 			break
 		end
 	end
+end
+
+
+function Manager:getDefaultTheme()
+	return self.default_theme
+end
+
+
+function Manager:setDefaultTheme(theme)
+	self.default_theme = theme
+	return theme
 end
 
 

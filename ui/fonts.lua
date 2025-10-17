@@ -15,6 +15,9 @@ local Fonts = {
 	default_black = {
 		_file = "ui/fonts/NotoSansSC-Black.ttf",
 	},
+	debug = {
+		_file = "ui/fonts/NotoSansSC-Thin.ttf",
+	},
 }
 
 

@@ -4,7 +4,7 @@ local Transform = require "ui.transform"
 
 
 ---@class Widget
-local Widget = Class(function(self, name, datas)
+local Widget = Class(function(self, name, datas, theme)
 	self._name = name or "widget"
 	self._valid = true
 	self._debug = false
@@ -34,6 +34,7 @@ local Widget = Class(function(self, name, datas)
 		end
 	end
 
+	self.theme = theme or UiManager:getDefaultTheme()
 	self.children = {}
 	self.parent = nil
 

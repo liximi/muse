@@ -1,17 +1,22 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
-local AddSizeComponent = require "ui.components".AddSize
 
 
-local Image = Class(Widget, function(self, texture)
-	Widget.new(self, "Image")
+--覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。
+local Image = Class(Widget, function(self, datas, theme)
+	Widget.new(self, "Image", datas, theme)
 
-	AddSizeComponent(self)
-	self.texture = nil
-	if texture then
-		self:setTexture(texture, true)
+	self.__quad = love.graphics.newQuad(0, 0, 0, 0, 1, 1)
+
+	-- self.texture = nil
+	if datas and datas.texture then
+		--注意：use_texture_size和锚点【范围定位】机制是冲突的
+		--也会覆盖datas.w 和 datas.h
+		self:setTexture(datas.texture, datas.use_texture_size)
 	end
+
+	self.tint = datas and datas.tint or self.theme.image.tint
 end)
 
 
@@ -23,6 +28,11 @@ function Image:setTexture(texture, resize)
 	if resize then
 		self:reSize()
 	end
+end
+
+
+function Image:getTexture()
+	return self.texture
 end
 
 
@@ -48,31 +58,47 @@ end
 
 
 function Image:onDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+
+	love.graphics.push()
+
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+
 	if self.texture then
-		love.graphics.setColor(1, 1, 1, 1)
-		local x, y = self:getGlobalPosition()
-		local w, h = self:getGlobalScaledSize()
+		love.graphics.setColor(unpack(self.tint))
 		local rw, rh = self:getTextureRowSize()
-		local sx, sy = w / rw, h / rh
-		love.graphics.draw(self.texture, x, y, self.rotation, sx, sy)
+		local sx, sy = self:getGlobalScale()
+		local wrapw, wraph = self.texture:getWrap()
+		local quadw, quadh = self.transform.w, self.transform.h
+		if wrapw == "clamp" then
+			quadw = rw
+			sx = w / rw
+		end
+		if wraph == "clamp" then
+			quadh = rh
+			sy = h / rh
+		end
+		self.__quad:setViewport(0, 0, quadw, quadh, rw, rh)
+		love.graphics.draw(self.texture, self.__quad, x, y, self.rotation, sx, sy)
 
 		if self._debug then
 			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
-			love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
-			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("default", 16), x, y + h, w)
+			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("debug", 14), x, y + h, w)
 		end
 	else
 		if self._debug then
-			local x, y = self:getGlobalPosition()
 			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
-			love.graphics.rectangle("line", x-1, y-1, 2, 2)
-			love.graphics.setFont(Fonts:getFont("default", 16))
-			love.graphics.print("No Texture", x, y + 1)
+			love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
 		end
 	end
 
+	love.graphics.pop()
 end
-
 
 
 return Image
