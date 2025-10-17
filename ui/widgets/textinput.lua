@@ -12,14 +12,14 @@ local TextInput = Class(Widget, function(self, w, h, hint, enable_background, he
 	Widget.new(self, "TextInput")
 
 	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
-	self.hovered_outline_color = Utils.UI_COLORS.WHITE
+	self.hovered_outline_color = Utils.UI_COLORS.PALE_GRAY
 
 	self.height_adaptive = height_adaptive == true
 	self.min_height = min_height or h or 75
 
 	if enable_background then
 		self.bg = self:addChild(Panel(w or 200, h or 75))
-		self.bg:SetBGColor(Utils.UI_COLORS.WHITE)
+		self.bg:SetBGColor(Utils.UI_COLORS.PALE_GRAY)
 		self.bg:SetOutlineColor(self.outline_color)
 	end
 
@@ -71,7 +71,7 @@ function TextInput:onMouseReleased(x, y, button)
 	if button ~= 1 then
 		return
 	end
-	local is_in_scope = self:isInUIScope(x, y)
+	local is_in_scope = self:regionDetection(x, y)
 	local is_focus = self:isFocus()
 	if is_in_scope and not is_focus then
 		self:setFocus()

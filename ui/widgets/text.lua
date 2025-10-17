@@ -258,7 +258,7 @@ function Text:onDraw()
 		elseif self.horizontal_align == "center" then
 			x = x + (w - textw) * 0.5
 		end
-		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_WHITE))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.WHITE))
 		if self.horizontal_align == "justify" then
 			love.graphics.rectangle("line", x, y, w, texth)
 		else

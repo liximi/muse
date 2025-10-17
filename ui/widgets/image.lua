@@ -87,12 +87,12 @@ function Image:onDraw()
 		love.graphics.draw(self.texture, self.__quad, x, y, self.rotation, sx, sy)
 
 		if self._debug then
-			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
+			love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("debug", 14), x, y + h, w)
 		end
 	else
 		if self._debug then
-			love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
+			love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 			love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
 		end
 	end

@@ -3,7 +3,6 @@ local Utils = require "ui.utils"
 local Transform = require "ui.transform"
 
 
----@class Widget
 local Widget = Class(function(self, name, datas, theme)
 	self._name = name or "widget"
 	self._valid = true
@@ -66,6 +65,16 @@ end
 
 function Widget:getGlobalScaledSize()
 	return self.transform:getGlobalScaledSize()
+end
+
+---检测一个屏幕坐标是否位于当前 UI 的包围框内（考虑了旋转，但是不考虑图像的透明部分）
+function Widget:regionDetection(px, py)
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	w, h = self:getGlobalScaledSize()
+	if r == 0 or r == Utils.TWO_PI then
+		return px >= x and px <= x + w and py >= y and py <= y + h
+	end
+
 end
 
 --------------------------------------------------
@@ -183,7 +192,7 @@ function Widget:draw()
 end
 
 function Widget:drawAABB()
-	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
+	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 end
@@ -198,7 +207,7 @@ function Widget:drawBound()
 	love.graphics.translate(px, py)
 	love.graphics.rotate(r)
 	love.graphics.translate(-px, -py)
-	love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_YELLOW))
+	love.graphics.setColor(unpack(Utils.UI_COLORS.YELLOW))
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 	love.graphics.pop()
 end

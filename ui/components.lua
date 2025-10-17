@@ -5,7 +5,7 @@ local Components = {}
 function Components.addHoverState(widget)
 	widget.hovered = false
 	widget.onMouseMoved = function(self, x, y, dx, dy)
-		if self:isInUIScope(x, y) then
+		if self:regionDetection(x, y) then
 			if not self.hovered then
 				self.hovered = true
 				if self.OnHovered then

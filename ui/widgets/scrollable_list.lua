@@ -100,7 +100,7 @@ end
 
 function List:OnWheelMoved(x, y)
 	local mousex, mousey = love.mouse.getPosition()
-	if not self:isInUIScope(mousex, mousey) then
+	if not self:regionDetection(mousex, mousey) then
 		return
 	end
 	if y > 0 then
@@ -125,7 +125,7 @@ function List:onDraw()
 	if self._debug then
 		local x, y = self:getGlobalPosition()
 		local w, h = self:getGlobalScaledSize()
-		love.graphics.setColor(unpack(Utils.UI_COLORS.DEBUG_PINK))
+		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 		love.graphics.rectangle("line", x, y, w, h)
 		love.graphics.printf(string.format("Offset: %.1f|Total Height: %.1f", self.offset, self.list_total_height),
 			Fonts:getFont("default", 16), x, y+h, w)

@@ -18,7 +18,7 @@ local languages = {"zh-cn"}
 
 local UI_ROOT
 
-love.load = function()
+function love.load()
     -- 加载本地化文本
     for _, lan in ipairs(languages) do
         Loc:load("localization/" .. lan .. ".lua")
@@ -33,7 +33,6 @@ love.load = function()
     --UI
     -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
 
-    -- local root_panel = UI_ROOT:addChild(CollapsibleScreenEdgePanel(300))
     local root_panel = UiManager:addWidget(Panel({
         pivot = {0.5, 0.5},
         w = 300,
@@ -41,26 +40,21 @@ love.load = function()
         anchors = {0.4, 0.25, 0.6, 0.75},
         padding = {0, 0, 0, 0},
         rounding_radius = 5,
+        -- enable_outline = false,
+        bg_color = UiUtils.UI_COLORS.PALE_GRAY
     }))
     -- root_panel:enableDebug(true)
 
-    local text = root_panel:addChild(Text({
-        pivot = {0.5, 0.5},
-        anchors = {0, 0, 1, 1},
-        padding = {8, 8, 8, 8},
-        -- h_align = "center",
-        -- v_align = "bottom",
-        text = {UiUtils.UI_COLORS.WHITE, "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。", UiUtils.UI_COLORS.DEBUG_PINK, "LÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。"},
-        -- text = "或许你已经知道了，LÖVE是一个使用 Lua 作为编程语言的 2D 游戏框架。\nLÖVE 完全免费，能用在任何开源项目，或闭源、商业项目。",
+    -- local test_img = love.graphics.newImage("assets/bilibili.png")
+    local btn = UiManager:addWidget(Button({
+        x = 20,
+        y = 20
     }))
-    -- text:setWrapMode(UiUtils.TEXT_WRAP_MODE.OFF)
-    text:enableDebug(true)
-
 end
 
 
 local FPS = 0
-love.update = function(dt)
+function love.update(dt)
     -- 该方法应该总是在update的顶部使用
     -- 在浏览器里打开'127.0.0.1:8000'来查看控制台
     Lovebird.update(dt)
@@ -109,7 +103,7 @@ local function DrawPerformanceInfo()
     w = font:getWidth(str)
     love.graphics.printf(str, font, window_w-w, 12, w)
 end
-love.draw = function()
+function love.draw()
     love.graphics.clear(unpack(UiUtils.UI_COLORS.BLACK))
     DrawGridBG()
 

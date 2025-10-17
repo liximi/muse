@@ -30,11 +30,11 @@ local CollapsiblePanel = Class(Panel, function(self, width, right)
     self.tween_btn = nil
 
     self.collapse_btn = self:addChild(ImageButton())
-    self.collapse_btn:setStateDef("normal", {
+    self.collapse_btn:setStateStyle("normal", {
         text = "",
         texture = self.collapse_btn_icon.close,
     })
-    self.collapse_btn:setStateDef("pressed", {
+    self.collapse_btn:setStateStyle("pressed", {
         text = "",
         offset = {0, 2}
     })
@@ -54,7 +54,7 @@ function CollapsiblePanel:ToggleOpen()
     -- end
 	self.tween = Tween.new(0.3, self, {_x = self.open and self.open_x or self.close_x}, "outQuint")
     self.tween_btn = Tween.new(0.3, self.collapse_btn, {_x = self.open and self.collapse_btn_x or self.collapse_btn_x_close}, "outQuint")
-    self.collapse_btn:setStateDef("normal", {
+    self.collapse_btn:setStateStyle("normal", {
         text = "",
         texture = self.open and self.collapse_btn_icon.close or self.collapse_btn_icon.open,
     })

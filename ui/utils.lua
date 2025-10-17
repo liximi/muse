@@ -8,17 +8,23 @@ local Utils = {
         NONE = "none",--不修剪文本
         CHAR = "char"--逐字符修剪文本
     },
-    ---@enum Utils.ANCHORS_HORI
     ANCHORS_HORI = {
         LEFT = "left",
         MIDDLE = "middle",
         RIGHT = "right",
     },
-    ---@enum Utils.ANCHORS_VERT
     ANCHORS_VERT = {
         TOP = "top",
         MIDDLE = "middle",
         BOTTOM = "bottom",
+    },
+    BTN_STATES = {
+        NORMAL = "normal",
+        PRESSED = "pressed",
+        DISABLED = "disabled",
+        SELECTED = "selected",
+        HOVER = "hover",
+        SELECTED_HOVER = "selected_hover",
     }
 }
 
@@ -33,23 +39,36 @@ function Utils.RGB(r, g, b, a)
 end
 
 Utils.UI_COLORS = {
-    WHITE = Utils.RGB(220, 220, 220),
+    WHITE = Utils.RGB(255, 255, 255),
+    PALE_GRAY = Utils.RGB(220, 220, 220),
     BLACK = Utils.RGB(37, 37, 37),
+    DISABLED = Utils.RGB(51, 51, 51),
     PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
     SECONDARY_TEXT = Utils.RGB(120, 120, 120),   --次要文本颜色
-
-    DEBUG_PINK = Utils.RGB(255, 70, 150),
-    DEBUG_YELLOW = Utils.RGB(240, 255, 70),
-    DEBUG_WHITE = Utils.RGB(255, 255, 255),
+    PINK = Utils.RGB(255, 70, 150),
+    YELLOW = Utils.RGB(240, 255, 70),
 }
 
-Utils.BTN_STATES = {
-    normal = "normal",
-    pressed = "pressed",
-    disabled = "disabled",
-    seleted = "seleted",
-    hover = "hover",
-    seleted_hover = "seleted_hover"
-}
+
+--- 创建一个按钮状态的样式定义
+--- @param text string|table 接受coloredtext
+---@param text_color table
+---@param bg_color table
+---@param outline_color table
+---@param offset table {x offset, y offset}
+---@param scale table {x scale, y scale}
+---@param rounding_radius number 背景矩形的圆角半径
+function Utils.newButtonStateStyle(text, text_color, bg_color, outline_color, offset, scale, rounding_radius)
+    return {
+        text = text,
+        text_color = text_color,
+        bg_color = bg_color,
+        outline_color = outline_color,
+        offset = offset,
+        scale = scale,
+        rounding_radius = rounding_radius,
+    }
+end
+
 
 return Utils
