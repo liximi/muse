@@ -34,11 +34,11 @@ local function normalizeRadians(rad)
 	if rad > 0 and rad < twoPi then
 		return rad
 	end
-    local normalized = math.fmod(rad, twoPi)
-    if normalized < 0 then
-        normalized = normalized + twoPi
-    end
-    return normalized
+	local normalized = math.fmod(rad, twoPi)
+	if normalized < 0 then
+		normalized = normalized + twoPi
+	end
+	return normalized
 end
 
 
@@ -221,23 +221,36 @@ local function getPadding(self)
 	}
 end
 
+local two_pi = math.pi * 2
 local function getGlobalPosition(self)
 	local parent_x, parent_y = 0, 0
 	local parent_sx, parent_sy = 1, 1
 	local parent_w, parent_h
+	local parent_r = 0
 	local parent_pivot = {0, 0}
 	if self.parent then
 		parent_x, parent_y = self.parent:getGlobalPosition()
 		parent_sx, parent_sy = self.parent:getGlobalScale()
 		parent_w, parent_h = self.parent:getGlobalScaledSize()
 		parent_pivot = self.parent.pivot
+		parent_r = self.parent:getGlobalRotation()
 	else
 		parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
 	end
-
-	local anchor_begin_x = parent_x + parent_w * (self.anchors_min[1] - parent_pivot[1])
-	local anchor_begin_y = parent_y + parent_h * (self.anchors_min[2] - parent_pivot[2])
-	return anchor_begin_x + self.x * parent_sx, anchor_begin_y + self.y * parent_sy
+	-- 计算当前元素相对于父级旋转中心的偏移量
+	local dx = (self.anchors_min[1] - parent_pivot[1]) * parent_w + self.x * parent_sx
+	local dy = (self.anchors_min[2] - parent_pivot[2]) * parent_h + self.y * parent_sy
+	if parent_r == 0 or parent_r == two_pi then
+		return parent_x + dx, parent_y + dy
+	else
+		-- 应用父级旋转
+		local cos_r = math.cos(parent_r)
+		local sin_r = math.sin(parent_r)
+		local dx_rot = dx * cos_r - dy * sin_r  -- 旋转后的x偏移
+		local dy_rot = dx * sin_r + dy * cos_r  -- 旋转后的y偏移
+		-- 最终全局坐标 = 父级旋转中心全局坐标 + 旋转后的偏移量
+		return parent_x + dx_rot, parent_y + dy_rot
+	end
 end
 
 local function getGlobalScale(self)
