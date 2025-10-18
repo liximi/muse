@@ -9,11 +9,6 @@ local Panel = Class(Widget, function(self, datas, theme)
 	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color
 	self.rounding_radius = datas and datas.rounding_radius or self.theme.panel.rounding_radius
 	self.outline_width = datas and datas.outline_width or self.theme.panel.outline_width
-	if datas and datas.enable_outline ~= nil then
-		self.enable_outline = datas.enable_outline == true
-	else
-		self.enable_outline = self.theme.panel.enable_outline == true
-	end
 end)
 
 
@@ -55,7 +50,7 @@ function Panel:onDraw()
 	end
 	love.graphics.setColor(unpack(self.bg_color))
 	love.graphics.rectangle("fill", x, y, w, h, self.rounding_radius, self.rounding_radius, self.rounding_radius * 2)
-	if self.enable_outline then
+	if self.outline_width > 0 then
 		love.graphics.setLineWidth(self.outline_width)
 		love.graphics.setColor(unpack(self.outline_color))
 		love.graphics.rectangle("line", x, y, w, h, self.rounding_radius, self.rounding_radius, self.rounding_radius * 2)

@@ -40,7 +40,6 @@ function love.load()
         anchors = {0.4, 0.25, 0.6, 0.75},
         padding = {0, 0, 0, 0},
         rounding_radius = 5,
-        -- enable_outline = false,
     }))
     -- root_panel:enableDebug(true)
 

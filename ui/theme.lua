@@ -11,7 +11,6 @@ local Theme = Class(function(self)
 		outline_color = Utils.UI_COLORS.PALE_GRAY,
 		rounding_radius = 0,
 		outline_width = 2,
-		enable_outline = true,
 	}
 
 	self.text = {
