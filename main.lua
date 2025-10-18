@@ -46,16 +46,19 @@ function love.load()
     -- local test_img = love.graphics.newImage("assets/bilibili.png")
     local btn = root_panel:addChild(Button({
         x = 20,
-        y = 20
+        y = 20,
+        text = "Selected",
     }))
     btn:setSelected(true)
     local btn2 = root_panel:addChild(Button({
         x = 20,
-        y = 120
+        y = 120,
+        text = "Normal",
     }))
     local btn3 = root_panel:addChild(Button({
         x = 20,
-        y = 220
+        y = 220,
+        text = "Disabled",
     }))
     btn3:disable()
 end

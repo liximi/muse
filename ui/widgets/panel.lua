@@ -48,6 +48,16 @@ function Panel:onDraw()
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)
 	end
+	love.graphics.setShader(Utils.getDropShadowShader(
+		{x + w /2, y + h/2},
+		{w/2, h/2},
+		10,
+		self.rounding_radius,
+		{0, 20},
+		{0, 0, 0, 1}
+	))
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+    love.graphics.setShader() -- 关闭Shader（避免影响后续绘制）
 	love.graphics.setColor(unpack(self.bg_color))
 	love.graphics.rectangle("fill", x, y, w, h, self.rounding_radius, self.rounding_radius, self.rounding_radius * 2)
 	if self.outline_width > 0 then
