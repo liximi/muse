@@ -25,6 +25,11 @@ local Utils = {
         SELECTED = "selected",
         HOVER = "hover",
         SELECTED_HOVER = "selected_hover",
+    },
+    SHADOW_DEFAULT_PROPS = {
+        OFFSET = {5, 5},
+        COLOR = {0, 0, 0, 0.35},
+        BLUR = 10,
     }
 }
 
@@ -159,6 +164,38 @@ function Utils.getDropShadowShader(center, half_size, sigma, corner, shadow_offs
     roundedShadowShader:send("shadowOffset", shadow_offset)
     roundedShadowShader:send("shadowColor", shadow_color)
     return roundedShadowShader
+end
+
+local blur_canvas = love.graphics.newCanvas()
+local canvas_size = {love.graphics:getWidth(), love.graphics:getHeight()}
+---@param center table {x, y} 矩形中心
+---@param half_size table {x, y} 半尺寸
+---@param sigma number 模糊半径
+---@param corner number 圆角半径
+---@param shadow_offset table {x, y} 阴影偏移
+---@param shadow_color table {r, g, b, a} 阴影颜色
+---@param rotation number 旋转弧度
+function Utils.drawRectangleShadow(center, half_size, sigma, corner, shadow_offset, shadow_color, rotation)
+    local screen_size = {love.graphics:getWidth(), love.graphics:getHeight()}
+    if canvas_size[1] ~= screen_size[2] or canvas_size[2] ~= screen_size[2] then
+        canvas_size = screen_size
+        blur_canvas = love.graphics.newCanvas()
+    end
+    local canvas_center = {canvas_size[1]/2, canvas_size[2]/2}
+    love.graphics.setCanvas(blur_canvas)
+        love.graphics.setColor({1, 1, 1, 1})
+        love.graphics.clear()
+        local shadow_shader = Utils.getDropShadowShader(canvas_center, half_size, sigma, corner, shadow_offset, shadow_color)
+        love.graphics.setShader(shadow_shader)
+            love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        love.graphics.setShader()
+    love.graphics.setCanvas()
+
+    love.graphics.push()
+        love.graphics.translate(center[1], center[2])
+        love.graphics.rotate(rotation)
+        love.graphics.draw(blur_canvas, -center[1], -center[2])
+    love.graphics.pop()
 end
 
 

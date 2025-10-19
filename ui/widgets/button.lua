@@ -29,8 +29,14 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 			rounding_radius = datas and datas.rounding_radius or self.theme.button.rounding_radius,
 			offset = datas and datas.offset or self.theme.button.offset,
 			scale = datas and datas.scale or self.theme.button.scale,
+			enable_shadow = datas and datas.enable_shadow or self.theme.button.enable_shadow,
 		},
 	}
+	if self.state_styles.normal.enable_shadow then
+		self.state_styles.normal.shadow_offset = datas and datas.shadow_offset or self.theme.button.shadow_offset or Utils.SHADOW_DEFAULT_PROPS.OFFSET
+		self.state_styles.normal.shadow_color = datas and datas.shadow_color or self.theme.button.shadow_color or Utils.SHADOW_DEFAULT_PROPS.COLOR
+		self.state_styles.normal.shadow_blur = datas and datas.shadow_blur or self.theme.button.shadow_blur or Utils.SHADOW_DEFAULT_PROPS.BLUR
+	end
 	for k, state in pairs(Utils.BTN_STATES) do
 		if state ~= Utils.BTN_STATES.NORMAL then
 			self.state_styles[state] = {
@@ -41,7 +47,13 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 				rounding_radius = datas and datas["rounding_radius_"..state] or self.theme.button["rounding_radius_"..state],
 				offset = datas and datas["offset_"..state] or self.theme.button["offset_"..state],
 				scale = datas and datas["scale_"..state] or self.theme.button["scale_"..state],
+				enable_shadow = datas and datas["enable_shadow_"..state] or self.theme.button["enable_shadow_"..state],
 			}
+			if self.state_styles[state].enable_shadow then
+				self.state_styles[state].shadow_offset = datas and datas["shadow_offset_"..state] or self.theme.button["shadow_offset_"..state] or Utils.SHADOW_DEFAULT_PROPS.OFFSET
+				self.state_styles[state].shadow_color = datas and datas["shadow_color_"..state] or self.theme.button["shadow_color_"..state] or Utils.SHADOW_DEFAULT_PROPS.COLOR
+				self.state_styles[state].shadow_blur = datas and datas["shadow_blur_"..state] or self.theme.button["shadow_blur_"..state] or Utils.SHADOW_DEFAULT_PROPS.BLUR
+			end
 		end
 	end
 
@@ -92,28 +104,49 @@ end
 
 
 function Button:onDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local cur_state_def = self.state_styles[self.cur_state]
-	local x, y = self:getGlobalPosition()
-	local w, h = self:getGlobalScaledSize()
 	local bg_color = cur_state_def.bg_color or self.state_styles.normal.bg_color
 	local outline_color = cur_state_def.outline_color or self.state_styles.normal.outline_color
 	local rounding_radius = cur_state_def.rounding_radius or self.state_styles.normal.rounding_radius or 0
+
+	if cur_state_def.enable_shadow then
+		Utils.drawRectangleShadow(
+			{x+w/2, y+h/2},
+			{w/2, h/2},
+			cur_state_def.shadow_blur / 2,
+			rounding_radius,
+			cur_state_def.shadow_offset,
+			cur_state_def.shadow_color,
+			r
+		)
+	end
+
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
 	love.graphics.setLineWidth(self.outline_width)
 	if bg_color then
 		love.graphics.setColor(unpack(bg_color))
-		love.graphics.rectangle("fill", x, y, w, h, rounding_radius, rounding_radius, rounding_radius * 2)
+		love.graphics.rectangle("fill", x, y, w, h, rounding_radius)
 	end
 	if outline_color then
 		love.graphics.setColor(unpack(outline_color))
-		love.graphics.rectangle("line", x, y, w, h, rounding_radius, rounding_radius, rounding_radius * 2)
+		love.graphics.rectangle("line", x, y, w, h, rounding_radius)
 	end
 
+	love.graphics.setLineWidth(1)
+	love.graphics.pop()
+
 	if self._debug then
+		local x, y, w, h = self.transform:getGlobalAABB()
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
 		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, w)
 	end
-	love.graphics.setLineWidth(1)
 end
 
 

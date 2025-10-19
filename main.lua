@@ -31,15 +31,20 @@ function love.load()
 
 
     --UI
-    -- UI_ROOT = UiManager:addWidget(Widget("UI_ROOT"))
+    UI_ROOT = UiManager:addWidget(Widget("UI_ROOT", {
+        anchors = {0, 0, 1, 1},
+        padding = {0, 0, 0, 0}
+    }))
 
-    local root_panel = UiManager:addWidget(Panel({
+    local root_panel = UI_ROOT:addChild(Panel({
         pivot = {0.5, 0.5},
         w = 300,
         h = 300,
         anchors = {0.4, 0.25, 0.6, 0.75},
         padding = {0, 0, 0, 0},
         rounding_radius = 5,
+        enable_shadow = true,
+        shadow_offset = {0, 20},
     }))
     -- root_panel:enableDebug(true)
 
@@ -54,6 +59,9 @@ function love.load()
         x = 20,
         y = 120,
         text = "Normal",
+        enable_shadow = true,
+        enable_shadow_hover = true,
+        -- shadow_offset_hover = {5, 6},
     }))
     local btn3 = root_panel:addChild(Button({
         x = 20,
