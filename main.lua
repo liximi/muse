@@ -86,28 +86,36 @@ end
 
 local line_color1 = UiUtils.RGB(160, 160, 160, 0.1)
 local line_color2 = UiUtils.RGB(200, 200, 200, 0.25)
+local grid_canvas
+local screen_size = {0, 0}
 local function DrawGridBG()
-    love.graphics.setLineWidth(1)
-    love.graphics.setLineStyle("rough")
-    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-    for i = 0, w+100, 100 do
-        for j = 0, h+100, 100 do
-            love.graphics.setColor(unpack(line_color1))
-            -- for k = 25, 75, 25 do
-            --     love.graphics.line(i-2, j+k, i+2, j+k)
-            --     love.graphics.line(i+k, j+2, i+k, j-2)
-            -- end
-            love.graphics.line(i, j+25, i+100, j+25)
-            love.graphics.line(i+25, j, i+25, j+100)
-            love.graphics.line(i, j+50, i+100, j+50)
-            love.graphics.line(i+50, j, i+50, j+100)
-            love.graphics.line(i, j+75, i+100, j+75)
-            love.graphics.line(i+75, j, i+75, j+100)
+    local cur_size = {love.graphics.getWidth(), love.graphics.getHeight()}
+    if screen_size[1] ~= cur_size[1] or screen_size[2] ~= cur_size[2] then
+        screen_size = cur_size
+        grid_canvas = love.graphics.newCanvas()
+        love.graphics.setCanvas(grid_canvas)
+        love.graphics.setLineWidth(1)
+        love.graphics.setLineStyle("rough")
+        for i = 0, screen_size[1]+100, 100 do
+            for j = 0, screen_size[2]+100, 100 do
+                love.graphics.setColor(unpack(line_color1))
+                love.graphics.line(i, j+25, i+100, j+25)
+                love.graphics.line(i+25, j, i+25, j+100)
+                love.graphics.line(i, j+50, i+100, j+50)
+                love.graphics.line(i+50, j, i+50, j+100)
+                love.graphics.line(i, j+75, i+100, j+75)
+                love.graphics.line(i+75, j, i+75, j+100)
 
-            love.graphics.setColor(unpack(line_color2))
-            love.graphics.line(i, j, i+100, j, i+100, j+100)
+                love.graphics.setColor(unpack(line_color2))
+                love.graphics.line(i, j, i+100, j, i+100, j+100)
+            end
         end
+        love.graphics.setCanvas()
     end
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setBlendMode("alpha", "premultiplied")
+    love.graphics.draw(grid_canvas)
+    love.graphics.setBlendMode("alpha")
 end
 local function DrawPerformanceInfo()
     love.graphics.setColor(0, 0.6, 0)
