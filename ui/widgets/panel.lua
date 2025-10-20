@@ -49,24 +49,21 @@ end
 function Panel:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 
-	if self.enable_shadow then
-		Utils.drawRectangleShadow(
-			{x+w/2, y+h/2},
-			{w/2, h/2},
-			self.shadow_blur / 2,
-			self.rounding_radius,
-			self.shadow_offset,
-			self.shadow_color,
-			r
-		)
-	end
-
 	love.graphics.push()
 	if r ~= 0 and r ~= Utils.TWO_PI then
 		local px, py = self.transform:getGlobalPosition()
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)
+	end
+	if self.enable_shadow then
+		Utils.drawRectangleShadow(
+			{x, y, w, h},
+			self.shadow_blur / 2,
+			self.rounding_radius,
+			self.shadow_offset,
+			self.shadow_color
+		)
 	end
 	love.graphics.setColor(unpack(self.bg_color))
 	love.graphics.rectangle("fill", x, y, w, h, self.rounding_radius)

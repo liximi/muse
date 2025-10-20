@@ -110,10 +110,17 @@ function Button:onDraw()
 	local outline_color = cur_state_def.outline_color or self.state_styles.normal.outline_color
 	local rounding_radius = cur_state_def.rounding_radius or self.state_styles.normal.rounding_radius or 0
 
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+
 	if cur_state_def.enable_shadow then
 		Utils.drawRectangleShadow(
-			{x+w/2, y+h/2},
-			{w/2, h/2},
+			{x, y, w, h},
 			cur_state_def.shadow_blur / 2,
 			rounding_radius,
 			cur_state_def.shadow_offset,
@@ -122,13 +129,6 @@ function Button:onDraw()
 		)
 	end
 
-	love.graphics.push()
-	if r ~= 0 and r ~= Utils.TWO_PI then
-		local px, py = self.transform:getGlobalPosition()
-		love.graphics.translate(px, py)
-		love.graphics.rotate(r)
-		love.graphics.translate(-px, -py)
-	end
 	love.graphics.setLineWidth(self.outline_width)
 	if bg_color then
 		love.graphics.setColor(unpack(bg_color))
@@ -138,6 +138,7 @@ function Button:onDraw()
 		love.graphics.setColor(unpack(outline_color))
 		love.graphics.rectangle("line", x, y, w, h, rounding_radius)
 	end
+	love.graphics.rectangle("line", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 	love.graphics.setLineWidth(1)
 	love.graphics.pop()
