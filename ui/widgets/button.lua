@@ -29,14 +29,8 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 			rounding_radius = datas and datas.rounding_radius or self.theme.button.rounding_radius,
 			offset = datas and datas.offset or self.theme.button.offset,
 			scale = datas and datas.scale or self.theme.button.scale,
-			enable_shadow = datas and datas.enable_shadow or self.theme.button.enable_shadow,
 		},
 	}
-	if self.state_styles.normal.enable_shadow then
-		self.state_styles.normal.shadow_offset = datas and datas.shadow_offset or self.theme.button.shadow_offset or Utils.SHADOW_DEFAULT_PROPS.OFFSET
-		self.state_styles.normal.shadow_color = datas and datas.shadow_color or self.theme.button.shadow_color or Utils.SHADOW_DEFAULT_PROPS.COLOR
-		self.state_styles.normal.shadow_blur = datas and datas.shadow_blur or self.theme.button.shadow_blur or Utils.SHADOW_DEFAULT_PROPS.BLUR
-	end
 	for k, state in pairs(Utils.BTN_STATES) do
 		if state ~= Utils.BTN_STATES.NORMAL then
 			self.state_styles[state] = {
@@ -47,13 +41,7 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 				rounding_radius = datas and datas["rounding_radius_"..state] or self.theme.button["rounding_radius_"..state],
 				offset = datas and datas["offset_"..state] or self.theme.button["offset_"..state],
 				scale = datas and datas["scale_"..state] or self.theme.button["scale_"..state],
-				enable_shadow = datas and datas["enable_shadow_"..state] or self.theme.button["enable_shadow_"..state],
 			}
-			if self.state_styles[state].enable_shadow then
-				self.state_styles[state].shadow_offset = datas and datas["shadow_offset_"..state] or self.theme.button["shadow_offset_"..state] or Utils.SHADOW_DEFAULT_PROPS.OFFSET
-				self.state_styles[state].shadow_color = datas and datas["shadow_color_"..state] or self.theme.button["shadow_color_"..state] or Utils.SHADOW_DEFAULT_PROPS.COLOR
-				self.state_styles[state].shadow_blur = datas and datas["shadow_blur_"..state] or self.theme.button["shadow_blur_"..state] or Utils.SHADOW_DEFAULT_PROPS.BLUR
-			end
 		end
 	end
 
@@ -116,16 +104,6 @@ function Button:onDraw()
 		love.graphics.translate(px, py)
 		love.graphics.rotate(r)
 		love.graphics.translate(-px, -py)
-	end
-
-	if cur_state_def.enable_shadow then
-		Utils.drawRectangleShadow(
-			{x, y, w, h},
-			cur_state_def.shadow_blur / 2,
-			rounding_radius,
-			cur_state_def.shadow_offset,
-			cur_state_def.shadow_color
-		)
 	end
 
 	love.graphics.setLineWidth(self.outline_width)

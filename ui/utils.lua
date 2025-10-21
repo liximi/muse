@@ -25,11 +25,6 @@ local Utils = {
         SELECTED = "selected",
         HOVER = "hover",
         SELECTED_HOVER = "selected_hover",
-    },
-    SHADOW_DEFAULT_PROPS = {
-        OFFSET = {5, 5},
-        COLOR = {0, 0, 0, 0.35},
-        BLUR = 10,
     }
 }
 
@@ -79,52 +74,6 @@ function Utils.newButtonStateStyle(text, text_color, bg_color, outline_color, of
         scale = scale,
         rounding_radius = rounding_radius,
     }
-end
-
-
-local shader_content, err = love.filesystem.read("ui/shaders/rounded_rect_shadow.frag")
-local roundedShadowShader = love.graphics.newShader(shader_content)
----@param center table {x, y} 矩形中心
----@param half_size table {x, y} 半尺寸
----@param sigma number 模糊半径
----@param corner number 圆角半径
----@param shadow_offset table {x, y} 阴影偏移
----@param shadow_color table {r, g, b, a} 阴影颜色
-function Utils.getDropShadowShader(center, half_size, sigma, corner, shadow_offset, shadow_color)
-    roundedShadowShader:send("center", center)
-    roundedShadowShader:send("halfSize", half_size)
-    roundedShadowShader:send("sigma", sigma)
-    roundedShadowShader:send("corner", corner)
-    roundedShadowShader:send("shadowOffset", shadow_offset)
-    roundedShadowShader:send("shadowColor", shadow_color)
-    return roundedShadowShader
-end
-
-local blur_canvas = love.graphics.newCanvas()
-local canvas_size = {love.graphics:getWidth(), love.graphics:getHeight()}
----@param rect table {x, y, w, h} 矩形信息
----@param sigma number 模糊半径
----@param corner number 圆角半径
----@param shadow_offset table {x, y} 阴影偏移
----@param shadow_color table {r, g, b, a} 阴影颜色
-function Utils.drawRectangleShadow(rect, sigma, corner, shadow_offset, shadow_color)
-    local screen_size = {love.graphics:getWidth(), love.graphics:getHeight()}
-    if canvas_size[1] ~= screen_size[1] or canvas_size[2] ~= screen_size[2] then
-        canvas_size = screen_size
-        blur_canvas = love.graphics.newCanvas()
-    end
-    love.graphics.setCanvas(blur_canvas)
-        love.graphics.setColor({1, 1, 1, 1})
-        love.graphics.clear()
-        local half_size = {rect[3] / 2, rect[4] / 2}
-        local center = {rect[1] + half_size[1], rect[2] + half_size[2]}
-        local shadow_shader = Utils.getDropShadowShader(center, half_size, sigma, corner, shadow_offset, shadow_color)
-        love.graphics.setShader(shadow_shader)
-            love.graphics.rectangle("fill", 0, 0, canvas_size[1], canvas_size[2])
-        love.graphics.setShader()
-    love.graphics.setCanvas()
-
-    love.graphics.draw(blur_canvas)
 end
 
 

@@ -43,8 +43,6 @@ function love.load()
         anchors = {0.4, 0.25, 0.6, 0.75},
         padding = {0, 0, 0, 0},
         rounding_radius = 5,
-        enable_shadow = true,
-        shadow_offset = {0, 20},
     }))
     -- root_panel:enableDebug(true)
 
@@ -59,9 +57,6 @@ function love.load()
         x = 20,
         y = 120,
         text = "Normal",
-        enable_shadow = true,
-        enable_shadow_hover = true,
-        -- shadow_offset_hover = {5, 6},
     }))
     local btn3 = root_panel:addChild(Button({
         x = 20,
