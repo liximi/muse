@@ -11,20 +11,19 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 		datas = {}
 	end
 	if not datas.w then
-		datas.w = 120
+		datas.w = 100
 	end
 	if not datas.h then
-		datas.h = 50
+		datas.h = 35
 	end
 	ButtonBase.new(self, "Button", datas, theme)
-
-	self.outline_width = datas and datas.outline_width or self.theme.button.outline_width
 
 	self.state_styles = {
 		normal = {
 			text = datas and datas.text or "Button",
 			text_color = datas and datas.text_color or self.theme.button.text_color,
 			bg_color = datas and datas.bg_color or self.theme.button.bg_color,
+			outline_width = datas and datas.outline_width or self.theme.button.outline_width,
 			outline_color = datas and datas.outline_color or self.theme.button.outline_color,
 			rounding_radius = datas and datas.rounding_radius or self.theme.button.rounding_radius,
 			offset = datas and datas.offset or self.theme.button.offset,
@@ -37,6 +36,7 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 				text = datas and datas["text_"..state],
 				text_color = datas and datas["text_color_"..state] or self.theme.button["text_color_"..state],
 				bg_color = datas and datas["bg_color_"..state] or self.theme.button["bg_color_"..state],
+				outline_width = datas and datas["outline_width_"..state] or self.theme.button["outline_width_"..state],
 				outline_color = datas and datas["outline_color_"..state] or self.theme.button["outline_color_"..state],
 				rounding_radius = datas and datas["rounding_radius_"..state] or self.theme.button["rounding_radius_"..state],
 				offset = datas and datas["offset_"..state] or self.theme.button["offset_"..state],
@@ -95,6 +95,7 @@ function Button:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local cur_state_def = self.state_styles[self.cur_state]
 	local bg_color = cur_state_def.bg_color or self.state_styles.normal.bg_color
+	local outline_width = cur_state_def.outline_width or 0
 	local outline_color = cur_state_def.outline_color or self.state_styles.normal.outline_color
 	local rounding_radius = cur_state_def.rounding_radius or self.state_styles.normal.rounding_radius or 0
 
@@ -106,17 +107,17 @@ function Button:onDraw()
 		love.graphics.translate(-px, -py)
 	end
 
-	love.graphics.setLineWidth(self.outline_width)
 	if bg_color then
 		love.graphics.setColor(unpack(bg_color))
 		love.graphics.rectangle("fill", x, y, w, h, rounding_radius)
 	end
-	if outline_color then
+	if outline_color and outline_width > 0 then
+		love.graphics.setLineWidth(outline_width)
 		love.graphics.setColor(unpack(outline_color))
 		love.graphics.rectangle("line", x, y, w, h, rounding_radius)
+		love.graphics.setLineWidth(1)
 	end
 
-	love.graphics.setLineWidth(1)
 	love.graphics.pop()
 
 	if self._debug then

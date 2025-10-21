@@ -1,17 +1,16 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
-local AddSizeComponent = require "ui.components".AddSize
 
 
 
 local SliderBar = Class(Widget, function (self, w, h)
 	Widget.new(self, "SliderBar Vertical")
 
-	self.bg_color = Utils.UI_COLORS.PALE_GRAY
-	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
+	self.bg_color = Utils.UI_COLORS.LINE
+	self.outline_width = 0
+	self.outline_color = Utils.UI_COLORS.LINE
 
-	AddSizeComponent(self)
-	self.transform:setSize(w or 10, h or 100)
+	self.transform:setSize(w or 8, h or 100)
 end)
 
 
@@ -20,8 +19,10 @@ function SliderBar:onDraw()
 	local x, y = self:getGlobalPosition()
 	local sx, sy = self:getGlobalScale()
 	love.graphics.rectangle("fill", x, y, self.width * sx, self.height * sy)
-	love.graphics.setColor(unpack(self.outline_color))
-	love.graphics.rectangle("line", x, y, self.width * sx, self.height * sy)
+	if self.outline_color and self.outline_width and self.outline_width > 0 then
+		love.graphics.setColor(unpack(self.outline_color))
+		love.graphics.rectangle("line", x, y, self.width * sx, self.height * sy)
+	end
 end
 
 

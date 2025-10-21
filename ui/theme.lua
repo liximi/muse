@@ -7,16 +7,16 @@ local Utils = require "ui.utils"
 --另外，任何widget也都支持在datas参数中设置一些样式相关的参数，这些设置是最高优先级的，将会覆盖该widget的主题中的相同设置
 local Theme = Class(function(self)
 	self.panel = {
-		bg_color = Utils.UI_COLORS.BLACK,
-		outline_color = Utils.UI_COLORS.PALE_GRAY,
-		rounding_radius = 0,
-		outline_width = 2,
+		bg_color = Utils.UI_COLORS.BG,
+		outline_color = Utils.UI_COLORS.LINE,
+		rounding_radius = 8,
+		outline_width = 1,
 	}
 
 	self.text = {
 		font_key = "default",
 		font_size = 16,
-		text_color = Utils.UI_COLORS.PALE_GRAY,
+		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
 	}
 
 	self.image = {
@@ -25,40 +25,39 @@ local Theme = Class(function(self)
 
 	self.button = {
 		font_key = "default",--不支持在按钮状态改变时切换字体
-		outline_width = 2,--不支持在按钮状态改变时改变描边粗细
 		--[normal]
-		font_size = 16,
-		text_color = Utils.UI_COLORS.BLACK,
-		bg_color = Utils.UI_COLORS.PALE_GRAY,
-		-- outline_color = Utils.UI_COLORS.PALE_GRAY,
-		rounding_radius = 5,
+		font_size = 18,
+		text_color = Utils.UI_COLORS.TITLE,
+		bg_color = Utils.UI_COLORS.LIGHT_PINK,
+		outline_width = 0,
+		-- outline_color = Utils.UI_COLORS.LIGHT_PINK,
+		rounding_radius = 8,
 		-- offset = {0, 0},--此处不需要设置该字段的值，但是仍然展示在这里，表示支持设置其值
 		-- scale = {1, 1},--此处不需要设置该字段的值，但是仍然展示在这里，表示支持设置其值
 
 		--以下所有设置，都是表示按钮在不同状态下的样式，如果缺少某种样式，则会使用normal状态下的对应样式
 		--这些设置的字段名采用 normal状态下的字段名+"_"+对应的状态名（小写），比如"font_size_pressed"表示pressed状态下的font_size
 		--[pressed]
-		bg_color_pressed = Utils.UI_COLORS.PALE_GRAY3,
 		offset_pressed = {0, 2},
 
 		--[selected]
-		text_color_selected = Utils.UI_COLORS.BLUE,
-		bg_color_selected = Utils.UI_COLORS.PALE_GRAY,
-		outline_color_selected = Utils.UI_COLORS.BLUE,
+		outline_width_selected = 2,
+		bg_color_selected = Utils.UI_COLORS.BTN_SELECTED,
+		outline_color_selected = Utils.UI_COLORS.LIGHT_PINK,
 
 		--[hover]
-		-- text_color_hover = Utils.UI_COLORS.PALE_GRAY,
-		-- bg_color_hover = Utils.UI_COLORS.PALE_GRAY2,
+		bg_color_hover = Utils.UI_COLORS.PINK,
 		offset_hover = {0, -1},
 
 		--[selected_hover]
-		text_color_selected_hover = Utils.UI_COLORS.BLUE,
-		bg_color_selected_hover = Utils.UI_COLORS.WHITE,
-		outline_color_selected_hover = Utils.UI_COLORS.BLUE,
+		outline_width_selected_hover = 2,
+		text_color_selected_hover = Utils.UI_COLORS.PRIMARY_TEXT,
+		bg_color_selected_hover = Utils.UI_COLORS.BTN_SELECTED_HOVER,
+		outline_color_selected_hover = Utils.UI_COLORS.LIGHT_PINK,
 
 		--[disabled]
 		text_color_disabled = Utils.UI_COLORS.SECONDARY_TEXT,
-		bg_color_disabled = Utils.UI_COLORS.DARK_GRAY,
+		bg_color_disabled = Utils.UI_COLORS.BTN_DISABLED,
 	}
 end)
 

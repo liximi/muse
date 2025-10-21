@@ -13,6 +13,9 @@ local Widget = Class(function(self, name, datas, theme)
 		if datas.pivot then
 			self.transform:setPivot(unpack(datas.pivot))
 		end
+		if datas.anchors then
+			self.transform:setAnchors(unpack(datas.anchors))
+		end
 		if datas.x or datas.y then
 			self.transform:setPosition(datas.x, datas.y)
 		end
@@ -21,9 +24,6 @@ local Widget = Class(function(self, name, datas, theme)
 		end
 		if datas.sx or datas.sy then
 			self.transform:setScale(datas.sx, datas.sy)
-		end
-		if datas.anchors then
-			self.transform:setAnchors(unpack(datas.anchors))
 		end
 		if datas.padding then
 			self.transform:setPadding(unpack(datas.padding))
@@ -74,7 +74,13 @@ function Widget:regionDetection(px, py)
 	if r == 0 or r == Utils.TWO_PI then
 		return px >= x and px <= x + w and py >= y and py <= y + h
 	end
-
+	local dx = px - x
+	local dy = py - y
+	local cosr = math.cos(r)
+	local sinr = math.sin(r)
+	local localX = dx * cosr + dy * sinr
+	local localY = -dx * sinr + dy * cosr
+	return localX >= 0 and localX <= w and localY >= 0 and localY <= h
 end
 
 --------------------------------------------------

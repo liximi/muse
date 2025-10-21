@@ -16,7 +16,7 @@ local UiUtils = require "ui.utils"
 
 local languages = {"zh-cn"}
 
-local UI_ROOT
+local ui_root
 
 function love.load()
     -- 加载本地化文本
@@ -31,39 +31,56 @@ function love.load()
 
 
     --UI
-    UI_ROOT = UiManager:addWidget(Widget("UI_ROOT", {
+    ui_root = UiManager:addWidget(Widget("ui_root", {
         anchors = {0, 0, 1, 1},
         padding = {0, 0, 0, 0}
     }))
 
-    local root_panel = UI_ROOT:addChild(Panel({
-        pivot = {0.5, 0.5},
-        w = 300,
-        h = 300,
-        anchors = {0.4, 0.25, 0.6, 0.75},
-        padding = {0, 0, 0, 0},
-        rounding_radius = 5,
+    local left_panel = ui_root:addChild(Panel({
+        w = 400,
+        anchors = {0.01, 0.02, 0.01, 0.98},
+        padding = {0, nil, 0, 0},
     }))
-    -- root_panel:enableDebug(true)
 
-    -- local test_img = love.graphics.newImage("assets/bilibili.png")
-    local btn = root_panel:addChild(Button({
-        x = 20,
-        y = 20,
-        text = "Selected",
+    local title = left_panel:addChild(Text({
+        text = "Title",
+        font_size = 24,
+        font_key = "default_bold",
+        h = 30,
+        text_color = UiUtils.UI_COLORS.TITLE,
+        anchors = {0, 0, 1, 0},
+        padding = {20, 20, 20}
     }))
-    btn:setSelected(true)
-    local btn2 = root_panel:addChild(Button({
-        x = 20,
-        y = 120,
+    local test_img = love.graphics.newImage("assets/bilibili.png")
+    local image = left_panel:addChild(Image({
+        texture = test_img,
+        h = 200,
+        anchors = {0, 0, 1, 0},
+        padding = {20, 20, 55},
+    }))
+    local btns_root = left_panel:addChild(Widget("btns_root", {
+        anchors = {0, 0, 1, 0},
+        padding = {20, 20, 220, -255},
+    }))
+    -- btns_root:enableDebug(true)
+    local btn = btns_root:addChild(Button({
         text = "Normal",
+        anchors = {0, 0, 0.3, 1},
+        padding = {0, 0, 0, 0},
     }))
-    local btn3 = root_panel:addChild(Button({
-        x = 20,
-        y = 220,
-        text = "Disabled",
+    local btn2 = btns_root:addChild(Button({
+        text = "Selected",
+        anchors = {0.35, 0, 0.65, 1},
+        padding = {0, 0, 0, 0},
     }))
-    btn3:disable()
+    btn2:setSelected(true)
+    btn2:enableDebug(true)
+    -- local btn3 = btns_root:addChild(Button({
+    --     text = "Disabled",
+    --     anchors = {0.7, 0, 1, 1},
+    --     padding = {0, 0, 0, 0},
+    -- }))
+    -- btn3:disable()
 end
 
 
@@ -126,7 +143,7 @@ local function DrawPerformanceInfo()
     love.graphics.printf(str, font, window_w-w, 12, w)
 end
 function love.draw()
-    love.graphics.clear(unpack(UiUtils.UI_COLORS.BLACK))
+    love.graphics.clear(unpack(UiUtils.UI_COLORS.BG))
     DrawGridBG()
 
     love.graphics.setLineStyle("smooth")

@@ -38,21 +38,37 @@ function Utils.RGB(r, g, b, a)
     return {r / 255, g / 255, b / 255, a or 1}
 end
 
+local grayscale_colors = {
+    light = Utils.RGB(245, 245, 245),
+    light_gray1 = Utils.RGB(224, 224, 224),
+    light_gray2 = Utils.RGB(189, 189, 189),
+    light_gray3 = Utils.RGB(110, 110, 110),
+    dark_gray1 = Utils.RGB(97, 97, 97),
+    dark_gray2 = Utils.RGB(45, 45, 45),
+    dark_gray3 = Utils.RGB(30, 30, 30),
+    dark = Utils.RGB(18, 18, 18),
+}
 Utils.UI_COLORS = {
     WHITE = Utils.RGB(255, 255, 255),
-    PALE_GRAY = Utils.RGB(220, 220, 220),
-    PALE_GRAY2 = Utils.RGB(190, 190, 190),
-    PALE_GRAY3 = Utils.RGB(160, 160, 160),
-    NEUTRAL_GRAY = Utils.RGB(128, 128, 128),
-    DARK_GRAY = Utils.RGB(51, 51, 51),
-    BLACK = Utils.RGB(37, 37, 37),
-    BLACK2 = Utils.RGB(32, 32, 32),
-    PINK = Utils.RGB(233, 150, 200),
-    YELLOW = Utils.RGB(240, 255, 70),
-    BLUE = Utils.RGB(100, 180, 210),
+    BG = grayscale_colors.dark,
+    LINE = grayscale_colors.light_gray3,
 
-    PRIMARY_TEXT = Utils.RGB(220, 220, 220),   --主要文本颜色
-    SECONDARY_TEXT = Utils.RGB(128, 128, 128),   --次要文本颜色
+    TITLE = grayscale_colors.light,
+    PRIMARY_TEXT = grayscale_colors.light_gray2,
+    SECONDARY_TEXT = grayscale_colors.light_gray3,
+    HINT = grayscale_colors.dark_gray1,
+
+    BTN_NORMAL = grayscale_colors.dark_gray3,
+    BTN_HOVER = grayscale_colors.dark_gray2,
+    BTN_DISABLED = grayscale_colors.dark_gray2,
+    BTN_SELECTED = Utils.RGB(255, 110, 160, 0.35),
+    BTN_SELECTED_HOVER = Utils.RGB(255, 110, 160, 0.45),
+
+    PINK = Utils.RGB(245, 105, 160),
+    LIGHT_PINK = Utils.RGB(255, 110, 160),
+    BLUE = Utils.RGB(39, 170, 225),
+    LIGHT_BLUE = Utils.RGB(42, 190, 225),
+    YELLOW = Utils.RGB(240, 255, 70),
 }
 
 

@@ -11,8 +11,8 @@ local addHoverState = require "ui.components".addHoverState
 local TextInput = Class(Widget, function(self, w, h, hint, enable_background, height_adaptive, min_height)
 	Widget.new(self, "TextInput")
 
-	self.outline_color = Utils.UI_COLORS.SECONDARY_TEXT
-	self.hovered_outline_color = Utils.UI_COLORS.PALE_GRAY
+	self.outline_color = Utils.UI_COLORS.LINE
+	self.hovered_outline_color = Utils.UI_COLORS.LIGHT_PINK
 
 	self.height_adaptive = height_adaptive == true
 	self.min_height = min_height or h or 75
