@@ -124,8 +124,7 @@ function Button:onDraw()
 			cur_state_def.shadow_blur / 2,
 			rounding_radius,
 			cur_state_def.shadow_offset,
-			cur_state_def.shadow_color,
-			r
+			cur_state_def.shadow_color
 		)
 	end
 
@@ -138,7 +137,6 @@ function Button:onDraw()
 		love.graphics.setColor(unpack(outline_color))
 		love.graphics.rectangle("line", x, y, w, h, rounding_radius)
 	end
-	love.graphics.rectangle("line", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 	love.graphics.setLineWidth(1)
 	love.graphics.pop()
