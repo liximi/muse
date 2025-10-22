@@ -2,14 +2,14 @@ local function _updateLeftRight(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
 	local left = transform.x - transform.w * transform.pivot[1]
 	transform.left = left
-	transform.right = parent_w * transform.anchors_max[1] - left - transform.w
+	transform.right = parent_w * (transform.anchors_max[1] - transform.anchors_min[1]) - left - transform.w
 end
 
 local function _updateTopBottom(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
 	local top = transform.y - transform.h * transform.pivot[2]
 	transform.top = top
-	transform.bottom = parent_h * transform.anchors_max[2] - top - transform.h
+	transform.bottom = parent_h * (transform.anchors_max[2] - transform.anchors_min[2]) - top - transform.h
 end
 
 local function _updateWidthAndX(transform)

@@ -51,7 +51,6 @@ local Theme = Class(function(self)
 
 		--[selected_hover]
 		outline_width_selected_hover = 2,
-		text_color_selected_hover = Utils.UI_COLORS.PRIMARY_TEXT,
 		bg_color_selected_hover = Utils.UI_COLORS.BTN_SELECTED_HOVER,
 		outline_color_selected_hover = Utils.UI_COLORS.LIGHT_PINK,
 

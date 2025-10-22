@@ -74,13 +74,12 @@ function love.load()
         padding = {0, 0, 0, 0},
     }))
     btn2:setSelected(true)
-    btn2:enableDebug(true)
-    -- local btn3 = btns_root:addChild(Button({
-    --     text = "Disabled",
-    --     anchors = {0.7, 0, 1, 1},
-    --     padding = {0, 0, 0, 0},
-    -- }))
-    -- btn3:disable()
+    local btn3 = btns_root:addChild(Button({
+        text = "Disabled",
+        anchors = {0.7, 0, 1, 1},
+        padding = {0, 0, 0, 0},
+    }))
+    btn3:disable()
 end
 
 

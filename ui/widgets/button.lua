@@ -123,7 +123,7 @@ function Button:onDraw()
 	if self._debug then
 		local x, y, w, h = self.transform:getGlobalAABB()
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, w)
+		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("debug", 16), x, y + h, w)
 	end
 end
 
