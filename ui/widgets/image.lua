@@ -36,6 +36,15 @@ function Image:getTexture()
 end
 
 
+function Image:setTint(r, g, b, a)
+	if type(r) == "table" then
+		self.tint = r
+	else
+		self.tint = {r, g, b, a}
+	end
+end
+
+
 --- 获取UI贴图资源的原始尺寸
 function Image:getTextureRowSize()
 	if self.texture then

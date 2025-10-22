@@ -15,41 +15,44 @@ local BTN_STATES = Utils.BTN_STATES
 }
 ]]
 
-local ImageButton = Class(Button, function (self)
-	Button.new(self)
+local ImageButton = Class(Button, function (self, datas, theme)
+	Button.new(self, datas, theme)
 	self._name = "ImageButton"
 
-	self.image = self:addChild(Image())
-	self.image:moveToBottom()
+	self.state_styles.normal.texture = datas and datas.texture
+	for k, state in pairs(Utils.BTN_STATES) do
+		if state ~= Utils.BTN_STATES.NORMAL then
+			self.state_styles[state].texture = datas and datas["texture_"..state]
+		end
+	end
 
-	self.transform:setSize(120, 50)
+	local img_datas = {
+		texture = datas and datas.texture,
+		anchors = {0, 0, 1, 1},
+		padding = {0, 0, 0, 0},
+		tint = datas and datas.tint,
+	}
+	self.image = self:addChild(Image(img_datas, theme))
+	self.image:moveToBottom()
 end)
 
 
-function ImageButton:setState(new_state)
-	if not BTN_STATES[string.upper(new_state)] then
-		print("Button:setStateStyle|Invalid state:", new_state)
-		return
-	end
-	Button.setState(self, new_state)
-
-	self.cur_state = new_state
-
+function ImageButton:onSetState(old_state, new_state)
+	Button.onSetState(self, old_state, new_state)
 	local new_texture = self.state_styles[new_state] and self.state_styles[new_state].texture or self.state_styles.normal.texture
 	if new_texture then
 		self.image:setTexture(new_texture)
 	end
+	local new_img_tint = self.state_styles[new_state] and self.state_styles[new_state].tint or Utils.UI_COLORS.WHITE
+	self.image:setTint(new_img_tint)
 end
 
 
 function ImageButton:onDraw()
-	local x, y = self:getGlobalPosition()
-	local w, h = self:getGlobalScaledSize()
-
 	if self._debug then
+		local x, y, w, h = self.transform:getGlobalAABB()
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.rectangle("line", x-1, y-1, w + 2, h + 2)
-		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("default", 16), x, y + h, self.width)
+		love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("debug", 16), x, y + h, w)
 	end
 end
 

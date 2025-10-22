@@ -80,6 +80,14 @@ function love.load()
         padding = {0, 0, 0, 0},
     }))
     btn3:disable()
+
+    local b_img = love.graphics.newImage("assets/panel_glass.png")
+    local img_btn = btns_root:addChild(ImageButton({
+        text = "Normal",
+        anchors = {0, 1.1, 0.3, 2.1},
+        padding = {0, 0, 0, 0},
+        texture = b_img,
+    }))
 end
 
 
