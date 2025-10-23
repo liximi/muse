@@ -21,7 +21,7 @@ end)
 
 
 --- 设置贴图对象
----@param texture love.Image
+---@param texture love.Texture
 ---@param resize boolean 是否要将图像尺寸重置为新设置的贴图的原始尺寸
 function Image:setTexture(texture, resize)
 	self.texture = texture

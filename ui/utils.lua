@@ -97,7 +97,7 @@ function Utils.newButtonStateStyle(text, text_color, font_size, bg_color, outlin
 end
 
 --- 创建一个图片按钮状态的样式定义
----@param texture love.Image|nil
+---@param texture love.Texture|nil
 ---@param tint table|nil
 ---@param text string|table|nil 接受coloredtext
 ---@param text_color table|nil

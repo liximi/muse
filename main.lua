@@ -10,6 +10,7 @@ local Fonts = require "ui.fonts"
 local Button = require "ui.widgets.button"
 local Image = require "ui.widgets.image"
 local ImageButton = require "ui.widgets.imagebutton"
+local NineSlice = require "ui.widgets.nineslice"
 local TextInput = require "ui.widgets.textinput"
 local ScrollableList = require "ui.widgets.scrollable_list"
 local UiUtils = require "ui.utils"
@@ -102,6 +103,17 @@ function love.load()
         padding = {0, 0, 0, 0},
     }))
     img_btn3:disable()
+
+
+    local nine_slice = ui_root:addChild(NineSlice({
+        texture = b_img,
+        center_padding = {10, 10, 10, 10},
+        anchors = {0.5, 0.5, 0.5, 0.5},
+        pivot = {0.5, 0.5},
+        w = 256,
+        h = 256,
+    }))
+    nine_slice:enableDebug(true)
 end
 
 
