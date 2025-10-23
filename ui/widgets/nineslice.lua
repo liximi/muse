@@ -69,12 +69,21 @@ function NineSlice:onDraw()
 				lsy = 1
 			end
 			love.graphics.draw(self.texture, self.quads[(i - 1) * 3 + j], lx, ly, nil, lsx, lsy)
-			if self._debug then
-				love.graphics.setColor(i / 3, j / 3, 0, 1)
-				love.graphics.rectangle("line", lx, ly, 5, 5)
-				love.graphics.setColor(1, 1, 1, 1)
-			end
 		end
+	end
+
+	if self._debug then
+		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
+		local x0 = x + self.center_padding[1]
+		local y0 = y + self.center_padding[3]
+		local x1 = x + w - self.center_padding[2]
+		local y1 = y + h - self.center_padding[4]
+		local x2 = x + w
+		local y2 = y + h
+		love.graphics.line(x, y0, x2, y0)--上面的水平分割线
+		love.graphics.line(x, y1, x2, y1)--下面的水平分割线
+		love.graphics.line(x0, y, x0, y2)--左面的垂直分割线
+		love.graphics.line(x1, y, x1, y2)--右面的垂直分割线
 	end
 	love.graphics.pop()
 end

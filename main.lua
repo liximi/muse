@@ -108,10 +108,9 @@ function love.load()
     local nine_slice = ui_root:addChild(NineSlice({
         texture = b_img,
         center_padding = {10, 10, 10, 10},
-        anchors = {0.5, 0.5, 0.5, 0.5},
+        anchors = {0.4, 0.4, 0.6, 0.6},
         pivot = {0.5, 0.5},
-        w = 256,
-        h = 256,
+        padding = {0, 0, 0, 0},
     }))
     nine_slice:enableDebug(true)
 end
