@@ -56,6 +56,14 @@ end
 
 --TODO: 设置文本溢出行为
 --如果没看到创建出来的文本，请检查是否设置了该 UI 的尺寸。
+--[[data: 此处不包括当前Widget继承的基类所支持的字段
+	text = string|table(coloredtext)
+	font_key = string
+	font_size = number
+	text_color = {r, g, b, a}
+	h_align = string "left"|"right"|"center"|"justify"
+	v_align = string "top"|"bottom"|"center"
+]]
 local Text = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Text", datas, theme)
 

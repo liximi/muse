@@ -73,22 +73,46 @@ Utils.UI_COLORS = {
 
 
 --- 创建一个按钮状态的样式定义
---- @param text string|table 接受coloredtext
----@param text_color table
----@param bg_color table
----@param outline_color table
----@param offset table {x offset, y offset}
----@param scale table {x scale, y scale}
----@param rounding_radius number 背景矩形的圆角半径
-function Utils.newButtonStateStyle(text, text_color, bg_color, outline_color, offset, scale, rounding_radius)
+---@param text string|table|nil 接受coloredtext
+---@param text_color table|nil
+---@param font_size number|nil
+---@param bg_color table|nil
+---@param outline_width number|nil
+---@param outline_color table|nil
+---@param offset table|nil {x offset, y offset}
+---@param scale table|nil {x scale, y scale}
+---@param rounding_radius number|nil 背景矩形的圆角半径
+function Utils.newButtonStateStyle(text, text_color, font_size, bg_color, outline_width, outline_color, offset, scale, rounding_radius)
     return {
         text = text,
         text_color = text_color,
+        font_size = font_size,
         bg_color = bg_color,
+        outline_width = outline_width,
         outline_color = outline_color,
         offset = offset,
         scale = scale,
         rounding_radius = rounding_radius,
+    }
+end
+
+--- 创建一个图片按钮状态的样式定义
+---@param texture love.Image|nil
+---@param tint table|nil
+---@param text string|table|nil 接受coloredtext
+---@param text_color table|nil
+---@param font_size number|nil
+---@param offset table|nil {x offset, y offset}
+---@param scale table|nil {x scale, y scale}
+function Utils.newImageButtonStateStyle(texture, tint, text, text_color, font_size, offset, scale)
+    return {
+        text = text,
+        text_color = text_color,
+        font_size = font_size,
+        texture = texture,
+        tint = tint,
+        offset = offset,
+        scale = scale,
     }
 end
 

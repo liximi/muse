@@ -3,12 +3,18 @@ local Utils = require "ui.utils"
 
 
 --一个纯色的面板，可设置面板颜色和边框颜色
+--[[datas: 此处不包括当前Widget继承的基类所支持的字段
+	bg_color = {r, g, b, a}
+	outline_width = number
+	outline_color = {r, g, b, a}
+	rounding_radius = number
+]]
 local Panel = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Panel", datas, theme)
 	self.bg_color = datas and datas.bg_color or self.theme.panel.bg_color
+	self.outline_width = datas and datas.outline_width or self.theme.panel.outline_width
 	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color
 	self.rounding_radius = datas and datas.rounding_radius or self.theme.panel.rounding_radius
-	self.outline_width = datas and datas.outline_width or self.theme.panel.outline_width
 end)
 
 

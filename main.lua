@@ -38,8 +38,8 @@ function love.load()
 
     local left_panel = ui_root:addChild(Panel({
         w = 400,
-        anchors = {0.01, 0.02, 0.01, 0.98},
-        padding = {0, nil, 0, 0},
+        anchors = {0, 0, 0, 1},
+        padding = {20, nil, 20, 20},
     }))
 
     local title = left_panel:addChild(Text({
@@ -49,7 +49,7 @@ function love.load()
         h = 30,
         text_color = UiUtils.UI_COLORS.TITLE,
         anchors = {0, 0, 1, 0},
-        padding = {20, 20, 20}
+        padding = {20, 20, 16}
     }))
     local test_img = love.graphics.newImage("assets/bilibili.png")
     local image = left_panel:addChild(Image({
@@ -64,18 +64,18 @@ function love.load()
     }))
     -- btns_root:enableDebug(true)
     local btn = btns_root:addChild(Button({
-        text = "Normal",
+        normal = UiUtils.newButtonStateStyle("Normal"),
         anchors = {0, 0, 0.3, 1},
         padding = {0, 0, 0, 0},
     }))
     local btn2 = btns_root:addChild(Button({
-        text = "Selected",
+        normal = UiUtils.newButtonStateStyle("Selected"),
         anchors = {0.35, 0, 0.65, 1},
         padding = {0, 0, 0, 0},
     }))
     btn2:setSelected(true)
     local btn3 = btns_root:addChild(Button({
-        text = "Disabled",
+        normal = UiUtils.newButtonStateStyle("Disabled"),
         anchors = {0.7, 0, 1, 1},
         padding = {0, 0, 0, 0},
     }))
@@ -83,11 +83,25 @@ function love.load()
 
     local b_img = love.graphics.newImage("assets/panel_glass.png")
     local img_btn = btns_root:addChild(ImageButton({
-        text = "Normal",
-        anchors = {0, 1.1, 0.3, 2.1},
+        no_text = true,
+        normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
+        anchors = {0, 1.2, 0.3, 3},
         padding = {0, 0, 0, 0},
-        texture = b_img,
     }))
+    local img_btn2 = btns_root:addChild(ImageButton({
+        no_text = true,
+        normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
+        anchors = {0.35, 1.2, 0.65, 3},
+        padding = {0, 0, 0, 0},
+    }))
+    img_btn2:setSelected(true)
+    local img_btn3 = btns_root:addChild(ImageButton({
+        no_text = true,
+        normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
+        anchors = {0.7, 1.2, 1, 3},
+        padding = {0, 0, 0, 0},
+    }))
+    img_btn3:disable()
 end
 
 

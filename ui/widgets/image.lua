@@ -45,6 +45,11 @@ function Image:setTint(r, g, b, a)
 end
 
 
+function Image:getTint()
+	return self.tint
+end
+
+
 --- 获取UI贴图资源的原始尺寸
 function Image:getTextureRowSize()
 	if self.texture then

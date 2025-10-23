@@ -3,6 +3,18 @@ local Utils = require "ui.utils"
 local Transform = require "ui.transform"
 
 
+--[[datas:
+	pivot = {x, y}
+	anchors = {minx, miny, maxx, maxy}
+	x = number
+	y = number
+	w = number
+	h = number
+	sx = number
+	sy = number
+	padding = {left, right, top, bottom}
+	r = number
+]]
 local Widget = Class(function(self, name, datas, theme)
 	self._name = name or "widget"
 	self._valid = true
