@@ -15,15 +15,7 @@ local BTN_STATES = Utils.BTN_STATES
 	selected_hover = Utils.newButtonStateStyle
 ]]
 local Button = Class(ButtonBase, function (self, datas, theme)
-	if not datas then
-		datas = {}
-	end
-	if not datas.w then
-		datas.w = 100
-	end
-	if not datas.h then
-		datas.h = 35
-	end
+	datas = datas or {}
 	ButtonBase.new(self, "Button", datas, theme)
 
 	self.state_styles = {

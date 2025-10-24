@@ -15,14 +15,12 @@ local Fonts = require "ui.fonts"
 	selected_hover = Utils.newImageButtonStateStyle
 ]]
 local ImageButton = Class(ButtonBase, function (self, datas, theme)
-	if not datas then
-		datas = {}
-	end
+	datas = datas or {}
 	if not datas.w then
-		datas.w = datas.normal and datas.normal.texture and datas.normal.texture:getWidth() or 100
+		datas.w = datas.normal and datas.normal.texture and datas.normal.texture:getWidth()
 	end
 	if not datas.h then
-		datas.h = datas.normal and datas.normal.texture and datas.normal.texture:getHeight() or 35
+		datas.h = datas.normal and datas.normal.texture and datas.normal.texture:getHeight()
 	end
 	ButtonBase.new(self, "ImageButton", datas, theme)
 
