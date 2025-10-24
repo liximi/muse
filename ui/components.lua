@@ -8,14 +8,15 @@ function Components.addHoverState(widget)
 		if self:regionDetection(x, y) then
 			if not self.hovered then
 				self.hovered = true
-				if self.OnHovered then
-					self:OnHovered(true, x, y, dx, dy)
+				if self.onHovered then
+					self:onHovered(true, x, y, dx, dy)
 				end
+				return true
 			end
 		elseif self.hovered then
 			self.hovered = false
-			if self.OnHovered then
-				self:OnHovered(false, x, y, dx, dy)
+			if self.onHovered then
+				self:onHovered(false, x, y, dx, dy)
 			end
 		end
 	end

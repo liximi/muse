@@ -104,15 +104,15 @@ function love.load()
     }))
     img_btn3:disable()
 
-
-    local nine_slice = ui_root:addChild(NineSlice({
+    local text_input = ui_root:addChild(TextInput({
         texture = b_img,
-        center_padding = {10, 10, 10, 10},
         anchors = {0.4, 0.4, 0.6, 0.6},
         pivot = {0.5, 0.5},
         padding = {0, 0, 0, 0},
+        bg = Panel(),
+        text_padding = {10, 10, 10, 10}
     }))
-    nine_slice:enableDebug(true)
+    text_input:enableDebug(true)
 end
 
 

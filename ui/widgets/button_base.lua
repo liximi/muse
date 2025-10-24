@@ -48,6 +48,7 @@ function ButtonBase:onMousePressed(x, y, button)
 				self:onPressed()
 			end
 		end
+		return true
 	end
 end
 

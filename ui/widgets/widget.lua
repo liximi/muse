@@ -210,6 +210,9 @@ function Widget:draw()
 	for _, child in ipairs(self.children) do
 		child:draw()
 	end
+	if self.onPostDraw then
+		self:onPostDraw()
+	end
 end
 
 function Widget:drawAABB()
