@@ -319,49 +319,24 @@ end
 
 
 local function screenToLocal(self, screen_x, screen_y)
-    -- 初始化父级属性，默认以屏幕为根节点
-    local parent_x, parent_y = 0, 0
-    local parent_sx, parent_sy = 1, 1
-    local parent_w, parent_h
-    local parent_r = 0
-    local parent_pivot = {0, 0}
+	local gx, gy = self:getGlobalPosition()
+	local gr = self:getGlobalRotation()
+	local gsx, gsy = self:getGlobalScale()
 
-    -- 如果存在父级，获取父级的全局属性
-    if self.parent then
-        parent_x, parent_y = self.parent:getGlobalPosition()
-        parent_sx, parent_sy = self.parent:getGlobalScale()
-        parent_w, parent_h = self.parent:getGlobalScaledSize()
-        parent_pivot = self.parent.pivot
-        parent_r = self.parent:getGlobalRotation()
-    else
-        -- 无父级时，父级为屏幕
-        parent_w, parent_h = love.graphics.getWidth(), love.graphics.getHeight()
-    end
+    local offset_x = screen_x - gx
+    local offset_y = screen_y - gy
 
-    -- 计算屏幕坐标相对于父级旋转中心的偏移量
-    local offset_x = screen_x - parent_x
-    local offset_y = screen_y - parent_y
-
-    local dx, dy  -- 反向旋转后的偏移量（相对于父级旋转中心，未旋转状态）
-    if parent_r == 0 or parent_r == two_pi then
-        -- 父级无旋转，直接使用偏移量
+    local dx, dy
+    if gr == 0 or gr == two_pi then
         dx = offset_x
         dy = offset_y
     else
-        -- 反向应用父级旋转（旋转角度为 -parent_r）
-        local cos_r = math.cos(parent_r)
-        local sin_r = math.sin(parent_r)
-        -- 旋转矩阵逆变换：将旋转后的偏移量还原为旋转前的状态
+        local cos_r = math.cos(gr)
+        local sin_r = math.sin(gr)
         dx = offset_x * cos_r + offset_y * sin_r
         dy = -offset_x * sin_r + offset_y * cos_r
     end
-
-    -- 从偏移量计算self的本地坐标
-    -- 逆向原函数中dx、dy的计算公式：dx = (anchors_min - pivot) * parent_size + local * parent_scale
-    local local_x = (dx - (self.anchors_min[1] - parent_pivot[1]) * parent_w) / parent_sx
-    local local_y = (dy - (self.anchors_min[2] - parent_pivot[2]) * parent_h) / parent_sy
-
-    return local_x, local_y
+    return dx/gsx, dy/gsy
 end
 
 
