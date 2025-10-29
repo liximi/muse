@@ -47,6 +47,10 @@ local TextInput = Class(Widget, function(self, datas, theme)
 end)
 
 
+--------------------------------------------------
+-- Hint
+--------------------------------------------------
+
 function TextInput:refreashHint()
 	if not self.hint then
 		return
@@ -67,6 +71,11 @@ function TextInput:refreashHeight()
 		self.transform:setSize(w, text_h)
 	end
 end
+
+
+--------------------------------------------------
+-- Cursor
+--------------------------------------------------
 
 function TextInput:showCursor(show)
 	if show then
@@ -89,8 +98,9 @@ function TextInput:setCursorPos(index)
 	local line = 1
 	for l, s in ipairs(wrappedtext) do
 		local len = #s
+		print("line:", l, len, index)
+		line = l
 		if len + 1 >= index then
-			line = l
 			break
 		end
 		index = index - len
@@ -99,10 +109,14 @@ function TextInput:setCursorPos(index)
 	if not text or text == "" then
 		self.cursor._local_pos_cache[1] = 0
 		self.cursor._local_pos_cache[2] = 0
+	else
+		local line_height = font:getHeight() * font:getLineHeight()
+		self.cursor._local_pos_cache[2] = line_height * (line - 1)
+		print(line, index, #wrappedtext[line])
+		self.cursor._local_pos_cache[1] = font:getWidth(string.sub(wrappedtext[line], 1, index-1))
 	end
-	local line_height = font:getHeight() * font:getLineHeight()
-	self.cursor._local_pos_cache[2] = line_height * (line - 1)
-	self.cursor._local_pos_cache[1] = font:getWidth(string.sub(wrappedtext[line], 1, index-1))
+
+	cursor_blinking_timer = 0
 end
 
 function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
@@ -148,8 +162,68 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	self.cursor.index = final_line_idx
 	self.cursor._local_pos_cache[1] = final_x
 	self.cursor._local_pos_cache[2] = line_height * (line - 1)
+
+	cursor_blinking_timer = 0
 end
 
+
+--------------------------------------------------
+-- Event Handlers
+--------------------------------------------------
+
+
+function TextInput:onKeyPressed(key, isrepeat)
+	if key == "backspace" then
+		local old_text = self.text:getText(true)
+		local old_idx = self.cursor.index
+		local first_text = string.sub(old_text, 1, old_idx - 1)
+        local byteoffset = utf8.offset(first_text, -1)
+		first_text = string.sub(first_text, 1, byteoffset - 1)
+		local new_text = first_text .. string.sub(old_text, old_idx)
+		self.text:setText(new_text)
+		if self.height_adaptive then
+			self:refreashHeight()
+		end
+		self:refreashHint()
+	elseif key == "kpenter" or key == "return" then
+		self:onTextInput("\n")
+	elseif key == "left" then
+		local old_idx = self.cursor.index
+		if old_idx > 0 then
+			local old_text = self.text:getText(true)
+			local first_text = string.sub(old_text, 1, old_idx - 1)
+			local byteoffset = utf8.offset(first_text, -1)
+			self:setCursorPos(byteoffset)
+		end
+	elseif key == "right" then
+		local old_text = self.text:getText(true)
+		local old_idx = self.cursor.index
+		if old_idx < #old_text then
+			local second_text = string.sub(old_text, old_idx)
+			local byteoffset = utf8.offset(second_text, 2)
+			self:setCursorPos(old_idx + byteoffset - 1)
+		end
+	elseif key == "up" then
+
+	elseif key == "down" then
+
+	end
+end
+
+function TextInput:onTextInput(text)
+	if not self:isFocus() then
+		return
+	end
+	local old_text = self.text:getText(true)
+	local old_idx = self.cursor.index
+	local new_text = table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
+	self.text:setText(new_text)
+	self:setCursorPos(old_idx + #text)
+	if self.height_adaptive then
+		self:refreashHeight()
+	end
+	self:refreashHint()
+end
 
 function TextInput:onFocus()
 	self:showCursor(true)
@@ -167,7 +241,6 @@ function TextInput:onMousePressed(x, y, button)
 	local is_focus = self:isFocus()
 	if is_in_scope then
 		self:setCursorPosByScreenPos(x, y)
-		cursor_blinking_timer = 0
 		if not is_focus then
 			self:setFocus()
 			return
@@ -191,41 +264,8 @@ function TextInput:onHovered(hovered, x, y, dx, dy)
 	end
 end
 
-function TextInput:onKeyPressed(key, isrepeat)
-	if key == "backspace" then
-		local text = self.text:getText()
-        local byteoffset = utf8.offset(text, -1)
-        if byteoffset then
-            text = string.sub(text, 1, byteoffset - 1)
-			self.text:setText(text)
-			if self.height_adaptive then
-				self:refreashHeight()
-			end
-			self:refreashHint()
-        end
-	elseif key == "kpenter" or key == "return" then
-		self:onTextInput("\n")
-	end
-end
-
-function TextInput:onTextInput(text)
-	if not self:isFocus() then
-		return
-	end
-	local old_text = self.text:getText(true)
-	local old_idx = self.cursor.index
-	print(old_idx, #old_text)
-	local new_text = table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
-	self.text:setText(new_text)
-	self:setCursorPos(old_idx + #text)
-	if self.height_adaptive then
-		self:refreashHeight()
-	end
-	self:refreashHint()
-end
-
-
 function TextInput:onUpdate(dt)
+	-- 光标闪烁计时器
 	cursor_blinking_timer = cursor_blinking_timer + dt
 	if cursor_blinking_timer > cursor_blinking_duration then
 		cursor_blinking_timer = cursor_blinking_timer - cursor_blinking_duration
