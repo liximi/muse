@@ -19,6 +19,14 @@ local Theme = Class(function(self)
 		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
 	}
 
+	self.textinput = {
+		font_key = "default",
+		font_size = 16,
+		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
+		text_padding = {8, 8, 8, 8},
+		hint_color = Utils.UI_COLORS.SECONDARY_TEXT,
+	}
+
 	self.image = {
 		tint = {1, 1, 1, 1}
 	}

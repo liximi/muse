@@ -10,6 +10,21 @@ local cursor_blinking, cursor_blinking_timer = true, 0
 local cursor_blinking_duration, cursor_blinking_duration_half = 1, 0.5
 
 
+--[[data: 此处不包括当前Widget继承的基类所支持的字段
+	height_adaptive = boolean 是否自动调节高度以适应文本高度
+	min_height = number
+	bg = Widget 背景Widget，将自动保持其尺寸与文本输入框的尺寸一致
+	hint = string
+	hint_color = {r, g, b, a}
+
+	font_key = string
+	font_size = number
+	text_color = {r, g, b, a}
+	h_align = string "left"|"right"|"center"|"justify"
+	v_align = string "top"|"bottom"|"center"
+
+	text_padding = {left, right, top, bottom}
+]]
 local TextInput = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
 	Widget.new(self, "TextInput", datas, theme)
@@ -23,32 +38,83 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.bg.transform:setPadding(0, 0, 0, 0)
 	end
 
-	self.text = self:addChild(Text({
-		text_color = datas.text_color or self.theme.text_color,
-		anchors = {0, 0, 1, 1},
-		padding = datas.text_padding or {0, 0, 0, 0},
-	}))
-	if datas.hint then
-		self.hint = self:addChild(Text({
-			text = datas.hint,
-			text_color = datas.hint_color or self.theme.hint_color,
-			anchors = {0, 0, 1, 1},
-			padding = datas.text_padding or {0, 0, 0, 0},
-		}))
-	end
-
+	self.sections = {}--array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
 	self.cursor = {
 		show = false,
 		index = 1,
 		_local_pos_cache = {0, 0}--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
 	}
 
+	self.text = self:addChild(Text({
+		anchors = {0, 0, 1, 1},
+		padding = datas.text_padding or self.theme.textinput.text_padding or {0, 0, 0, 0},
+		font_key = datas.font_key or self.theme.textinput.font_key,
+		font_size = datas.font_size or self.theme.textinput.font_size,
+		text_color = datas.text_color or self.theme.textinput.text_color,
+		h_align = datas.h_align,
+		v_align = datas.v_align,
+	}))
+	if datas.hint then
+		self.hint = self:addChild(Text({
+			text = datas.hint,
+			text_color = datas.hint_color or self.theme.textinput.hint_color,
+			anchors = {0, 0, 1, 1},
+			padding = datas.text_padding or {0, 0, 0, 0},
+		}))
+	end
+
 	addHoverState(self)
 end)
 
 
 --------------------------------------------------
--- Hint
+---@region Text
+--------------------------------------------------
+
+function TextInput:getText()
+	return self.text:getText(true)
+end
+
+function TextInput:setTextColor(r, g, b, a)
+	self.text:setTextColor(r, g, b, a)
+end
+
+function TextInput:getTextColor()
+	return self.text:getTextColor()
+end
+
+---@param font_key string 所有字体都需要先存入ui.fonts.lua里，再通过key使用。
+function TextInput:setFont(font_key, size)
+	self.text:setFont(font_key, size)
+end
+
+function TextInput:getFont(return_key)
+	return self.text:getFont(return_key)
+end
+
+function TextInput:setFontSize(size)
+	return self.text:setFontSize(size)
+end
+
+function TextInput:getFontSize()
+	return self.text:getFontSize()
+end
+
+--- 设置水平方向的对齐方式
+---@param align "left"|"right"|"center"|"justify"
+function TextInput:setHAlign(align)
+	return self.text:setHAlign(align)
+end
+
+--- 设置垂直方向的对齐方式
+---@param align "top"|"bottom"|"center"
+function TextInput:setVAlign(align)
+	return self.text:setVAlign(align)
+end
+
+
+--------------------------------------------------
+---@region Hint
 --------------------------------------------------
 
 function TextInput:refreashHint()
@@ -63,6 +129,11 @@ function TextInput:refreashHint()
 	end
 end
 
+
+--------------------------------------------------
+---@region Height
+--------------------------------------------------
+
 function TextInput:refreashHeight()
 	local _, text_h = self.text:getScaledSize()
 	text_h = math.max(self.min_height, text_h)
@@ -74,7 +145,7 @@ end
 
 
 --------------------------------------------------
--- Cursor
+---@region Cursor
 --------------------------------------------------
 
 function TextInput:showCursor(show)
@@ -168,7 +239,7 @@ end
 
 
 --------------------------------------------------
--- Event Handlers
+---@region Event Handlers
 --------------------------------------------------
 
 
@@ -214,10 +285,21 @@ function TextInput:onTextInput(text)
 	if not self:isFocus() then
 		return
 	end
-	local old_text = self.text:getText(true)
+	local old_text = table.concat(self.sections)
 	local old_idx = self.cursor.index
-	local new_text = table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
-	self.text:setText(new_text)
+	for line, str in ipairs(self.sections) do
+		local len = #str
+		--TODO
+		if len > old_idx then
+			
+		elseif len == old_idx then
+
+		else
+
+		end
+	end
+	-- local new_text = table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
+	-- self.text:setText(new_text)
 	self:setCursorPos(old_idx + #text)
 	if self.height_adaptive then
 		self:refreashHeight()
@@ -248,7 +330,7 @@ function TextInput:onMousePressed(x, y, button)
 	end
 	if not is_in_scope and is_focus then
 		self:removeFocus()
-		self:onHovered(is_in_scope)
+		self:onHovered(is_in_scope, x, y)
 	end
 end
 
