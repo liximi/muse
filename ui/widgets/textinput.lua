@@ -39,9 +39,10 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	end
 
 	self.sections = {}--array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
+	self.cur_section = 1--正在编辑的段落
 	self.cursor = {
 		show = false,
-		index = 1,
+		index = 1,--在当前的段落中的索引位置
 		_local_pos_cache = {0, 0}--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
 	}
 
@@ -239,6 +240,26 @@ end
 
 
 --------------------------------------------------
+---@region Section
+--------------------------------------------------
+
+function TextInput:AppendNewSection()
+	table.insert(self.sections, "")
+	return #self.sections
+end
+
+function TextInput:ToNextSection()
+	self.cur_section = math.min(#self.sections, self.cur_section + 1)
+	return self.cur_section
+end
+
+function TextInput:ToLastSection()
+	self.cur_section = math.max(1, self.cur_section - 1)
+	return self.cur_section
+end
+
+
+--------------------------------------------------
 ---@region Event Handlers
 --------------------------------------------------
 
@@ -257,7 +278,8 @@ function TextInput:onKeyPressed(key, isrepeat)
 		end
 		self:refreashHint()
 	elseif key == "kpenter" or key == "return" then
-		self:onTextInput("\n")
+		self:AppendNewSection()
+		self:ToNextSection()
 	elseif key == "left" then
 		local old_idx = self.cursor.index
 		if old_idx > 0 then
