@@ -38,10 +38,10 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.bg.transform:setPadding(0, 0, 0, 0)
 	end
 
-	self.sections = {}--array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
-	self.cur_section = 1--正在编辑的段落
+	self.sections = {""}--array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
 	self.cursor = {
 		show = false,
+		section = 1,--正在编辑的段落
 		index = 1,--在当前的段落中的索引位置
 		_local_pos_cache = {0, 0}--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
 	}
@@ -113,6 +113,11 @@ function TextInput:setVAlign(align)
 	return self.text:setVAlign(align)
 end
 
+--- 将当前sections里的文本同步到字体组件里
+function TextInput:flushText()
+	self.text:setText(table.concat(self.sections, "\n"))
+end
+
 
 --------------------------------------------------
 ---@region Hint
@@ -157,31 +162,41 @@ function TextInput:showCursor(show)
 	end
 end
 
-function TextInput:setCursorPos(index)
+--- 调用之前需要确保已经调用过flushText()
+function TextInput:setCursorIndex(index)
 	if not index then
 		return
 	end
 
-	local text = self.text:getText(true)
-	self.cursor.index = math.max(0, math.min(#text+1, index))--clamp
-
-	local font = self.text:getFont()
-	local maxw, wrappedtext = font:getWrap(text, self.text.transform.w)
-	local line = 1
-	for l, s in ipairs(wrappedtext) do
-		local len = #s
-		print("line:", l, len, index)
-		line = l
-		if len + 1 >= index then
-			break
-		end
-		index = index - len
-	end
-
+	local text = self.sections[self.cursor.section]
+	self.cursor.index = math.max(0, math.min(#text + 1, index))--clamp
+	--TODO
+	text = table.concat(self.sections, "\n")
 	if not text or text == "" then
 		self.cursor._local_pos_cache[1] = 0
 		self.cursor._local_pos_cache[2] = 0
 	else
+		for i, section in ipairs(self.sections) do
+			if i >= self.cursor.section then
+				break
+			end
+			index = index + #section + 1
+		end
+		local font = self.text:getFont()
+		local maxw, wrappedtext = font:getWrap(text, self.text.transform.w)
+		local line = 1
+		for l, s in ipairs(wrappedtext) do
+			local len = #s
+			print("line:", l, len, index)
+			line = l
+			if len+1 > index then
+				break
+			elseif len+1 == index then
+				index = index + 1
+				break
+			end
+			index = index - len
+		end
 		local line_height = font:getHeight() * font:getLineHeight()
 		self.cursor._local_pos_cache[2] = line_height * (line - 1)
 		print(line, index, #wrappedtext[line])
@@ -238,6 +253,38 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	cursor_blinking_timer = 0
 end
 
+function TextInput:moveCursorLeft()
+	local cur_section = self.cursor.section
+	local new_idx = self.cursor.index - 1
+	if new_idx > 0 then
+		local text = self.sections[cur_section]
+		local first_text = string.sub(text, 1, new_idx)
+		local byteoffset = utf8.offset(first_text, -1)
+		self:setCursorIndex(byteoffset)
+	else
+		local new_section = self:ToLastSection()
+		if new_section ~= cur_section then
+			self:setCursorIndex(#self.sections[new_section])
+		end
+	end
+end
+
+function TextInput:moveCursorRight()
+	local cur_section = self.cursor.section
+	local new_idx = self.cursor.index + 1
+	local text = self.sections[cur_section]
+	if new_idx < #text then
+		local second_text = string.sub(text, new_idx)
+		local byteoffset = utf8.offset(second_text, 2)
+		self:setCursorIndex(new_idx + byteoffset)
+	else
+		local new_section = self:ToNextSection()
+		if new_section ~= cur_section then
+			self:setCursorIndex(1)
+		end
+	end
+end
+
 
 --------------------------------------------------
 ---@region Section
@@ -249,13 +296,13 @@ function TextInput:AppendNewSection()
 end
 
 function TextInput:ToNextSection()
-	self.cur_section = math.min(#self.sections, self.cur_section + 1)
-	return self.cur_section
+	self.cursor.section = math.min(#self.sections, self.cursor.section + 1)
+	return self.cursor.section
 end
 
 function TextInput:ToLastSection()
-	self.cur_section = math.max(1, self.cur_section - 1)
-	return self.cur_section
+	self.cursor.section = math.max(1, self.cursor.section - 1)
+	return self.cursor.section
 end
 
 
@@ -281,21 +328,9 @@ function TextInput:onKeyPressed(key, isrepeat)
 		self:AppendNewSection()
 		self:ToNextSection()
 	elseif key == "left" then
-		local old_idx = self.cursor.index
-		if old_idx > 0 then
-			local old_text = self.text:getText(true)
-			local first_text = string.sub(old_text, 1, old_idx - 1)
-			local byteoffset = utf8.offset(first_text, -1)
-			self:setCursorPos(byteoffset)
-		end
+		self:moveCursorLeft()
 	elseif key == "right" then
-		local old_text = self.text:getText(true)
-		local old_idx = self.cursor.index
-		if old_idx < #old_text then
-			local second_text = string.sub(old_text, old_idx)
-			local byteoffset = utf8.offset(second_text, 2)
-			self:setCursorPos(old_idx + byteoffset - 1)
-		end
+		self:moveCursorRight()
 	elseif key == "up" then
 
 	elseif key == "down" then
@@ -307,22 +342,17 @@ function TextInput:onTextInput(text)
 	if not self:isFocus() then
 		return
 	end
-	local old_text = table.concat(self.sections)
 	local old_idx = self.cursor.index
-	for line, str in ipairs(self.sections) do
-		local len = #str
-		--TODO
-		if len > old_idx then
-			
-		elseif len == old_idx then
-
-		else
-
-		end
+	local old_text = self.sections[self.cursor.section]
+	local len = #old_text
+	if len > old_idx then
+		old_text= table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
+	else
+		old_text = old_text .. text
 	end
-	-- local new_text = table.concat({string.sub(old_text, 1, old_idx - 1), text, string.sub(old_text, old_idx)})
-	-- self.text:setText(new_text)
-	self:setCursorPos(old_idx + #text)
+	self.sections[self.cursor.section] = old_text
+	self:flushText()
+	self:setCursorIndex(old_idx + #text)
 	if self.height_adaptive then
 		self:refreashHeight()
 	end
