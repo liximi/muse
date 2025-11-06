@@ -207,7 +207,7 @@ function TextInput:setCursorIndex(index)
 						self.cursor._local_pos_cache[1] = font:getWidth(string.sub(wrappedtext[l], 1, utf8.offset(wrappedtext[l], index) - 1))
 						break
 					elseif len + 1 == index then
-						if self.cursor.head_or_tail and line < #wrappedtext then
+						if self.cursor.head_or_tail and l < #wrappedtext then
 							self.cursor._local_pos_cache[1] = 0
 							line = line + 1
 						else
@@ -412,6 +412,29 @@ function TextInput:moveCursorDown()
 	end
 end
 
+function TextInput:moveCursorToHead()
+	local old_section = self.cursor.section
+	local old_idx = self.cursor.index
+	if old_idx <= 1 then
+		return
+	end
+	local font = self.text:getFont()
+	local _, wrappedtext = font:getWrap(self.sections[old_section], self.text.transform.w)
+	local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
+	self.cursor.head_or_tail = true
+	self:setCursorIndex(len + 1)
+end
+
+function TextInput:moveCursorToEnd()
+	local old_section = self.cursor.section
+	local old_idx = self.cursor.index
+	local font = self.text:getFont()
+	local _, wrappedtext = font:getWrap(self.sections[old_section], self.text.transform.w)
+	local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
+	self.cursor.head_or_tail = false
+	self:setCursorIndex(len + cur_line_len + 1)
+end
+
 function TextInput:lineBreak()
 	local old_section = self.cursor.section
 	local old_text = self.sections[old_section]
@@ -556,6 +579,10 @@ function TextInput:onKeyPressed(key, isrepeat)
 		self:moveCursorUp()
 	elseif key == "down" then
 		self:moveCursorDown()
+	elseif key == "home" then
+		self:moveCursorToHead()
+	elseif key == "end" then
+		self:moveCursorToEnd()
 	end
 end
 
