@@ -28,6 +28,31 @@ local function splitText(text, pos, mode)
 	end
 end
 
+local function getNearestIndex(text, target_x, font)
+	local last_delta = math.huge
+	local count = 0--距离最近的字符的索引
+	local is_break = false
+	for pos, code in utf8.codes(text) do
+		local temp_text = string.sub(text, 1, pos-1)
+		local delta = math.abs(font:getWidth(temp_text) - target_x)
+		if last_delta > delta then
+			last_delta = delta
+		else
+			is_break = true
+			break
+		end
+		count = count + 1
+	end
+	if not is_break then--处理光标位于行尾的情况
+		local delta = math.abs(font:getWidth(text) - target_x)
+		if last_delta > delta then
+			last_delta = delta
+			count = count + 1
+		end
+	end
+	return count
+end
+
 
 --[[data: 此处不包括当前Widget继承的基类所支持的字段
 	height_adaptive = boolean 是否自动调节高度以适应文本高度
@@ -43,6 +68,7 @@ end
 	v_align = string "top"|"bottom"|"center"
 
 	text_padding = {left, right, top, bottom}
+	text = string
 ]]
 local TextInput = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
@@ -85,12 +111,29 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	end
 
 	addHoverState(self)
+	if datas.text then
+		self:setText(datas.text)
+	end
 end)
 
 
 --------------------------------------------------
 ---@region Text
 --------------------------------------------------
+
+local function split_by_newline(str)
+    local lines = {}
+    for line in string.gmatch(str .. "\n", "(.-)\r?\n") do
+        table.insert(lines, line)
+    end
+    return lines
+end
+--- 设置文本，会覆盖当前的文本。注意设置文本后是否需要更新光标位置
+---@param text string
+function TextInput:setText(text)
+	self.sections = split_by_newline(text)
+	self:flushText()
+end
 
 function TextInput:getText()
 	return self.text:getText(true)
@@ -231,52 +274,52 @@ end
 function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	local local_x, local_y = self.text.transform:screenToLocal(screen_x, screen_y)
 	local font = self.text:getFont()
-	local text = self.text:getText(true)
+	local text = table.concat(self.sections, "\n")
 	local maxw, wrappedtext = font:getWrap(text, self.text.transform.w)
 	local line_height = font:getHeight() * font:getLineHeight()
 	local line = math.max(math.min(math.ceil(local_y/line_height), #wrappedtext), 1)
 	local line_text = wrappedtext[line]
-	local final_x = 0
-	local final_line_idx = 1
-	if line_text then
-		local index = 0
-		for pos, code in utf8.codes(line_text) do
-			index = index + 1
-			local len = font:getWidth(string.sub(line_text, 1, pos - 1))
-			if len >= local_x then
-				if len - final_x > (len - local_x) * 2 then
-					final_x = len
-					final_line_idx = index
-				end
-				break
-			end
-			final_x = len
-			final_line_idx = index
-		end
-		local len = font:getWidth(line_text)
-		if len >= local_x then
-			if len - final_x > (len - local_x) * 2 then
-				final_x = len
-				final_line_idx = utf8.len(line_text) + 1
-			end
-		else
-			final_x = len
-			final_line_idx = utf8.len(line_text) + 1
-		end
-	end
+
+	local _len = 0
 	for l, s in ipairs(wrappedtext) do
+		_len = _len + #s
 		if l >= line then
 			break
 		end
-		final_line_idx = final_line_idx + utf8.len(s)
 	end
-	self.cursor.index = final_line_idx
-	self.cursor._local_pos_cache[1] = final_x
-	self.cursor._local_pos_cache[2] = line_height * (line - 1)
-	if final_x == 0 then
-		self.cursor.head_or_tail = true
+	local target_section = 1
+	local temp_lines = line--用于存储target_section里占据的行数
+	for i, section in ipairs(self.sections) do
+		local _, _wrappedtext = font:getWrap(section, self.text.transform.w)
+		_len = _len - #section
+		if _len <= 0 then
+			target_section = i
+			break
+		end
+		temp_lines = temp_lines - #_wrappedtext
+	end
+	self.cursor.section = target_section
+
+	local target_index = 0
+	local target_x = 0
+	local _, wrappedtext = font:getWrap(self.sections[target_section], self.text.transform.w)
+	for l, s in ipairs(wrappedtext) do
+		if l >= temp_lines then
+			local count = getNearestIndex(s, local_x, font)
+			local byteoffset = utf8.offset(s, count)
+			target_x = font:getWidth(string.sub(s, 1, byteoffset - 1))
+			target_index = target_index + count
+			break
+		end
+		target_index = target_index + utf8.len(s)
 	end
 
+	self.cursor.index = target_index
+	self.cursor._local_pos_cache[1] = target_x
+	self.cursor._local_pos_cache[2] = line_height * (line - 1)
+	if target_x == 0 then
+		self.cursor.head_or_tail = true
+	end
 	cursor_blinking_timer = 0
 end
 
@@ -331,30 +374,7 @@ local function findLineByIndex(wrappedtext, index, head_or_tail)
 		len = _len
 	end
 end
-local function getNearestIndex(text, target_x, font)
-	local last_delta = math.huge
-	local count = 0--距离最近的字符的索引
-	local is_break = false
-	for pos, code in utf8.codes(text) do
-		local temp_text = string.sub(text, 1, pos-1)
-		local delta = math.abs(font:getWidth(temp_text) - target_x)
-		if last_delta > delta then
-			last_delta = delta
-		else
-			is_break = true
-			break
-		end
-		count = count + 1
-	end
-	if not is_break then--处理光标位于行尾的情况
-		local delta = math.abs(font:getWidth(text) - target_x)
-		if last_delta > delta then
-			last_delta = delta
-			count = count + 1
-		end
-	end
-	return count
-end
+
 function TextInput:moveCursorUp()
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index

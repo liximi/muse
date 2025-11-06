@@ -110,7 +110,8 @@ function love.load()
         pivot = {0.5, 0.5},
         padding = {0, 0, 0, 0},
         bg = Panel(),
-        text_padding = {10, 10, 10, 10}
+        text_padding = {10, 10, 10, 10},
+        text = "测试文本：\nMermaid 是一种基于文本的图表绘制工具，通过简单的语法就能生成流程图、时序图、类图等多种图表，广泛应用于文档、笔记和代码注释中。\n一、基础结构\nMermaid 代码通常包裹在 ```mermaid 和 ``` 标签之间。",
     }))
     text_input:enableDebug(true)
 end
