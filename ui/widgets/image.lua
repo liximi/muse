@@ -4,6 +4,11 @@ local Fonts = require "ui.fonts"
 
 
 --覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。
+--[[datas: 此处不包括当前Widget继承的基类所支持的字段
+	texture = Texture
+	use_texture_size = bool
+	tint = {r, g, b, a}
+]]
 local Image = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Image", datas, theme)
 

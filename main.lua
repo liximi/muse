@@ -3,17 +3,19 @@ local Lovebird = require "dependencies.Lovebird.Lovebird"
 Class = require "dependencies.classic"
 
 local UiManager = require "ui.ui_manager":GetInstance()
+local UiUtils = require "ui.utils"
+local Fonts = require "ui.fonts"
+
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
-local Fonts = require "ui.fonts"
 local Button = require "ui.widgets.button"
 local Image = require "ui.widgets.image"
 local ImageButton = require "ui.widgets.imagebutton"
 local NineSlice = require "ui.widgets.nineslice"
 local TextInput = require "ui.widgets.textinput"
-local ScrollableList = require "ui.widgets.scrollable_list"
-local UiUtils = require "ui.utils"
+
+local Scroll = require "ui.widgets.containers.scroll_container"
 
 local languages = {"zh-cn"}
 
@@ -104,17 +106,30 @@ function love.load()
     }))
     img_btn3:disable()
 
-    local text_input = ui_root:addChild(TextInput({
+    local text_input = left_panel:addChild(TextInput({
         height_adaptive = true,
         texture = b_img,
-        anchors = {0.4, 0.4, 0.6, 0.6},
-        pivot = {0.5, 0.5},
-        padding = {0, 0, 0, 0},
+        -- pivot = {0.5, 0.5},
+        anchors = {0, 0, 1, 0},
+        padding = {20, 20, 350, 0},
         bg = Panel(),
         text_padding = {10, 10, 10, 10},
         text = "测试文本：\nMermaid 是一种基于文本的图表绘制工具，通过简单的语法就能生成流程图、时序图、类图等多种图表，广泛应用于文档、笔记和代码注释中。\n一、基础结构\nMermaid 代码通常包裹在 ```mermaid 和 ``` 标签之间。",
     }))
-    text_input:enableDebug(true)
+    -- text_input:enableDebug(true)
+
+    local scroll_container = ui_root:addChild(Scroll({
+        item = Image({
+            texture = test_img,
+            w = 200,
+            h = 200,
+        }),
+        x = 300,
+        y = 100,
+        w = 400,
+        h = 600,
+    }))
+    scroll_container:enableDebug(true)
 end
 
 

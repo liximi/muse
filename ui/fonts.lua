@@ -21,6 +21,13 @@ local Fonts = {
 }
 
 
+function Fonts:newFont(key, file, size)
+	size = size or 16
+	self[key] = {
+		_file = file
+	}
+	return self:getFont(key, size)
+end
 
 ---@param key string
 ---@param size number

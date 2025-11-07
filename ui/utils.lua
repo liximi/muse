@@ -117,4 +117,9 @@ function Utils.newImageButtonStateStyle(texture, tint, text, text_color, font_si
 end
 
 
+function Utils.clamp(val, min, max)
+    return math.max(min, math.min(val, max))
+end
+
+
 return Utils

@@ -3,14 +3,12 @@ local SliderBar = require "ui.widgets.sliderbar_v"
 local Fonts = require "ui.fonts"
 local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
-local AddSizeComponent = require "ui.components".AddSize
 
 
 --一种直接将所有列表元素作为子UI的列表实现，在元素较多时性能表现不太好
 local List = Class(Widget, function(self, w, h, space)
 	Widget.new(self, "List")
 
-	AddSizeComponent(self)
 
 	self.items = {}
 
@@ -65,7 +63,7 @@ function List:Insert(item, pos)
 end
 
 
-function List:SetXOffset(offset)
+function List:setXOffset(offset)
 	self.x_offset = offset
 	local x, y = self.list_root:getPosition()
 	self.list_root:setPosition(offset, y)
@@ -98,7 +96,7 @@ function List:SetOffset(offset)
 	self.tween = Tween.new(0.1 * math.abs(self.offset - offset) / self.sensitivity, self, {offset = offset}, "linear")
 end
 
-function List:OnWheelMoved(x, y)
+function List:onWheelMoved(x, y)
 	local mousex, mousey = love.mouse.getPosition()
 	if not self:regionDetection(mousex, mousey) then
 		return

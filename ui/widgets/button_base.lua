@@ -4,10 +4,16 @@ local BTN_STATES = Utils.BTN_STATES
 
 
 --按钮类的基类，请不要直接使用该类，可使用widget.button.lua中的Button类
+--[[datas: 此处不包括当前Widget继承的基类所支持的字段
+	on_click = function
+	on_pressed = function
+]]
 local ButtonBase = Class(Widget, function (self, name, datas, theme)
 	Widget.new(self, name or "ButtonBase", datas, theme)
 
 	self.cur_state = BTN_STATES.NORMAL
+	self.onClick = datas and datas.on_click
+	self.onPressed = datas and datas.on_pressed
 end)
 
 
@@ -69,6 +75,7 @@ function ButtonBase:onMouseMoved(x, y, dx, dy)
 	if self:regionDetection(x, y) then
 		if not self:isFocus() then
 			self:setFocus()
+			return true
 		end
 	elseif self:isFocus() then
 		self:removeFocus()

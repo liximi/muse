@@ -202,16 +202,16 @@ function Widget:draw()
 	if self.onDraw then
 		self:onDraw()
 	end
-	if self._debug then
-		love.graphics.setLineWidth(1)
-		self:drawBound()
-		self:drawAABB()
-	end
 	for _, child in ipairs(self.children) do
 		child:draw()
 	end
 	if self.onPostDraw then
 		self:onPostDraw()
+	end
+	if self._debug then
+		love.graphics.setLineWidth(1)
+		self:drawBound()
+		self:drawAABB()
 	end
 end
 
