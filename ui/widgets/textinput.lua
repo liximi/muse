@@ -5,8 +5,8 @@ local Utils = require "ui.utils"
 local addHoverState = require "ui.components".addHoverState
 
 
-local cursor_blinking, cursor_blinking_timer = true, 0
 local cursor_blinking_duration, cursor_blinking_duration_half = 1, 0.5
+
 
 ---使用utf8字符的下标来分割文本
 ---@param text string
@@ -86,10 +86,12 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.cursor = {
 		show = false,
 		section = 1,--正在编辑的段落
-		index = 1,--在当前的段落中的索引位置(基于utf8)
+		index = 1,--在当前的段落中的开始索引位置(基于utf8)
 		head_or_tail = true,--当光标位于自动换行的位置时，光标显示在上一行的末尾还是下一行的开始，true表示显示在下一行的开始
-		_local_pos_cache = {0, 0}--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
+		_local_pos_cache = {0, 0},--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
 	}
+	self.cursor_blinking = true
+	self.cursor_blinking_timer = 0
 
 	self.text = self:addChild(Text({
 		anchors = {0, 0, 1, 1},
@@ -132,9 +134,9 @@ end
 function TextInput:setText(text)
 	self.sections = split_by_newline(text)
 	self:flushText()
-	self:refreashHint()
+	self:refreshHint()
 	if self.height_adaptive then
-		self:refreashHeight()
+		self:refreshHeight()
 	end
 end
 
@@ -189,7 +191,7 @@ end
 ---@region Hint
 --------------------------------------------------
 
-function TextInput:refreashHint()
+function TextInput:refreshHint()
 	if not self.hint then
 		return
 	end
@@ -206,7 +208,7 @@ end
 ---@region Height
 --------------------------------------------------
 
-function TextInput:refreashHeight()
+function TextInput:refreshHeight()
 	local _, text_h = self.text:getScaledSize()
 	text_h = math.max(self.min_height, text_h)
 	local w, h = self.transform:getSize()
@@ -224,6 +226,7 @@ end
 function TextInput:showCursor(show)
 	if show then
 		self.cursor.show = true
+		self.cursor_blinking_timer = 0
 	else
 		self.cursor.show = false
 	end
@@ -271,7 +274,7 @@ function TextInput:setCursorIndex(index)
 		self.cursor._local_pos_cache[2] = line_height * (line - 1)
 	end
 
-	cursor_blinking_timer = 0
+	self.cursor_blinking_timer = 0
 end
 
 ---这是根据self.text:getText() 计算的坐标，因此需要保证调用之前self.text的文本是最新的
@@ -282,7 +285,6 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	local maxw, wrappedtext = font:getWrap(text, self.text.transform.w)
 	local line_height = font:getHeight() * font:getLineHeight()
 	local line = math.max(math.min(math.ceil(local_y/line_height), #wrappedtext), 1)
-	local line_text = wrappedtext[line]
 
 	local _len = 0
 	for l, s in ipairs(wrappedtext) do
@@ -324,7 +326,7 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	if target_x == 0 then
 		self.cursor.head_or_tail = true
 	end
-	cursor_blinking_timer = 0
+	self.cursor_blinking_timer = 0
 end
 
 function TextInput:moveCursorLeft()
@@ -459,6 +461,10 @@ function TextInput:moveCursorToEnd()
 	self:setCursorIndex(len + cur_line_len + 1)
 end
 
+--------------------------------------------------
+---@region Special Input
+--------------------------------------------------
+
 function TextInput:lineBreak()
 	local old_section = self.cursor.section
 	local old_text = self.sections[old_section]
@@ -469,7 +475,7 @@ function TextInput:lineBreak()
 	self:toNextSection(1)
 	self:flushText()
 	if self.height_adaptive then
-		self:refreashHeight()
+		self:refreshHeight()
 	end
 end
 
@@ -498,9 +504,9 @@ function TextInput:backspace()
 
 	self:flushText()
 	if self.height_adaptive then
-		self:refreashHeight()
+		self:refreshHeight()
 	end
-	self:refreashHint()
+	self:refreshHint()
 end
 
 function TextInput:delete()
@@ -527,9 +533,9 @@ function TextInput:delete()
 
 	self:flushText()
 	if self.height_adaptive then
-		self:refreashHeight()
+		self:refreshHeight()
 	end
-	self:refreashHint()
+	self:refreshHint()
 end
 
 
@@ -582,29 +588,64 @@ end
 
 
 --------------------------------------------------
+---@region Select Text
+--------------------------------------------------
+
+function TextInput:selectText(start_index, end_index)
+	
+end
+
+function TextInput:selectAll()
+	
+end
+
+
+--------------------------------------------------
+---@region Copy & Paste
+--------------------------------------------------
+
+function TextInput:copy()
+	--TODO
+end
+
+function TextInput:paste()
+	--TODO
+end
+
+
+--------------------------------------------------
 ---@region Event Handlers
 --------------------------------------------------
 
-
+local function isCtrlPressed()
+	return love.keyboard.isDown("rctrl", "lctrl")
+end
+local KEY_MAP = {
+	backspace = function(self) self:backspace() end,
+	delete = function(self) self:delete() end,
+	kpenter = function(self) self:lineBreak() end,
+	["return"] = function(self) self:lineBreak() end,
+	left = function(self) self:moveCursorLeft() end,
+	right = function(self) self:moveCursorRight() end,
+	up = function(self) self:moveCursorUp() end,
+	down = function(self) self:moveCursorDown() end,
+	home = function(self) self:moveCursorToHead() end,
+	["end"] = function(self) self:moveCursorToEnd() end,
+}
+local CTRL_KEY_MAP = {
+	a = function(self) self:selectAll() end,
+	c = function(self) self:copy() end,
+	v = function(self) self:paste() end,
+}
 function TextInput:onKeyPressed(key, isrepeat)
-	if key == "backspace" then
-		self:backspace()
-	elseif key == "delete" then
-		self:delete()
-	elseif key == "kpenter" or key == "return" then
-		self:lineBreak()
-	elseif key == "left" then
-		self:moveCursorLeft()
-	elseif key == "right" then
-		self:moveCursorRight()
-	elseif key == "up" then
-		self:moveCursorUp()
-	elseif key == "down" then
-		self:moveCursorDown()
-	elseif key == "home" then
-		self:moveCursorToHead()
-	elseif key == "end" then
-		self:moveCursorToEnd()
+	local handler
+	if isCtrlPressed() then
+		handler = CTRL_KEY_MAP[key]
+	else
+		handler = KEY_MAP[key]
+    end
+	if handler then
+		handler(self)
 	end
 end
 
@@ -625,9 +666,9 @@ function TextInput:onTextInput(text)
 	self:flushText()
 	self:setCursorIndex(old_idx + utf8.len(text))
 	if self.height_adaptive then
-		self:refreashHeight()
+		self:refreshHeight()
 	end
-	self:refreashHint()
+	self:refreshHint()
 end
 
 function TextInput:onFocus()
@@ -658,11 +699,11 @@ function TextInput:onMousePressed(x, y, button)
 end
 
 function TextInput:onHovered(hovered, x, y, dx, dy)
-	if not self.bg or self:isFocus() then
-		return
-	end
 	if hovered then
+		local cursor = love.mouse.getSystemCursor("ibeam")
+		love.mouse.setCursor(cursor)
 	else
+		love.mouse.setCursor()
 	end
 	if self.bg.onHovered then
 		self.bg:onHovered(hovered, x, y, dx, dy)
@@ -671,20 +712,20 @@ end
 
 function TextInput:onUpdate(dt)
 	-- 光标闪烁计时器
-	cursor_blinking_timer = cursor_blinking_timer + dt
-	if cursor_blinking_timer > cursor_blinking_duration then
-		cursor_blinking_timer = cursor_blinking_timer - cursor_blinking_duration
+	self.cursor_blinking_timer = self.cursor_blinking_timer + dt
+	if self.cursor_blinking_timer > cursor_blinking_duration then
+		self.cursor_blinking_timer = self.cursor_blinking_timer - cursor_blinking_duration
 	end
-	if cursor_blinking_timer < cursor_blinking_duration_half then
-		cursor_blinking = true
+	if self.cursor_blinking_timer < cursor_blinking_duration_half then
+		self.cursor_blinking = true
 	else
-		cursor_blinking = false
+		self.cursor_blinking = false
 	end
 end
 
 
 function TextInput:onPostDraw()
-	if self.cursor.show and cursor_blinking then
+	if self.cursor.show and self.cursor_blinking then
 		--绘制光标
 		local org_x, org_y, w, h, r = self.text.transform:getGlobalBounds()
 		local top_x, top_y = org_x + self.cursor._local_pos_cache[1], org_y + self.cursor._local_pos_cache[2]

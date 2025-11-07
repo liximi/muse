@@ -47,7 +47,7 @@ function List:SetItems(items)
 		table.insert(self.items, v)
 		self.list_root:addChild(v)
 	end
-	self:RefreashListLayout()
+	self:refreshListLayout()
 end
 
 
@@ -61,7 +61,7 @@ function List:Insert(item, pos)
 		table.insert(self.items, item)
 	end
 	self.list_root:addChild(item)
-	self:RefreashListLayout()
+	self:refreshListLayout()
 end
 
 
@@ -72,7 +72,7 @@ function List:SetXOffset(offset)
 end
 
 
-function List:RefreashListLayout()
+function List:refreshListLayout()
 	self.list_total_height = 0
 	local height_offset = 0
 	for i, v in ipairs(self.items) do
@@ -112,7 +112,7 @@ end
 
 
 function List:OnUpdate(dt)
-	self:RefreashListLayout()
+	self:refreshListLayout()
     if self.tween then
         if self.tween:update(dt) then
             self.tween = nil
