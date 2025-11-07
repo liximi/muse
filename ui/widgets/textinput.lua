@@ -1,6 +1,5 @@
 local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
-local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 local Utils = require "ui.utils"
 local addHoverState = require "ui.components".addHoverState
@@ -133,6 +132,10 @@ end
 function TextInput:setText(text)
 	self.sections = split_by_newline(text)
 	self:flushText()
+	self:refreashHint()
+	if self.height_adaptive then
+		self:refreashHeight()
+	end
 end
 
 function TextInput:getText()
@@ -208,7 +211,8 @@ function TextInput:refreashHeight()
 	text_h = math.max(self.min_height, text_h)
 	local w, h = self.transform:getSize()
 	if h ~= text_h then
-		self.transform:setSize(w, text_h)
+		local text_padding = self.text.transform:getPadding()
+		self.transform:setSize(w, text_h + text_padding.top + text_padding.bottom)
 	end
 end
 
@@ -460,15 +464,13 @@ function TextInput:lineBreak()
 	local old_text = self.sections[old_section]
 	local old_idx = self.cursor.index
 	local first_text, second_text = splitText(old_text, old_idx, "both")
-	if second_text == "" then
-		self:appendNewSection()
-		self:toNextSection()
-	else
-		self.sections[old_section] = first_text
-		self:insertNewSection(self.cursor.section+1, second_text)
-		self:toNextSection(1)
-	end
+	self.sections[old_section] = first_text
+	self:insertNewSection(self.cursor.section+1, second_text)
+	self:toNextSection(1)
 	self:flushText()
+	if self.height_adaptive then
+		self:refreashHeight()
+	end
 end
 
 function TextInput:backspace()

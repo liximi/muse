@@ -191,7 +191,8 @@ end
 
 function Text:getScaledDimensions()
 	local w, h = self:getDimensions()
-	return w * self._sx, h * self._sy
+	local sx, sy = self.transform:getScale()
+	return w * sx, h * sy
 end
 
 function Text:getGlobalScaledDimensions()
