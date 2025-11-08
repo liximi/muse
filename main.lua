@@ -124,10 +124,17 @@ function love.load()
             w = 200,
             h = 200,
         }),
-        x = 300,
+        x = 450,
         y = 100,
         w = 400,
-        h = 600,
+        -- h = 600,
+        scrollable_w = 600,
+        scrollable_h = 600,
+        anchors = {nil, 0.05, nil, 0.75},
+        padding = {nil, nil, 0, 0},
+
+        enable_scroll_h = true,
+        hide_slider_when_cannot_scroll = true,
     }))
     scroll_container:enableDebug(true)
 end

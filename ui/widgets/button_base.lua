@@ -51,7 +51,7 @@ function ButtonBase:onMousePressed(x, y, button)
 		if self.cur_state == BTN_STATES.NORMAL or self.cur_state == BTN_STATES.HOVER then
 			self:setState(BTN_STATES.PRESSED)
 			if self.onPressed then
-				self:onPressed()
+				self:onPressed(x, y)
 			end
 		end
 		return true
