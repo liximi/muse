@@ -3,7 +3,6 @@ local SliderBarH = require "ui.widgets.sliderbar_h"
 local SliderBarV = require "ui.widgets.sliderbar_v"
 local Fonts = require "ui.fonts"
 local Utils = require "ui.utils"
-local Tween = require "dependencies.tween"
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
@@ -151,16 +150,6 @@ function Scroll:onWheelMoved(x, y)
 	elseif y < 0 then
 		self:setYOffset(self.offset_y + self.sensitivity)
 	end
-end
-
-
-function Scroll:onUpdate(dt)
-    -- if self.tween then
-    --     if self.tween:update(dt) then
-    --         self.tween = nil
-    --     end
-	-- 	self.scroll_root:setPosition(self.offset_x, -self.offset)
-    -- end
 end
 
 
