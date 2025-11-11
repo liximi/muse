@@ -1,6 +1,0 @@
-local Tween = require "dependencies.tween"
-local Widget = require "ui.widgets.widget"
-
-local List = Class(Widget, function(self, width, height)
-
-end)

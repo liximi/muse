@@ -6,14 +6,22 @@ local Utils = require "ui.utils"
 --如需固定宽度的列表(自动拉伸或压缩子元素的宽度)，请使用 box_h_container.lua
 
 --注意：子元素的锚点不能设置为范围锚点
-local List = Class(Widget, function(self, w, h, space)
-	Widget.new(self, "VerticalList")
+--[[datas: 此处不包括当前Widget继承的基类所支持的字段
+	items = {Widget, ...} 要显示的UI的数组，注意：每个UI都必须实现GetSize方法，否则列表将无法正确布局元素。
+	space = number 元素之间的间隔
+]]
+local List = Class(Widget, function(self, datas, theme)
+	Widget.new(self, "VerticalList", datas, theme)
 
 	self.items = {}
-	self.space = space or 8	--元素之间的间距，单位：像素
+	self.space = datas and datas.space or 8	--元素之间的间距，单位：像素
 	self.list_total_width = 0
 
 	self.list_root = self:addChild(Widget("ListRoot"))
+
+	if datas and datas.items then
+		self:setItems(datas.items)
+	end
 end)
 
 
