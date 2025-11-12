@@ -10,6 +10,8 @@ local ScrollContainer = require "ui.widgets.containers.scroll_container"
 
 	bg_color = {r, g, b, a}
 	rounding_radius = number
+	max_width = number
+	alignment = "left"|"right"
 
 	text = string
 	font_key = string
@@ -21,8 +23,17 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "ChatBubble", datas, theme)
 
 	self.chatter_id = datas and datas.chatter_id
+	self.max_width = datas and datas.max_width
+	self.alignment = datas and datas.alignment or "left"
 
-	self.bg = self:addChild(Panel({
+	local x = self.alignment == "right" and 1 or 0
+	self.root = self:addChild(Widget("BubbleRoot", {
+		anchors = {x, 0, x, 0},
+		padding = {0, 0, 0, 0},
+		pivot = {x, 0},
+	}))
+
+	self.bg = self.root:addChild(Panel({
 		bg_color = datas and datas.bg_color,
 		outline_width = 0,
 		rounding_radius = datas and datas.rounding_radius,
@@ -30,21 +41,26 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 		padding = {0, 0, 0, 0},
 	}))
 
-	self.text = self:addChild(Text({
+	self.text = self.root:addChild(Text({
 		font_key = datas and datas.font_key,
 		font_size = datas and datas.font_size,
 		text_color = datas and datas.text_color,
 		anchors = {0, 0, 1, 1},
 		padding = datas and datas.text_padding or {0, 0, 0, 0},
 	}))
-
 	self:setText(datas and datas.text)
 end)
 
 function ChatBubble:setText(text)
+	local font = self.text:getFont()
+	text = text or self.text:getText(true)
+	local w = font:getWrap(text, self.max_width)
+	self.root.transform:setSize(w + self.text.transform.left + self.text.transform.right)
+	self.text.transform:onUpdate()
 	self.text:setText(text)
 	local text_w, text_h = self.text:getDimensions()
-	self:setSize(nil, text_h + self.text.transform.top + self.text.transform.bottom)
+	self.transform:setSize(nil, text_h + self.text.transform.top + self.text.transform.bottom)
+	self.root.transform:setSize(nil, text_h + self.text.transform.top + self.text.transform.bottom)
 end
 
 function ChatBubble:getText()
@@ -58,7 +74,13 @@ function ChatBubble:updateStyle(style)
 	self.text:setFont(style.font_key, style.font_size)
 	self.text:setTextColor(unpack(style.text_color or self.text.theme.text.text_color))
 	self.text:setPadding(style.text_padding or {0, 0, 0, 0})
+	self:setText()
 end
+
+
+
+
+
 
 
 
@@ -73,12 +95,15 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 	self.history = {}
 
 	self.list = ListContainer({
-		space = datas and datas.space
+		space = datas and datas.space,
+		anchors = {0, 0, 1, 0},
+		padding = {0, 12, 0, 0},
 	})
 	self.scroll_container = self:addChild(ScrollContainer({
 		item = self.list,
 		anchors = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
+		-- show_slider_bar = false,
 	}))
 end)
 
@@ -98,12 +123,15 @@ end
 function ChatHistory:appendHistory(history)
 	if #history == 2 and type(history[1]) == "string" and type(history[2]) == "string" then
 		table.insert(self.history, history)
+		local bubble = self:createChatBubble(history[1], history[2])
+		self.list:insert(bubble)
 	else
 		for i, c in ipairs(history) do
 			table.insert(self.history, c)
+			local bubble = self:createChatBubble(c[1], c[2])
+			self.list:insert(bubble)
 		end
 	end
-	self:refresh()
 end
 
 --- 为不同的聊天对象设置气泡样式，必须在添加聊天记录之前设置样式
@@ -114,33 +142,85 @@ function ChatHistory:setChatBubbleStyle(chatter_id, style)
 	for i, bubble in ipairs(self.list.items) do
 		if bubble.chatter_id == chatter_id then
 			bubble:updateStyle(style)
-			local x = style.left and 1 or 0
-			bubble.transform:setPivot(x, 0)
-			bubble.transform:setAnchors(x, 0, x, 0)
 		end
 	end
 end
 
-function ChatHistory:createChatBubbleStyle(bg_color, rounding_radius, font_key, font_size, text_color, text_padding, left)
+--- 创建一个聊天气泡样式
+---@param bg_color table {r, g, b, a}
+---@param rounding_radius number
+---@param max_width number
+---@param font_key string
+---@param font_size number
+---@param text_color table {r, g, b, a}
+---@param text_padding table {left, right, top, bottom}
+---@param alignment "left"|"right"
+function ChatHistory:createChatBubbleStyle(bg_color, rounding_radius, max_width, font_key, font_size, text_color, text_padding, alignment)
 	return {
 		bg_color = bg_color,
 		rounding_radius = rounding_radius,
+		max_width = max_width,
 		font_key = font_key,
 		font_size = font_size,
 		text_color = text_color,
 		text_padding = text_padding,
-		left = left == true,
+		alignment = alignment,
 	}
+end
+
+
+function ChatHistory:createChatBubble(chatter_id, text)
+	local bubble_style = self.chatter_styles[chatter_id]
+	local bubble = ChatBubble({
+		chatter_id = chatter_id,
+		text = text,
+		bg_color = bubble_style.bg_color,
+		rounding_radius = bubble_style.rounding_radius,
+		max_width = bubble_style.max_width or self.transform.w * 0.8,
+		alignment = bubble_style.alignment,
+		font_key = bubble_style.font_key,
+		font_size = bubble_style.font_size,
+		text_color = bubble_style.text_color,
+		text_padding = bubble_style.text_padding,
+
+		anchors = {0, 0, 1, 0},
+		padding = {0, 0},
+	})
+	return bubble
+end
+
+function ChatHistory:updateChatBubble(bubble, chatter_id, text)
+	if chatter_id ~= bubble.chatter_id or text ~= bubble:getText() then
+		bubble.chatter_id = chatter_id
+		bubble:setText(text)
+		bubble:updateStyle(self.chatter_styles[chatter_id])
+	end
 end
 
 
 function ChatHistory:refresh()
 	local new_count = #self.history
 	local old_count = #self.list.items
-	--TODO
-	if new_count > old_count then
-		
+	if new_count >= old_count then
+		for i, content in ipairs(self.history) do
+			local bubble = self.list.items[i]
+			if not bubble then
+				bubble = self:createChatBubble(content[1], content[2])
+				self.list:insert(bubble)
+			else
+				self:updateChatBubble(bubble, content[1], content[2])
+			end
+		end
 	elseif new_count < old_count then
+		for i = #self.list.items, 1, -1 do
+			local chat_content = self.history[i]
+			if chat_content then
+				local bubble = self.list.items[i]
+				self:updateChatBubble(bubble, chat_content[1], chat_content[2])
+			else
+				self.list:removeAtPos(i)
+			end
+		end
 	end
 end
 

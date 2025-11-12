@@ -43,7 +43,10 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	end
 
 
-	self.scroll_root = self:addChild(Widget("ScrollRoot"))
+	self.scroll_root = self:addChild(Widget("ScrollRoot", {
+		anchors = {0, 0, self.enable_scroll_h and 0 or 1, self.enable_scroll_v and 0 or 1},
+		padding = {0, 0, 0, 0},
+	}))
 	function self.scroll_root.onDraw(_self)
 		local x, y, w, h, r = self.transform:getGlobalBounds()
 		love.graphics.push()
@@ -53,10 +56,10 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			love.graphics.rotate(r)
 			love.graphics.translate(-px, -py)
 		end
-		love.graphics.setScissor(x, y, w, h)
+		-- love.graphics.setScissor(x, y, w, h)
 	end
 	function self.scroll_root.onPostDraw(_self)
-		love.graphics.setScissor()
+		-- love.graphics.setScissor()
 		love.graphics.pop()
 	end
 
@@ -82,6 +85,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 				self:setXOffset(val)
 			end
 		}))
+		if not self.show_slider_bar then
+			self.slider_bar_h:hide()
+		end
 	end
 	if self.enable_scroll_v then
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
@@ -96,6 +102,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 				self:setYOffset(val)
 			end
 		}))
+		if not self.show_slider_bar then
+			self.slider_bar_v:hide()
+		end
 	end
 
 	self:enableSizeChangedEvent(true)

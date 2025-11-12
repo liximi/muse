@@ -216,23 +216,29 @@ function Widget:draw()
 end
 
 function Widget:drawAABB()
+	local r = self.transform:getGlobalRotation()
+	if r == 0 or r == Utils.TWO_PI then
+		return
+	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
 end
 
 function Widget:drawBound()
-	local x, y, w, h, r = self.transform:getGlobalBounds()
-	if r == 0 or r == Utils.TWO_PI then
-		return
-	end
+	love.graphics.setColor(unpack(Utils.UI_COLORS.YELLOW))
 	local px, py = self.transform:getGlobalPosition()
+	love.graphics.circle("line", px, py, 3)
+	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
 	love.graphics.translate(px, py)
 	love.graphics.rotate(r)
 	love.graphics.translate(-px, -py)
-	love.graphics.setColor(unpack(Utils.UI_COLORS.YELLOW))
 	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
+	if w < 0 or h < 0 then
+		love.graphics.line(x, y, x + w, y + h)
+		love.graphics.line(x + w, y, x, y + h)
+	end
 	love.graphics.pop()
 end
 

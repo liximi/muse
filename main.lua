@@ -16,6 +16,7 @@ local NineSlice = require "ui.widgets.nineslice"
 local TextInput = require "ui.widgets.textinput"
 
 local Scroll = require "ui.widgets.containers.scroll_container"
+local ChatHistory = require "ui.widgets.advanced.chat_history"
 
 local languages = {"zh-cn"}
 
@@ -118,25 +119,31 @@ function love.load()
     }))
     -- text_input:enableDebug(true)
 
-    local scroll_container = ui_root:addChild(Scroll({
-        item = Image({
-            texture = test_img,
-            w = 200,
-            h = 200,
-        }),
-        x = 450,
-        y = 100,
-        w = 400,
-        -- h = 600,
-        scrollable_w = 600,
-        scrollable_h = 600,
-        anchors = {nil, 0.05, nil, 0.75},
-        padding = {nil, nil, 0, 0},
-
-        enable_scroll_h = true,
-        hide_slider_when_cannot_scroll = true,
+    local chat_history = ui_root:addChild(ChatHistory({
+        space = 8,
+        anchors = {1, 0, 1, 1},
+        padding = {-350, 50, 20, 100},
+        pivot = {1, 0},
     }))
-    scroll_container:enableDebug(true)
+    chat_history:setChatBubbleStyle("user", chat_history:createChatBubbleStyle(
+        UiUtils.UI_COLORS.LIGHT_PINK,
+        6, 250, nil, nil,
+        UiUtils.UI_COLORS.PRIMARY_TEXT,
+        {6, 6, 6, 6}, "right"
+    ))
+    chat_history:setChatBubbleStyle("agent", chat_history:createChatBubbleStyle(
+        UiUtils.UI_COLORS.SECONDARY_TEXT,
+        6, 250, nil, nil,
+        UiUtils.UI_COLORS.PRIMARY_TEXT,
+        {6, 6, 6, 6}, "left"
+    ))
+    chat_history:setChatHistory({
+        {"user", "中午吃啥啊？纠结半天了"},
+        {"agent", "我也没谱！楼下新开的那家麻辣烫怎么样？听同事说味道还行"},
+        {"user", "可以啊！辣度能选不？我吃不了太辣"},
+        {"agent", "必须能！微辣、中辣都有，12 点楼下见？"},
+        {"user", "妥了！到点我喊你"}
+    })
 end
 
 

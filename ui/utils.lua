@@ -54,7 +54,7 @@ Utils.UI_COLORS = {
     LINE = grayscale_colors.light_gray3,
 
     TITLE = grayscale_colors.light,
-    PRIMARY_TEXT = grayscale_colors.light_gray2,
+    PRIMARY_TEXT = grayscale_colors.light_gray1,
     SECONDARY_TEXT = grayscale_colors.light_gray3,
     HINT = grayscale_colors.dark_gray1,
 
