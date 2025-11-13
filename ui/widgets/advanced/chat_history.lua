@@ -226,4 +226,13 @@ function ChatHistory:refresh()
 end
 
 
+function ChatHistory:onUpdate(dt)
+	local list_h = self.list.transform.h
+	local scrollable_h = self.scroll_container.scrollable_h
+	if scrollable_h ~= list_h then
+		self.scroll_container:setScrollableH(list_h)
+	end
+end
+
+
 return ChatHistory
