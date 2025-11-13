@@ -3,6 +3,7 @@ local Text = require "ui.widgets.text"
 local Image = require "ui.widgets.image"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
+local BTN_STATES = Utils.BTN_STATES
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
