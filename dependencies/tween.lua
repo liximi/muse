@@ -486,4 +486,75 @@ function tween.new(duration, subject, target, easing)
     }, Tween_mt)
 end
 
+
+
+
+--[[一种使用函数来设置值的tween对象
+tween.newFunctionalTween(
+    duration:number,
+    infos:table:{
+        custom_id = {[1] = number(initial value), [2] = number(target value), [3] = function(new_val:number)->void (setter)},
+        ...
+    },
+    easing:string)
+]]
+local FunctionalTween = {}
+local FunctionalTween_mt = {
+    __index = FunctionalTween
+}
+
+function FunctionalTween:set(clock)
+    assert(type(clock) == 'number', "clock must be a positive number or 0")
+    self.clock = clock
+
+    if self.clock <= 0 then
+        self.clock = 0
+        for id, info in pairs(self.infos) do
+            info[3](info[1])
+        end
+    elseif self.clock >= self.duration then -- the tween has expired
+        self.clock = self.duration
+        for id, info in pairs(self.infos) do
+            info[3](info[2])
+        end
+    else
+        local t, b, c, d
+        for id, info in pairs(self.infos) do
+            t, b, c, d = clock, info[1], info[2] - info[1], self.duration
+            info[3](self.easing(t, b, c, d))
+        end
+    end
+
+    return self.clock >= self.duration
+end
+
+function FunctionalTween:reset()
+    return self:set(0)
+end
+
+function FunctionalTween:update(dt)
+    assert(type(dt) == 'number', "dt must be a number")
+    return self:set(self.clock + dt)
+end
+
+function FunctionalTween:setInitialValue(id, initial_val)
+    assert(type(initial_val) == "number")
+    self.infos[id][1] = initial_val
+end
+
+function FunctionalTween:setTargetValue(id, target_val)
+    assert(type(target_val) == "number")
+    self.infos[id][2] = target_val
+end
+
+function tween.newFunctionalTween(duration, infos, easing)
+    easing = getEasingFunction(easing)
+    return setmetatable({
+        duration = duration,
+        infos = infos,
+        easing = easing,
+        clock = 0
+    }, FunctionalTween_mt)
+end
+
 return tween

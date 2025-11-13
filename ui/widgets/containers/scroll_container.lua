@@ -3,6 +3,7 @@ local SliderBarH = require "ui.widgets.sliderbar_h"
 local SliderBarV = require "ui.widgets.sliderbar_v"
 local Fonts = require "ui.fonts"
 local Utils = require "ui.utils"
+local Tween = require "dependencies.tween"
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
@@ -27,7 +28,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self.scrollable_w = datas and datas.scrollable_w or self.transform.w
 	self.scrollable_h = datas and datas.scrollable_h or self.transform.h
 
-	self.sensitivity = datas and datas.sensitivity or 30--鼠标滚轮控制滚动的灵敏度(像素)
+	self.sensitivity = datas and datas.sensitivity or 60--鼠标滚轮控制滚动的灵敏度(像素)
 
 	self.show_slider_bar = true
 	self.hide_slider_when_cannot_scroll = datas and datas.hide_slider_when_cannot_scroll or false
@@ -56,10 +57,10 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			love.graphics.rotate(r)
 			love.graphics.translate(-px, -py)
 		end
-		-- love.graphics.setScissor(x, y, w, h)
+		love.graphics.setScissor(x, y, w, h)
 	end
 	function self.scroll_root.onPostDraw(_self)
-		-- love.graphics.setScissor()
+		love.graphics.setScissor()
 		love.graphics.pop()
 	end
 
@@ -123,15 +124,47 @@ end
 
 
 function Scroll:setXOffset(offset)
-	self.offset_x = Utils.clamp(offset, 0, math.max(self.scrollable_w - self.transform.w, 0))
-	self.scroll_root:setPosition(-self.offset_x)
-	self.slider_bar_h:setValue(self.offset_x)
+	local new_offset = Utils.clamp(offset, 0, math.max(self.scrollable_w - self.transform.w, 0))
+	if new_offset == self.offset_x then
+		return
+	end
+	local duration = 0.1 * math.min(1, math.abs(new_offset - self.offset_x) / self.sensitivity)
+	if not self.tweenx then
+		self.tweenx = Tween.newFunctionalTween(duration, {
+			offset_x = {self.offset_x, new_offset, function(val)
+				self.offset_x = Utils.clamp(val, 0, math.max(self.scrollable_w - self.transform.w, 0))
+				self.scroll_root:setPosition(-self.offset_x)
+				self.slider_bar_h:setValue(self.offset_x)
+			end}
+		}, "linear")
+	else
+		self.tweenx:setInitialValue("offset_x", self.offset_x)
+		self.tweenx:setTargetValue("offset_x", new_offset)
+		self.tweenx.duration = duration
+		self.tweenx:reset()
+	end
 end
 
 function Scroll:setYOffset(offset)
-	self.offset_y = Utils.clamp(offset, 0, math.max(self.scrollable_h - self.transform.h, 0))
-	self.scroll_root:setPosition(nil, -self.offset_y)
-	self.slider_bar_v:setValue(self.offset_y)
+	local new_offset = Utils.clamp(offset, 0, math.max(self.scrollable_h - self.transform.h, 0))
+	if new_offset == self.offset_y then
+		return
+	end
+	local duration = 0.1 * math.min(1, math.abs(new_offset - self.offset_y) / self.sensitivity)
+	if not self.tweeny then
+		self.tweeny = Tween.newFunctionalTween(duration, {
+			offset_y = {self.offset_y, new_offset, function(val)
+				self.offset_y = Utils.clamp(val, 0, math.max(self.scrollable_h - self.transform.h, 0))
+				self.scroll_root:setPosition(nil, -self.offset_y)
+				self.slider_bar_v:setValue(self.offset_y)
+			end}
+		}, "linear")
+	else
+		self.tweeny:setInitialValue("offset_y", self.offset_y)
+		self.tweeny:setTargetValue("offset_y", new_offset)
+		self.tweeny.duration = duration
+		self.tweeny:reset()
+	end
 end
 
 function Scroll:setScrollableW(w)
@@ -195,6 +228,21 @@ function Scroll:onSizeChanged(w, h)
 					self.slider_bar_h.transform:setPadding(nil, self.slider_bar_v.transform.w)
 				end
 			end
+		end
+	end
+end
+
+function Scroll:onUpdate(dt)
+	if self.tweenx then
+		local finish = self.tweenx:update(dt)
+		if finish then
+			self.tweenx = nil
+		end
+	end
+	if self.tweeny then
+		local finish = self.tweeny:update(dt)
+		if finish then
+			self.tweeny = nil
 		end
 	end
 end
