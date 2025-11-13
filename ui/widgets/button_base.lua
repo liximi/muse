@@ -19,7 +19,7 @@ end)
 
 function ButtonBase:setState(new_state)
 	if not BTN_STATES[string.upper(new_state)] then
-		print(self.__name .. ":setStateStyle|Invalid state:", new_state)
+		print(self.__name .. ":setState|Invalid state:", new_state)
 		return
 	end
 	local old_state = self.cur_state
