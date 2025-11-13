@@ -200,20 +200,18 @@ function Scroll:onSizeChanged(w, h)
 end
 
 
-function Scroll:onDraw()
-	if self._debug then
-		local x, y, w, h, r = self.transform:getGlobalBounds()
-		love.graphics.push()
-		if r ~= 0 and r ~= Utils.TWO_PI then
-			local px, py = self.transform:getGlobalPosition()
-			love.graphics.translate(px, py)
-			love.graphics.rotate(r)
-			love.graphics.translate(-px, -py)
-		end
-		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.printf(string.format("Offset X: %.1f | Offset Y: %.1f", self.offset_x, self.offset_y), Fonts:getFont("default", 16), x, y+h, w)
-		love.graphics.pop()
+function Scroll:onDebugDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
 	end
+	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
+	love.graphics.printf(string.format("Offset X: %.1f | Offset Y: %.1f", self.offset_x, self.offset_y), Fonts:getFont("default", 16), x, y+h, w)
+	love.graphics.pop()
 end
 
 

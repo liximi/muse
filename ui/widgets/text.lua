@@ -261,18 +261,32 @@ function Text:onDraw()
 	end
 	love.graphics.draw(self.__text, x, y, nil, sx, sy)
 
-	if self._debug then
-		if self.horizontal_align == "right" then
-			x = x + w - textw
-		elseif self.horizontal_align == "center" then
-			x = x + (w - textw) * 0.5
-		end
-		love.graphics.setColor(unpack(Utils.UI_COLORS.WHITE))
-		if self.horizontal_align == "justify" then
-			love.graphics.rectangle("line", x, y, w, texth)
-		else
-			love.graphics.rectangle("line", x, y, textw, texth)
-		end
+	love.graphics.pop()
+end
+
+
+function Text:onDebugDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	local textw, texth = self:getGlobalScaledDimensions()
+
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+
+	if self.horizontal_align == "right" then
+		x = x + w - textw
+	elseif self.horizontal_align == "center" then
+		x = x + (w - textw) * 0.5
+	end
+	love.graphics.setColor(unpack(Utils.UI_COLORS.WHITE))
+	if self.horizontal_align == "justify" then
+		love.graphics.rectangle("line", x, y, w, texth)
+	else
+		love.graphics.rectangle("line", x, y, textw, texth)
 	end
 
 	love.graphics.pop()

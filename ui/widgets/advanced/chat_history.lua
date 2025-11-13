@@ -104,6 +104,7 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 		anchors = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 		-- show_slider_bar = false,
+        -- hide_slider_when_cannot_scroll = true,
 	}))
 end)
 

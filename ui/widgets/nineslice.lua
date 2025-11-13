@@ -72,19 +72,33 @@ function NineSlice:onDraw()
 		end
 	end
 
-	if self._debug then
-		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		local x0 = x + self.center_padding[1]
-		local y0 = y + self.center_padding[3]
-		local x1 = x + w - self.center_padding[2]
-		local y1 = y + h - self.center_padding[4]
-		local x2 = x + w
-		local y2 = y + h
-		love.graphics.line(x, y0, x2, y0)--上面的水平分割线
-		love.graphics.line(x, y1, x2, y1)--下面的水平分割线
-		love.graphics.line(x0, y, x0, y2)--左面的垂直分割线
-		love.graphics.line(x1, y, x1, y2)--右面的垂直分割线
+	love.graphics.pop()
+end
+
+
+function NineSlice:onDebugDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
 	end
+
+	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
+	local x0 = x + self.center_padding[1]
+	local y0 = y + self.center_padding[3]
+	local x1 = x + w - self.center_padding[2]
+	local y1 = y + h - self.center_padding[4]
+	local x2 = x + w
+	local y2 = y + h
+	love.graphics.line(x, y0, x2, y0)--上面的水平分割线
+	love.graphics.line(x, y1, x2, y1)--下面的水平分割线
+	love.graphics.line(x0, y, x0, y2)--左面的垂直分割线
+	love.graphics.line(x1, y, x1, y2)--右面的垂直分割线
+
 	love.graphics.pop()
 end
 

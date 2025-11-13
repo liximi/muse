@@ -104,16 +104,31 @@ function Image:onDraw()
 		end
 		self.__quad:setViewport(0, 0, quadw, quadh, rw, rh)
 		love.graphics.draw(self.texture, self.__quad, x, y, self.rotation, sx, sy)
+	end
 
-		if self._debug then
-			love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-			love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("debug", 14), x, y + h, w)
-		end
+	love.graphics.pop()
+end
+
+
+function Image:onDebugDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+
+	love.graphics.push()
+
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+
+	if self.texture then
+		local rw, rh = self:getTextureRowSize()
+		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
+		love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("debug", 14), x, y + h, w)
 	else
-		if self._debug then
-			love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-			love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
-		end
+		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
+		love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
 	end
 
 	love.graphics.pop()

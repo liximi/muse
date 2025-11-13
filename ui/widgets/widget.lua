@@ -209,6 +209,9 @@ function Widget:draw()
 		self:onPostDraw()
 	end
 	if self._debug then
+		if self.onDebugDraw then
+			self:onDebugDraw()
+		end
 		love.graphics.setLineWidth(1)
 		self:drawBound()
 		self:drawAABB()
