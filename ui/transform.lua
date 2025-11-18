@@ -221,6 +221,11 @@ local function getPadding(self)
 	}
 end
 
+local function getRotation(self)
+	return self.rotation
+end
+
+
 local two_pi = math.pi * 2
 local function getGlobalPosition(self)
 	local parent_x, parent_y = 0, 0
@@ -385,6 +390,7 @@ local function Transform()
 		getAnchors = getAnchors,
 		getPivot = getPivot,
 		getPadding = getPadding,
+		getRotation = getRotation,
 		getAABB = getAABB,
 		getBounds = getBounds,
 
