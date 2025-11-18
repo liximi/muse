@@ -25,7 +25,7 @@ end
 	on_value_update = function(value, percent)
 ]]
 local SliderBar = Class(Widget, function (self, datas, theme)
-	Widget.new(self, "SliderBar Vertical", datas, theme)
+	Widget.new(self, "SliderBarV", datas, theme)
 
 	self.drag = false--鼠标按在滑块内部时，会将drag改为true
 	self.pressed = false--鼠标按在滑块外部时，会将pressed改为true

@@ -11,7 +11,7 @@ local Utils = require "ui.utils"
 	space = number 元素之间的间隔
 ]]
 local List = Class(Widget, function(self, datas, theme)
-	Widget.new(self, "VerticalList", datas, theme)
+	Widget.new(self, "ListHContainer", datas, theme)
 
 	self.items = {}
 	self.space = datas and datas.space or 8	--元素之间的间距，单位：像素
