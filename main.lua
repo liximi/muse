@@ -148,6 +148,9 @@ end
 
 
 local FPS = 0
+local timer = 1
+local update_count = 0
+local FPS2 = 0
 function love.update(dt)
     -- 该方法应该总是在update的顶部使用
     -- 在浏览器里打开'127.0.0.1:8000'来查看控制台
@@ -156,6 +159,13 @@ function love.update(dt)
     UiManager:update(dt)
 
     FPS = 1/dt
+    update_count = update_count + 1
+    timer = timer - dt
+    if timer <= 0 then
+        timer = 1 - timer
+        FPS2 = update_count
+        update_count = 0
+    end
 end
 
 
@@ -195,7 +205,7 @@ end
 local function DrawPerformanceInfo()
     love.graphics.setColor(0, 0.6, 0)
     local window_w = love.graphics.getWidth()
-    local str = string.format("FPS: %.2f", FPS)
+    local str = string.format("FPS: %.2f | FPS2: %d", FPS, FPS2)
     local font = Fonts:getFont("default", 14) ---@type love.Font
     local w = font:getWidth(str)
     love.graphics.printf(str, font, window_w-w, -2, w)
