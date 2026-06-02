@@ -15,7 +15,7 @@ love .
 # 或者将项目文件夹拖到 love.exe 上
 ```
 
-LÖVE 版本要求：11.x（使用 `love.graphics.newText` 等较新 API）。
+LÖVE 版本：11.5（当前最新稳定版），使用 **LuaJIT**（基于 Lua 5.1 + 扩展，不是标准 Lua 5.4）。
 运行后在浏览器打开 `127.0.0.1:8000` 可以查看 Lovebird 远程调试控制台。
 
 ## 架构
@@ -117,7 +117,17 @@ Widget (基类)
 | 类名 | `PascalCase` | `Widget`, `Panel`, `TextInput`, `ButtonBase`, `UiManager`, `Transform` |
 | 常量、枚举 | `UPPER_CASE` | `TWO_PI`, `UI_COLORS`, `BTN_STATES`, `TEXT_WRAP_MODE`, `FPS` |
 | Lua 文件名 | `snake_case` | `ui_manager.lua`, `button_base.lua`, `scrollable_list.lua` |
-| 私有/内部成员 | `__` 双下划线前缀 | `self.__text`, `self.__quad`, `self.__instance`, `__oldw`, `__oldh` |
+| 私有成员、私有函数 | `_` 单下划线前缀 | `self._name`, `self._valid`, `self._debug`, `_updateLeftRight`, `_calcAABB` |
+| 元属性、元方法 | `__` 双下划线前缀 | `self.__text`（Text 的内部 love.graphics.Text 对象）, `self.__quad`（Image 的 Quad 对象）, `self.__instance`（单例）, `__oldw`/`__oldh`（缓存的前一帧尺寸） |
+
+当闭包内同时存在外层 `self` 和内层 widget 的 `self` 时，内层 widget 的回调参数命名为 `_self`，以便与外层 `self` 区分：
+
+```lua
+-- _self = 被操作的内层 widget, self = 闭包捕获的外层 widget
+on_pressed = function(_self, x, y)
+    self.drag = true
+end
+```
 
 ### 注释
 

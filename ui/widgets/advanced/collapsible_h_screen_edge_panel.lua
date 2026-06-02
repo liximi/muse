@@ -59,7 +59,7 @@ function CollapsiblePanel:toggleOpen()
     }, "outQuint")
     self.tween_btn = Tween.newFunctionalTween(0.3, {
         x = {self.collapse_btn.transform.x, self.open and self.collapse_btn_x or self.collapse_btn_x_close, function(val)
-            self.collapse_btn.transform.setPosition(val)
+            self.collapse_btn.transform:setPosition(val)
         end}
     }, "outQuint")
     self.collapse_btn:setStateStyle("normal", {
