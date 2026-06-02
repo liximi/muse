@@ -78,7 +78,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 
 	if datas.bg then
 		self.bg = self:addChild(datas.bg)
-		self.bg.transform:setAnchors(0, 0, 1, 1)
+		self.bg.transform:setAnchor(0, 0, 1, 1)
 		self.bg.transform:setPadding(0, 0, 0, 0)
 	end
 
@@ -94,7 +94,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.cursor_blinking_timer = 0
 
 	self.text = self:addChild(Text({
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = datas.text_padding or self.theme.textinput.text_padding or {0, 0, 0, 0},
 		font_key = datas.font_key or self.theme.textinput.font_key,
 		font_size = datas.font_size or self.theme.textinput.font_size,
@@ -106,7 +106,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.hint = self:addChild(Text({
 			text = datas.hint,
 			text_color = datas.hint_color or self.theme.textinput.hint_color,
-			anchors = {0, 0, 1, 1},
+			anchor = {0, 0, 1, 1},
 			padding = datas.text_padding or {0, 0, 0, 0},
 		}))
 	end

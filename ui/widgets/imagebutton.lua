@@ -37,7 +37,7 @@ local ImageButton = Class(ButtonBase, function (self, datas, theme)
 	local img_datas = {
 		texture = datas.normal and datas.normal.texture,
 		tint = datas.normal and datas.normal.tint or (self.theme.imagebutton and self.theme.imagebutton.normal.tint),
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 	}
 	self.image = self:addChild(Image(img_datas, theme))
@@ -45,7 +45,7 @@ local ImageButton = Class(ButtonBase, function (self, datas, theme)
 	if not datas.no_text then
 		self.text = self:addChild(Text({
 			pivot = {0.5, 0.5},
-			anchors = {0, 0, 1, 1},
+			anchor = {0, 0, 1, 1},
 			padding = {2, 2, 2, 2},
 			h_align = "center",
 			v_align = "center",

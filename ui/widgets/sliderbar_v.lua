@@ -39,7 +39,7 @@ local SliderBar = Class(Widget, function (self, datas, theme)
 	self.onValueUpdate = datas and datas.on_value_update
 
 	self.bg = self:addChild(Panel({
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 		rounding_radius = self.transform.w / 2,
 		bg_color = Utils.UI_COLORS.LINE,
@@ -55,7 +55,7 @@ local SliderBar = Class(Widget, function (self, datas, theme)
 		{0, 0}, {1, 1}, block_rounding_radius)
 
 	self.block = self:addChild(Button({
-		anchors = {0, 0, 1, 0},
+		anchor = {0, 0, 1, 0},
 		padding = {-1, -1, 0, nil},
 		h = self.block_length_percent * self.transform.h,
 		on_pressed = function(_self, x, y)

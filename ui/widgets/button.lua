@@ -29,7 +29,7 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 
 	self.text = self:addChild(Text({
 		pivot = {0.5, 0.5},
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = {2, 2, 2, 2},
 		h_align = "center",
 		v_align = "center",

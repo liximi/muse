@@ -28,7 +28,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 
 	local x = self.alignment == "right" and 1 or 0
 	self.root = self:addChild(Widget("BubbleRoot", {
-		anchors = {x, 0, x, 0},
+		anchor = {x, 0, x, 0},
 		padding = {0, 0, 0, 0},
 		pivot = {x, 0},
 	}))
@@ -37,7 +37,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 		bg_color = datas and datas.bg_color,
 		outline_width = 0,
 		rounding_radius = datas and datas.rounding_radius,
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 	}))
 
@@ -45,7 +45,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 		font_key = datas and datas.font_key,
 		font_size = datas and datas.font_size,
 		text_color = datas and datas.text_color,
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = datas and datas.text_padding or {0, 0, 0, 0},
 	}))
 	self:setText(datas and datas.text)
@@ -96,12 +96,12 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 
 	self.list = ListContainer({
 		space = datas and datas.space,
-		anchors = {0, 0, 1, 0},
+		anchor = {0, 0, 1, 0},
 		padding = {0, 12, 0, 0},
 	})
 	self.scroll_container = self:addChild(ScrollContainer({
 		item = self.list,
-		anchors = {0, 0, 1, 1},
+		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 		-- show_slider_bar = false,
         -- hide_slider_when_cannot_scroll = true,
@@ -184,7 +184,7 @@ function ChatHistory:createChatBubble(chatter_id, text)
 		text_color = bubble_style.text_color,
 		text_padding = bubble_style.text_padding,
 
-		anchors = {0, 0, 1, 0},
+		anchor = {0, 0, 1, 0},
 		padding = {0, 0},
 	})
 	return bubble

@@ -10,7 +10,7 @@ local CollapsiblePanel = Class(Panel, function(self, datas, theme)
     Panel.new(self, datas, theme)
     self._name = "CpllapsibleHScreenEdgePanel"
 
-    self.transform:setAnchors(0, 0, 0, 1)
+    self.transform:setAnchor(0, 0, 0, 1)
     self.transform:setPadding(nil, nil, 0, 0)
 
     self.open = true

@@ -5,7 +5,7 @@ local Transform = require "ui.transform"
 
 --[[datas:
 	pivot = {x, y}
-	anchors = {minx, miny, maxx, maxy}
+	anchor = {minx, miny, maxx, maxy}
 	x = number
 	y = number
 	w = number
@@ -25,8 +25,8 @@ local Widget = Class(function(self, name, datas, theme)
 		if datas.pivot then
 			self.transform:setPivot(unpack(datas.pivot))
 		end
-		if datas.anchors then
-			self.transform:setAnchors(unpack(datas.anchors))
+		if datas.anchor then
+			self.transform:setAnchor(unpack(datas.anchor))
 		end
 		if datas.x or datas.y then
 			self.transform:setPosition(datas.x, datas.y)

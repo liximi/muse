@@ -45,7 +45,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 
 
 	self.scroll_root = self:addChild(Widget("ScrollRoot", {
-		anchors = {0, 0, self.enable_scroll_h and 0 or 1, self.enable_scroll_v and 0 or 1},
+		anchor = {0, 0, self.enable_scroll_h and 0 or 1, self.enable_scroll_v and 0 or 1},
 		padding = {0, 0, 0, 0},
 	}))
 	function self.scroll_root.onDraw(_self)
@@ -78,7 +78,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		local padding_right = self.enable_scroll_v and v_slider_bar_width or 0
 		self.slider_bar_h = self:addChild(SliderBarH({
 			pivot = {0, 1},
-			anchors = {0, 1, 1, 1},
+			anchor = {0, 1, 1, 1},
 			padding = {0, padding_right, -h_slider_bar_height, 0},
 			max_limit = math.max(self.scrollable_w - self.transform.w, 0),
 			block_length_percent = percent,
@@ -95,7 +95,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		local padding_bottom = self.enable_scroll_h and h_slider_bar_height or 0
 		self.slider_bar_v = self:addChild(SliderBarV({
 			pivot = {1, 0},
-			anchors = {1, 0, 1, 1},
+			anchor = {1, 0, 1, 1},
 			padding = {-v_slider_bar_width, 0, 0, padding_bottom},
 			max_limit = math.max(self.scrollable_h - self.transform.h, 0),
 			block_length_percent = percent,

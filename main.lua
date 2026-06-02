@@ -36,13 +36,13 @@ function love.load()
 
     --UI
     ui_root = UiManager:addWidget(Widget("ui_root", {
-        anchors = {0, 0, 1, 1},
+        anchor = {0, 0, 1, 1},
         padding = {0, 0, 0, 0}
     }))
 
     local left_panel = ui_root:addChild(Panel({
         w = 400,
-        anchors = {0, 0, 0, 1},
+        anchor = {0, 0, 0, 1},
         padding = {20, nil, 20, 20},
     }))
 
@@ -52,35 +52,35 @@ function love.load()
         font_key = "default_bold",
         h = 30,
         text_color = UiUtils.UI_COLORS.TITLE,
-        anchors = {0, 0, 1, 0},
+        anchor = {0, 0, 1, 0},
         padding = {20, 20, 16}
     }))
     local test_img = love.graphics.newImage("assets/bilibili.png")
     local image = left_panel:addChild(Image({
         texture = test_img,
         h = 200,
-        anchors = {0, 0, 1, 0},
+        anchor = {0, 0, 1, 0},
         padding = {20, 20, 55},
     }))
     local btns_root = left_panel:addChild(Widget("btns_root", {
-        anchors = {0, 0, 1, 0},
+        anchor = {0, 0, 1, 0},
         padding = {20, 20, 220, -255},
     }))
     -- btns_root:enableDebug(true)
     local btn = btns_root:addChild(Button({
         normal = UiUtils.newButtonStateStyle("Normal"),
-        anchors = {0, 0, 0.3, 1},
+        anchor = {0, 0, 0.3, 1},
         padding = {0, 0, 0, 0},
     }))
     local btn2 = btns_root:addChild(Button({
         normal = UiUtils.newButtonStateStyle("Selected"),
-        anchors = {0.35, 0, 0.65, 1},
+        anchor = {0.35, 0, 0.65, 1},
         padding = {0, 0, 0, 0},
     }))
     btn2:setSelected(true)
     local btn3 = btns_root:addChild(Button({
         normal = UiUtils.newButtonStateStyle("Disabled"),
-        anchors = {0.7, 0, 1, 1},
+        anchor = {0.7, 0, 1, 1},
         padding = {0, 0, 0, 0},
     }))
     btn3:disable()
@@ -89,20 +89,20 @@ function love.load()
     local img_btn = btns_root:addChild(ImageButton({
         no_text = true,
         normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
-        anchors = {0, 1.2, 0.3, 3},
+        anchor = {0, 1.2, 0.3, 3},
         padding = {0, 0, 0, 0},
     }))
     local img_btn2 = btns_root:addChild(ImageButton({
         no_text = true,
         normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
-        anchors = {0.35, 1.2, 0.65, 3},
+        anchor = {0.35, 1.2, 0.65, 3},
         padding = {0, 0, 0, 0},
     }))
     img_btn2:setSelected(true)
     local img_btn3 = btns_root:addChild(ImageButton({
         no_text = true,
         normal = UiUtils.newImageButtonStateStyle(b_img, nil, "Normal"),
-        anchors = {0.7, 1.2, 1, 3},
+        anchor = {0.7, 1.2, 1, 3},
         padding = {0, 0, 0, 0},
     }))
     img_btn3:disable()
@@ -111,7 +111,7 @@ function love.load()
         height_adaptive = true,
         texture = b_img,
         -- pivot = {0.5, 0.5},
-        anchors = {0, 0, 1, 0},
+        anchor = {0, 0, 1, 0},
         padding = {20, 20, 350, 0},
         bg = Panel(),
         text_padding = {10, 10, 10, 10},
@@ -121,7 +121,7 @@ function love.load()
 
     local chat_history = ui_root:addChild(ChatHistory({
         space = 8,
-        anchors = {1, 0, 1, 1},
+        anchor = {1, 0, 1, 1},
         padding = {-350, 50, 20, 100},
         pivot = {1, 0},
     }))
