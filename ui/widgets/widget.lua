@@ -16,6 +16,16 @@ local Transform = require "ui.transform"
 	r = number
 ]]
 local Widget = Class(function(self, name, datas, theme)
+	-- 支持 Widget(datas, theme) 的无 name 调用方式
+	if type(name) == "table" then
+		theme = datas
+		datas = name
+		name = nil
+	elseif type(name) ~= "string" then
+		theme = datas
+		datas = nil
+		name = nil
+	end
 	self._name = name or "widget"
 	self._valid = true
 	self._debug = false
