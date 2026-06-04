@@ -1031,6 +1031,10 @@ function TextInput:onUpdate(dt)
 			self:_commitUndoGroup()
 		end
 	end
+	-- 自适应高度：构造时 transform 尺寸未就绪，首帧补刷新
+	if self.height_adaptive then
+		self:refreshHeight()
+	end
 end
 
 
