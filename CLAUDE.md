@@ -82,13 +82,44 @@ Widget (基类)
 ├── Text — 文本渲染，支持 coloredtext、自动换行、对齐
 ├── Image — 贴图渲染，支持 tint 着色、clamp 模式拉伸填充
 ├── NineSlice — 九宫格切图渲染
+├── ProgressBar — 进度条，支持水平/垂直方向
+├── Modal — 模态框，全屏遮罩+居中内容，Escape/点击外部关闭
+├── TabView — 标签页视图，顶部 Button 栏+下方内容面板
+├── RadioGroup — 单选按钮组，管理互斥行为
 ├── ButtonBase (继承 Widget)
-│   ├── Button — 文字按钮，6 种状态样式（normal/hover/pressed/disabled/selected/selected_hover）
-│   └── ImageButton — 图片按钮，与 Button 相同的状态机，附加纹理/tint 切换
-├── TextInput — 文本输入框，光标控制、选区、换行、滚动
-├── ScrollableList — 包含列表子元素的滚动容器
-└── SliderBar — 垂直滑块（未完成）
+│   ├── Button — 文字按钮，6 种状态样式
+│   ├── ImageButton — 图片按钮，附加纹理/tint 切换
+│   └── Checkbox — 复选框，继承六态 FSM，toggle 切换
+│       └── RadioButton — 单选框，覆写 onDraw 渲染圆形
+├── TextInput — 文本输入框，光标控制、选区、剪贴板、撤销/重做
+├── Scroll — 滚动容器（ScrollContainer），含 scissor 裁剪 + 可选滑条
+├── SliderBar — 滑块，支持水平/垂直，AXIS 抽象
+└── List — 列表容器（ListContainer），支持水平/垂直，脏标记布局
+    └── Box — Flexbox 式布局容器（BoxContainer），flex_grow/shrink 分配
 ```
+
+### Transform 锚点模式与 setter 陷阱
+
+Transform 有两个布局模式：
+
+| 锚点模式 | 条件 | 主数据 | 派生数据 | 使用的函数 |
+|----------|------|--------|----------|-----------|
+| 点锚点 | `min == max` | `x`/`y`, `w`/`h` | `left/right/top/bottom` | `_updateLeftRight` / `_updateTopBottom` |
+| 拉伸锚点 | `min < max` | `left/right/top/bottom` | `x`/`y`, `w`/`h` | `_updateWidthAndX` / `_updateHeightAndY` |
+
+`onUpdate` 已根据锚点模式正确选择函数。但 `setPadding` 无条件调用 `_updateWidthAndX` / `_updateHeightAndY`，这两个函数原本假设 `anchor_w > 0`（拉伸锚点），对点锚点（`anchor_w == 0`）会算出 `w = 0 - left - right = -left - right`，将 `setSize` 设好的尺寸覆盖为 0 或负值。
+
+**修复方式**：在 `_updateWidthAndX` / `_updateHeightAndY` 内部检查 `anchor_w > 0`（或 `anchor_h > 0`）。拉伸锚点时走原逻辑（从 padding 推算尺寸+位置）；点锚点时只更新 `x = left + w * pivot_x`，尺寸不变。这样所有调用方（`setPadding`、未来的其他 setter）都自动安全。
+
+**Widget 构造中 datas 的处理顺序很重要**：`anchor → position → size → padding`。`setPadding` 最后调用，如果它错误覆盖了 `setSize` 设好的尺寸值，且 `onUpdate` 对点锚点是从尺寸推算 padding（而非反向），则尺寸丢失不可恢复。
+
+### 测试场景组织
+
+测试 UI 代码放在 `tests/ui/` 下，每个文件返回 `{name = "名称", create = function(parent)}` 表。`main.lua` 左侧为可滚动组件列表（Scroll + Button），右侧为 `display_area`（Widget 容器），点击按钮调用 `selectTest(i)` 切换到对应测试脚本。
+
+### 闭包前向引用
+
+当按钮的 `on_click` 闭包需要引用**稍后才创建的** widget（如 Modal 的关闭按钮引用 modal 自身），在闭包之前声明 `local modal`（不赋值），闭包捕获该变量，后续赋值才会生效。否则变量会成为全局变量或被 IDE 报告未定义。
 
 ## 依赖库
 
