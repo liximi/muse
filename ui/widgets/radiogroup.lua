@@ -28,6 +28,9 @@ function RadioGroup:setItems(items, selected_index)
 	self:removeAllChildren()
 	self.buttons = {}
 
+	local item_h = 28
+	local spacing = 4
+
 	for i, item in ipairs(items) do
 		local btn_datas = {}
 		for k, v in pairs(item) do
@@ -39,6 +42,11 @@ function RadioGroup:setItems(items, selected_index)
 				self:_onButtonChecked(i)
 			end
 		end
+		-- 自动布局：垂直排列
+		btn_datas.anchor = btn_datas.anchor or {0, 0, 1, 0}
+		btn_datas.padding = btn_datas.padding or {0, 0, (i - 1) * (item_h + spacing), 0}
+		btn_datas.h = btn_datas.h or item_h
+
 		local btn = self:addChild(RadioButton(btn_datas))
 		self.buttons[i] = btn
 	end

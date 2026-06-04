@@ -61,7 +61,7 @@ function test.create(parent)
 		end,
 	}))
 
-	local modal = UiManager:addWidget(Modal({
+	modal = UiManager:addWidget(Modal({
 		content = modal_content,
 		dismiss_on_outside_click = true,
 		dismiss_on_escape = true,

@@ -181,10 +181,18 @@ local function setAnchor(self, minx, miny, maxx, maxy)
 		self.anchor_max[2] = maxy
 	end
 	if minx or maxx then
-		_updateLeftRight(self)
+		if self.anchor_min[1] == self.anchor_max[1] then
+			_updateLeftRight(self)
+		else
+			_updateWidthAndX(self)
+		end
 	end
 	if miny or maxy then
-		_updateTopBottom(self)
+		if self.anchor_min[2] == self.anchor_max[2] then
+			_updateTopBottom(self)
+		else
+			_updateHeightAndY(self)
+		end
 	end
 end
 

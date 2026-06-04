@@ -22,7 +22,7 @@ function test.create(parent)
 	}))
 
 	-- Tab 1: Info
-	local tab1 = Widget()
+	local tab1 = Widget({ anchor = {0, 0, 1, 1} })
 	tab1:addChild(Text({
 		text = "Welcome to the TabView component.\n\nClick the tabs above to switch between panels.\nThe selected tab is visually highlighted.",
 		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
@@ -32,7 +32,7 @@ function test.create(parent)
 	}))
 
 	-- Tab 2: Controls
-	local tab2 = Widget()
+	local tab2 = Widget({ anchor = {0, 0, 1, 1} })
 	tab2:addChild(ProgressBar({
 		value = 0.7,
 		anchor = {0, 0, 1, 0},
@@ -54,7 +54,7 @@ function test.create(parent)
 	}))
 
 	-- Tab 3: Empty state demo
-	local tab3 = Widget()
+	local tab3 = Widget({ anchor = {0, 0, 1, 1} })
 	tab3:addChild(Text({
 		text = "No settings available.",
 		text_color = Utils.UI_COLORS.HINT,

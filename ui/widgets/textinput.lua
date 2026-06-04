@@ -918,6 +918,9 @@ local CTRL_KEY_MAP = {
 	y = function(self) self:redo() end,
 }
 function TextInput:onKeyPressed(key, isrepeat)
+	if not self:isFocus() then
+		return
+	end
 	local handler
 	if isCtrlPressed() then
 		handler = CTRL_KEY_MAP[key]

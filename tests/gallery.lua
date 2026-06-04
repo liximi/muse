@@ -66,19 +66,25 @@ local function Gallery(parent)
 		enable_scroll_h = false,
 	}))
 
-	local btn_list = Widget()
+	local scroll_content_w = sidebar_w - 8  -- left_panel.w - scroll.padding
+
+	local btn_list = Widget({
+		w = scroll_content_w,
+		anchor = {0, 0, 0, 0},
+	})
 	local btn_h = 32
 	local btn_space = 4
 	local total_h = #test_modules * (btn_h + btn_space)
+	btn_list.transform:setSize(scroll_content_w, total_h)
 
 	for i, mod in ipairs(test_modules) do
 		local y_pos = (i - 1) * (btn_h + btn_space)
 		local btn = Button({
-			normal = UiUtils.newButtonStateStyle(mod.name),
-			anchor = {0, 0, 1, 0},
-			padding = {0, 0, y_pos, 0},
+			w = scroll_content_w,
+			anchor = {0, 0, 0, 0},
+			padding = {0, nil, y_pos, 0},
 			h = btn_h,
-			font_size = 13,
+			normal = UiUtils.newButtonStateStyle(mod.name),
 			on_click = function()
 				selectTest(i)
 			end,
@@ -86,7 +92,6 @@ local function Gallery(parent)
 		btn_list:addChild(btn)
 		gallery_btns[i] = btn
 	end
-	btn_list.transform:setSize(nil, total_h)
 	scroll:setItem(btn_list)
 
 	--------------------------------------------------
