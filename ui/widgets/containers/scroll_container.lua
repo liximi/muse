@@ -1,6 +1,5 @@
 local Widget = require "ui.widgets.widget"
-local SliderBarH = require "ui.widgets.sliderbar_h"
-local SliderBarV = require "ui.widgets.sliderbar_v"
+local SliderBar = require "ui.widgets.sliderbar"
 local Fonts = require "ui.fonts"
 local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
@@ -76,7 +75,8 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	if self.enable_scroll_h then
 		local percent = Utils.clamp(self.transform.w / self.scrollable_w, 0, 1)
 		local padding_right = self.enable_scroll_v and v_slider_bar_width or 0
-		self.slider_bar_h = self:addChild(SliderBarH({
+		self.slider_bar_h = self:addChild(SliderBar({
+				orientation = "horizontal",
 			pivot = {0, 1},
 			anchor = {0, 1, 1, 1},
 			padding = {0, padding_right, -h_slider_bar_height, 0},
@@ -93,7 +93,8 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	if self.enable_scroll_v then
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
 		local padding_bottom = self.enable_scroll_h and h_slider_bar_height or 0
-		self.slider_bar_v = self:addChild(SliderBarV({
+		self.slider_bar_v = self:addChild(SliderBar({
+				orientation = "vertical",
 			pivot = {1, 0},
 			anchor = {1, 0, 1, 1},
 			padding = {-v_slider_bar_width, 0, 0, padding_bottom},
