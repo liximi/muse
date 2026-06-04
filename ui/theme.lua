@@ -63,6 +63,15 @@ local Theme = Class(function(self)
 		),
 	}
 
+	self.sliderbar = {
+		track_color = Utils.UI_COLORS.LINE,
+		block_color = Utils.UI_COLORS.BTN_NORMAL,
+		block_hover_color = Utils.UI_COLORS.BTN_HOVER,
+		outline_color = Utils.UI_COLORS.LINE,
+		block_length_percent = 0.1,
+		sensitivity = 0.8,
+	}
+
 	self.imagebutton = {
 		font_key = "default",--不支持在按钮状态改变时切换字体
 		normal = Utils.newImageButtonStateStyle(

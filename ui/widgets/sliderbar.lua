@@ -55,8 +55,8 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self.drag = false
 	self.pressed = false
 	self.pressed_timer = 0
-	self.sensitivity = datas.sensitivity or 0.8
-	self.block_length_percent = datas.block_length_percent or 0.1
+	self.sensitivity = datas.sensitivity or self.theme.sliderbar.sensitivity
+	self.block_length_percent = datas.block_length_percent or self.theme.sliderbar.block_length_percent
 
 	self.max_limit = datas.max_limit or 1
 	self.value = 0
@@ -71,7 +71,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 		rounding_radius = track_rounding,
-		bg_color = Utils.UI_COLORS.LINE,
+		bg_color = self.theme.sliderbar.track_color,
 		outline_width = 0,
 	}))
 
@@ -80,10 +80,10 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		and (self.transform.w + 2) / 2
 		or (self.transform.h + 2) / 2
 	local block_style = Utils.newButtonStateStyle("", nil, nil,
-		Utils.UI_COLORS.BTN_NORMAL, 1, Utils.UI_COLORS.LINE,
+		self.theme.sliderbar.block_color, 1, self.theme.sliderbar.outline_color,
 		{0, 0}, {1, 1}, block_rounding)
 	local block_hover_style = Utils.newButtonStateStyle(nil, nil, nil,
-		Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.LINE,
+		self.theme.sliderbar.block_hover_color, 1, self.theme.sliderbar.outline_color,
 		{0, 0}, {1, 1}, block_rounding)
 
 	-- 锚点和 padding 根据方向不同

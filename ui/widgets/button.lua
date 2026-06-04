@@ -1,6 +1,7 @@
 local ButtonBase = require "ui.widgets.button_base"
 local Text = require "ui.widgets.text"
 local Utils = require "ui.utils"
+local Components = require "ui.components"
 local Fonts = require "ui.fonts"
 local BTN_STATES = Utils.BTN_STATES
 
@@ -79,29 +80,8 @@ end
 function Button:onSetState(old_state, new_state)
 	local old_style = self:getStateStyle(old_state)
 	local new_style = self:getStateStyle(new_state)
-	if self.text then
-		local new_text = new_style.text
-		if new_text then
-			self.text:setText(new_text)
-		end
-		local new_text_color = new_style.text_color
-		if new_text_color then
-			self.text:setTextColor(new_text_color)
-		end
-		local new_font_szie = new_style.font_size
-		if new_font_szie and self.text:getFontSize() ~= new_font_szie then
-			self.text:setFontSize(new_font_szie)
-		end
-	end
-
-	local old_offset = old_style.offset or {0, 0}
-	local offset = new_style.offset or {0, 0}
-	local total_offset = {offset[1] - old_offset[1], offset[2] - old_offset[2]}
-	local x, y = self:getPosition()
-	self:setPosition(x+total_offset[1], y+total_offset[2])
-
-	local scale = new_style and new_style.scale or {1, 1}
-	self.transform:setScale(scale[1], scale[2])
+	Components.applyButtonTextStyle(self, new_style)
+	Components.applyButtonTransform(self, old_style, new_style)
 end
 
 
