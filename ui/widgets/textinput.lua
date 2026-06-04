@@ -97,6 +97,12 @@ local TextInput = Class(Widget, function(self, datas, theme)
 
 	self._is_dragging = false
 
+	self._undo_stack = {}
+	self._redo_stack = {}
+	self._undo_stack_max = 100
+	self._undo_group = nil       -- 当前操作组的起点快照
+	self._undo_group_type = nil  -- "input" | "backspace" | "delete" | nil
+
 	self.focusable = true
 
 	self.text = self:addChild(Text({
@@ -473,6 +479,7 @@ end
 --------------------------------------------------
 
 function TextInput:lineBreak()
+	self:_saveOneShot()
 	local old_section = self.cursor.section
 	local old_text = self.sections[old_section]
 	local old_idx = self.cursor.index
@@ -488,6 +495,7 @@ end
 
 function TextInput:backspace()
 	if self:_hasSelection() then
+		self:_saveOneShot()
 		self:_deleteSelection()
 		return
 	end
@@ -496,6 +504,8 @@ function TextInput:backspace()
 	if old_section == 1 and old_idx == 1 then
 		return
 	end
+
+	self:_preMutation("backspace")
 
 	local old_text = self.sections[old_section]
 	local first_text, second_text = splitText(old_text, old_idx, "both")
@@ -522,6 +532,7 @@ end
 
 function TextInput:delete()
 	if self:_hasSelection() then
+		self:_saveOneShot()
 		self:_deleteSelection()
 		return
 	end
@@ -532,6 +543,8 @@ function TextInput:delete()
 	if old_section == #self.sections and old_idx == old_text_len + 1 then
 		return
 	end
+
+	self:_preMutation("delete")
 
 	local first_text, second_text = splitText(old_text, old_idx, "both")
 
@@ -719,6 +732,7 @@ function TextInput:copy()
 end
 
 function TextInput:paste()
+	self:_saveOneShot()
 	local text = love.system.getClipboardText()
 	if not text or text == "" then
 		return
@@ -764,6 +778,101 @@ end
 
 
 --------------------------------------------------
+---@region Undo & Redo
+--------------------------------------------------
+
+function TextInput:_makeSnapshot()
+	local sections_copy = {}
+	for i, s in ipairs(self.sections) do
+		sections_copy[i] = s
+	end
+	return {
+		sections = sections_copy,
+		cursor_section = self.cursor.section,
+		cursor_index = self.cursor.index,
+	}
+end
+
+function TextInput:_restoreSnapshot(snap)
+	self.sections = snap.sections
+	self:_clearSelection()
+	self.cursor.section = snap.cursor_section
+	self.cursor.index = snap.cursor_index
+	self:flushText()
+	if self.height_adaptive then
+		self:refreshHeight()
+	end
+	self:refreshHint()
+	self:setCursorIndex(snap.cursor_index)
+end
+
+--- 提交当前操作组，将其起始快照推入撤销栈
+function TextInput:_commitUndoGroup()
+	if self._undo_group then
+		table.insert(self._undo_stack, self._undo_group)
+		if #self._undo_stack > self._undo_stack_max then
+			table.remove(self._undo_stack, 1)
+		end
+		self._undo_group = nil
+		self._undo_group_type = nil
+		self._redo_stack = {}
+	end
+end
+
+--- 在 mutation 前调用：若操作类型变化则提交旧组，若无活跃组则保存快照
+function TextInput:_preMutation(mutation_type)
+	if self._undo_group_type and self._undo_group_type ~= mutation_type then
+		self:_commitUndoGroup()
+	end
+	if not self._undo_group then
+		self._undo_group = self:_makeSnapshot()
+		self._undo_group_type = mutation_type
+	end
+end
+
+--- 在光标移动/点击/回车等操作前调用，结束当前操作组
+function TextInput:_breakUndoGroup()
+	self:_commitUndoGroup()
+end
+
+--- 一次性操作（粘贴/回车/剪切）的撤销保存：直接推入快照
+function TextInput:_saveOneShot()
+	self:_commitUndoGroup()
+	table.insert(self._undo_stack, self:_makeSnapshot())
+	if #self._undo_stack > self._undo_stack_max then
+		table.remove(self._undo_stack, 1)
+	end
+	self._redo_stack = {}
+end
+
+function TextInput:undo()
+	if #self._undo_stack == 0 then
+		return
+	end
+	self:_commitUndoGroup()
+	table.insert(self._redo_stack, self:_makeSnapshot())
+	if #self._redo_stack > self._undo_stack_max then
+		table.remove(self._redo_stack, 1)
+	end
+	local snap = table.remove(self._undo_stack)
+	self:_restoreSnapshot(snap)
+end
+
+function TextInput:redo()
+	if #self._redo_stack == 0 then
+		return
+	end
+	self:_commitUndoGroup()
+	table.insert(self._undo_stack, self:_makeSnapshot())
+	if #self._undo_stack > self._undo_stack_max then
+		table.remove(self._undo_stack, 1)
+	end
+	local snap = table.remove(self._redo_stack)
+	self:_restoreSnapshot(snap)
+end
+
+
+--------------------------------------------------
 ---@region Event Handlers
 --------------------------------------------------
 
@@ -772,6 +881,7 @@ local function isCtrlPressed()
 end
 
 local function _withShift(self, fn)
+	self:_breakUndoGroup()
 	if love.keyboard.isDown("lshift", "rshift") then
 		if not self.cursor._sel_start then
 			self.cursor._sel_start = {self.cursor.section, self.cursor.index}
@@ -800,7 +910,9 @@ local CTRL_KEY_MAP = {
 	a = function(self) self:selectAll() end,
 	c = function(self) self:copy() end,
 	v = function(self) self:paste() end,
-	x = function(self) self:copy(); if self:_hasSelection() then self:_deleteSelection() end end,
+	x = function(self) self:_saveOneShot(); self:copy(); if self:_hasSelection() then self:_deleteSelection() end end,
+	z = function(self) if love.keyboard.isDown("lshift", "rshift") then self:redo() else self:undo() end end,
+	y = function(self) self:redo() end,
 }
 function TextInput:onKeyPressed(key, isrepeat)
 	local handler
@@ -818,6 +930,7 @@ function TextInput:onTextInput(text)
 	if not self:isFocus() then
 		return
 	end
+	self:_preMutation("input")
 	if self:_hasSelection() then
 		self:_deleteSelection()
 	end
@@ -854,6 +967,7 @@ function TextInput:onMousePressed(x, y, button)
 	local is_in_scope = self:regionDetection(x, y)
 	local is_focus = self:isFocus()
 	if is_in_scope then
+		self:_breakUndoGroup()
 		self:setCursorPosByScreenPos(x, y)
 		self:_clearSelection()
 		self.cursor._sel_start = {self.cursor.section, self.cursor.index}
