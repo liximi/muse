@@ -1038,6 +1038,16 @@ function TextInput:onPostDraw()
 				local _, wt = font:getWrap(section, self.text.transform.w)
 				current_line = current_line + #wt
 			elseif i <= e_section then
+				-- 计算当前段落内的选区范围
+				local section_s_idx = 1
+				local section_e_idx = utf8.len(section) + 1
+				if i == s_section then
+					section_s_idx = s_idx
+				end
+				if i == e_section then
+					section_e_idx = e_idx
+				end
+
 				local _, wt = font:getWrap(section, self.text.transform.w)
 				local char_offset = 0
 				for l, line_text in ipairs(wt) do
@@ -1045,9 +1055,9 @@ function TextInput:onPostDraw()
 					local line_start_idx = char_offset + 1
 					local line_end_idx = char_offset + line_len + 1
 
-					if line_start_idx < e_idx and line_end_idx > s_idx then
-						local sel_start = math.max(s_idx, line_start_idx)
-						local sel_end = math.min(e_idx, line_end_idx)
+					if line_start_idx < section_e_idx and line_end_idx > section_s_idx then
+						local sel_start = math.max(section_s_idx, line_start_idx)
+						local sel_end = math.min(section_e_idx, line_end_idx)
 						if sel_start < sel_end then
 							local prefix = (sel_start > line_start_idx) and string.sub(line_text, 1, utf8.offset(line_text, sel_start - char_offset) - 1) or ""
 							local sel_start_byte = utf8.offset(line_text, math.max(1, sel_start - char_offset))
