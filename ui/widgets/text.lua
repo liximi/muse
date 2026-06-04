@@ -109,12 +109,9 @@ function Text:getText(only_string)
 	return text
 end
 
-function Text:setTextColor(r, g, b, a)
-	if type(r) == "table" then
-		self.text_color = r
-	else
-		self.text_color = Utils.RGB(r, g, b, a)
-	end
+---@param color table 颜色表 {r, g, b, a}，各分量 0~1
+function Text:setTextColor(color)
+	self.text_color = color
 end
 
 function Text:getTextColor()

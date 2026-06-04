@@ -72,7 +72,7 @@ function ChatBubble:updateStyle(style)
 	self.bg.rounding_radius = style.rounding_radius or 0
 
 	self.text:setFont(style.font_key, style.font_size)
-	self.text:setTextColor(unpack(style.text_color or self.text.theme.text.text_color))
+	self.text:setTextColor(style.text_color or self.text.theme.text.text_color)
 	self.text:setPadding(style.text_padding or {0, 0, 0, 0})
 	self:setText()
 end

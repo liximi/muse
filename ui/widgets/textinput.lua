@@ -144,8 +144,9 @@ function TextInput:getText()
 	return self.text:getText(true)
 end
 
-function TextInput:setTextColor(r, g, b, a)
-	self.text:setTextColor(r, g, b, a)
+---@param color table 颜色表 {r, g, b, a}，各分量 0~1
+function TextInput:setTextColor(color)
+	self.text:setTextColor(color)
 end
 
 function TextInput:getTextColor()
