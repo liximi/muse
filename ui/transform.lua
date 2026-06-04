@@ -126,10 +126,18 @@ local function setPadding(self, left, right, top, bottom)
 		self.bottom = bottom
 	end
 	if left or right then
-		_updateWidthAndX(self)
+		if self.anchor_min[1] < self.anchor_max[1] then
+			_updateWidthAndX(self)
+		else
+			self.x = self.left + self.w * self.pivot[1]
+		end
 	end
 	if top or bottom then
-		_updateHeightAndY(self)
+		if self.anchor_min[2] < self.anchor_max[2] then
+			_updateHeightAndY(self)
+		else
+			self.y = self.top + self.h * self.pivot[2]
+		end
 	end
 end
 
