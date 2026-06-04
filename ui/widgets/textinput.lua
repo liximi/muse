@@ -89,9 +89,13 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		index = 1,--在当前的段落中的开始索引位置(基于utf8)
 		head_or_tail = true,--当光标位于自动换行的位置时，光标显示在上一行的末尾还是下一行的开始，true表示显示在下一行的开始
 		_local_pos_cache = {0, 0},--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
+		_sel_start = nil,  -- 选区起点 {section, index}，nil 表示无选区
+		_sel_end = nil,    -- 选区终点 {section, index}
 	}
 	self.cursor_blinking = true
 	self.cursor_blinking_timer = 0
+
+	self._is_dragging = false
 
 	self.focusable = true
 
@@ -483,6 +487,10 @@ function TextInput:lineBreak()
 end
 
 function TextInput:backspace()
+	if self:_hasSelection() then
+		self:_deleteSelection()
+		return
+	end
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
 	if old_section == 1 and old_idx == 1 then
@@ -513,6 +521,10 @@ function TextInput:backspace()
 end
 
 function TextInput:delete()
+	if self:_hasSelection() then
+		self:_deleteSelection()
+		return
+	end
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
 	local old_text = self.sections[old_section]
@@ -594,12 +606,105 @@ end
 ---@region Select Text
 --------------------------------------------------
 
-function TextInput:selectText(start_index, end_index)
-	
+--------------------------------------------------
+---@region Selection Helpers
+--------------------------------------------------
+
+--- 比较两个 {section, index} 位置，返回 -1/0/1
+function TextInput:_comparePos(s1, i1, s2, i2)
+	if s1 ~= s2 then
+		return s1 < s2 and -1 or 1
+	end
+	if i1 == i2 then return 0 end
+	return i1 < i2 and -1 or 1
+end
+
+function TextInput:_hasSelection()
+	local s = self.cursor._sel_start
+	local e = self.cursor._sel_end
+	if not s or not e then return false end
+	return self:_comparePos(s[1], s[2], e[1], e[2]) ~= 0
+end
+
+function TextInput:_clearSelection()
+	self.cursor._sel_start = nil
+	self.cursor._sel_end = nil
+end
+
+--- 返回 start_s, start_i, end_s, end_i（保证 start ≤ end）
+function TextInput:_getOrderedSelection()
+	local s = self.cursor._sel_start
+	local e = self.cursor._sel_end
+	if not s or not e then return nil end
+	if self:_comparePos(s[1], s[2], e[1], e[2]) <= 0 then
+		return s[1], s[2], e[1], e[2]
+	else
+		return e[1], e[2], s[1], s[2]
+	end
+end
+
+function TextInput:_getSelectedText()
+	local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
+	if not s_section then return "" end
+	local parts = {}
+	for i = s_section, e_section do
+		local section = self.sections[i]
+		local start_idx = (i == s_section) and s_idx or 1
+		local end_idx = (i == e_section) and e_idx or (utf8.len(section) + 1)
+		start_idx = math.max(1, start_idx)
+		end_idx = math.min(utf8.len(section) + 1, end_idx)
+		if start_idx <= utf8.len(section) and end_idx > start_idx then
+			local sub = splitText(section, start_idx, "second")
+			sub = splitText(sub, end_idx - start_idx + 1, "first")
+			table.insert(parts, sub)
+		elseif start_idx == 1 and end_idx > utf8.len(section) then
+			table.insert(parts, section)
+		end
+	end
+	return table.concat(parts, "\n")
+end
+
+function TextInput:_deleteSelection()
+	local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
+	if not s_section then return end
+
+	-- 合并被选区截断的段落
+	local first_part = splitText(self.sections[s_section], s_idx, "first")
+	local second_part = ""
+	if e_section <= #self.sections then
+		second_part = splitText(self.sections[e_section], e_idx, "second")
+	end
+
+	-- 删除中间段落（从后往前删）
+	for i = e_section, s_section, -1 do
+		self:removeSection(i)
+	end
+
+	-- 插入合并后的段落
+	local merged = first_part .. second_part
+	self:insertNewSection(s_section, merged)
+
+	-- 清除选区，光标移到删除位置
+	self:_clearSelection()
+	self.cursor.section = s_section
+	self.cursor.index = s_idx
+	self:flushText()
+	self:setCursorIndex(s_idx)
+	if self.height_adaptive then
+		self:refreshHeight()
+	end
+	self:refreshHint()
+end
+
+function TextInput:selectText(start_section, start_index, end_section, end_index)
+	self.cursor._sel_start = {start_section, start_index}
+	self.cursor._sel_end = {end_section, end_index}
 end
 
 function TextInput:selectAll()
-	
+	self.cursor._sel_start = {1, 1}
+	local last_section = #self.sections
+	self.cursor._sel_end = {last_section, utf8.len(self.sections[last_section]) + 1}
 end
 
 
@@ -623,17 +728,31 @@ end
 local function isCtrlPressed()
 	return love.keyboard.isDown("rctrl", "lctrl")
 end
+
+local function _withShift(self, fn)
+	if love.keyboard.isDown("lshift", "rshift") then
+		if not self.cursor._sel_start then
+			self.cursor._sel_start = {self.cursor.section, self.cursor.index}
+		end
+		fn(self)
+		self.cursor._sel_end = {self.cursor.section, self.cursor.index}
+	else
+		self:_clearSelection()
+		fn(self)
+	end
+end
+
 local KEY_MAP = {
 	backspace = function(self) self:backspace() end,
 	delete = function(self) self:delete() end,
 	kpenter = function(self) self:lineBreak() end,
 	["return"] = function(self) self:lineBreak() end,
-	left = function(self) self:moveCursorLeft() end,
-	right = function(self) self:moveCursorRight() end,
-	up = function(self) self:moveCursorUp() end,
-	down = function(self) self:moveCursorDown() end,
-	home = function(self) self:moveCursorToHead() end,
-	["end"] = function(self) self:moveCursorToEnd() end,
+	left = function(self) _withShift(self, self.moveCursorLeft) end,
+	right = function(self) _withShift(self, self.moveCursorRight) end,
+	up = function(self) _withShift(self, self.moveCursorUp) end,
+	down = function(self) _withShift(self, self.moveCursorDown) end,
+	home = function(self) _withShift(self, self.moveCursorToHead) end,
+	["end"] = function(self) _withShift(self, self.moveCursorToEnd) end,
 }
 local CTRL_KEY_MAP = {
 	a = function(self) self:selectAll() end,
@@ -655,6 +774,9 @@ end
 function TextInput:onTextInput(text)
 	if not self:isFocus() then
 		return
+	end
+	if self:_hasSelection() then
+		self:_deleteSelection()
 	end
 	local old_idx = self.cursor.index
 	local old_text = self.sections[self.cursor.section]
@@ -690,6 +812,9 @@ function TextInput:onMousePressed(x, y, button)
 	local is_focus = self:isFocus()
 	if is_in_scope then
 		self:setCursorPosByScreenPos(x, y)
+		self:_clearSelection()
+		self.cursor._sel_start = {self.cursor.section, self.cursor.index}
+		self._is_dragging = true
 		if not is_focus then
 			self:setFocus()
 			return
@@ -698,6 +823,21 @@ function TextInput:onMousePressed(x, y, button)
 	if not is_in_scope and is_focus then
 		self:removeFocus()
 		self:onHovered(is_in_scope, x, y)
+	end
+end
+
+function TextInput:onMouseMoved(x, y, dx, dy)
+	if self._is_dragging then
+		if self:regionDetection(x, y) then
+			self:setCursorPosByScreenPos(x, y)
+			self.cursor._sel_end = {self.cursor.section, self.cursor.index}
+		end
+	end
+end
+
+function TextInput:onMouseReleased(x, y, button)
+	if button == 1 then
+		self._is_dragging = false
 	end
 end
 
@@ -728,11 +868,67 @@ end
 
 
 function TextInput:onPostDraw()
+	local org_x, org_y, _, _, r = self.text.transform:getGlobalBounds()
+	local font = self.text:getFont()
+	local line_height = font:getHeight() * font:getLineHeight()
+
+	-- 绘制选区高亮
+	if self:_hasSelection() then
+		local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
+		local current_line = 0
+		for i, section in ipairs(self.sections) do
+			if i < s_section then
+				local _, wt = font:getWrap(section, self.text.transform.w)
+				current_line = current_line + #wt
+			elseif i <= e_section then
+				local _, wt = font:getWrap(section, self.text.transform.w)
+				local char_offset = 0
+				for l, line_text in ipairs(wt) do
+					local line_len = utf8.len(line_text)
+					local line_start_idx = char_offset + 1
+					local line_end_idx = char_offset + line_len + 1
+
+					if line_start_idx < e_idx and line_end_idx > s_idx then
+						local sel_start = math.max(s_idx, line_start_idx)
+						local sel_end = math.min(e_idx, line_end_idx)
+						if sel_start < sel_end then
+							local prefix = (sel_start > line_start_idx) and string.sub(line_text, 1, utf8.offset(line_text, sel_start - char_offset) - 1) or ""
+							local sel_start_byte = utf8.offset(line_text, math.max(1, sel_start - char_offset))
+							local sel_end_rel = math.min(line_len + 1, sel_end - char_offset)
+							local sel_end_byte = (sel_end_rel > line_len) and (#line_text + 1) or utf8.offset(line_text, sel_end_rel)
+							local sel_text = ""
+							if sel_start_byte and sel_end_byte and sel_start_byte < sel_end_byte then
+								sel_text = string.sub(line_text, sel_start_byte, sel_end_byte - 1)
+							end
+							local x_off = font:getWidth(prefix)
+							local sel_w = font:getWidth(sel_text)
+							local y_pos = org_y + (current_line + l - 1) * line_height
+
+							love.graphics.push()
+							if r ~= 0 and r ~= Utils.TWO_PI then
+								local px, py = self.text.transform:getGlobalPosition()
+								love.graphics.translate(px, py)
+								love.graphics.rotate(r)
+								love.graphics.translate(-px, -py)
+							end
+							love.graphics.setColor(0.2, 0.4, 0.8, 0.35)
+							love.graphics.rectangle("fill", org_x + x_off, y_pos, sel_w, line_height)
+							love.graphics.pop()
+						end
+					end
+					char_offset = char_offset + line_len
+				end
+				current_line = current_line + #wt
+			else
+				break
+			end
+		end
+	end
+
+	-- 绘制光标
 	if self.cursor.show and self.cursor_blinking then
-		--绘制光标
-		local org_x, org_y, w, h, r = self.text.transform:getGlobalBounds()
 		local top_x, top_y = org_x + self.cursor._local_pos_cache[1], org_y + self.cursor._local_pos_cache[2]
-		local bottom_y = top_y + self.text:getFont():getHeight()
+		local bottom_y = top_y + font:getHeight()
 
 		love.graphics.push()
 			if r ~= 0 and r ~= Utils.TWO_PI then
