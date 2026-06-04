@@ -59,13 +59,17 @@ end
 
 
 -- 内部：当某个按钮被选中时，取消其他按钮的选中
+-- 用 _handling 守卫防止取消操作触发 onChecked 回调导致的级联反选
 function RadioGroup:_onButtonChecked(index)
+	if self._handling then return end
+	self._handling = true
 	self._selected_index = index
 	for i, btn in ipairs(self.buttons) do
 		if i ~= index then
 			btn:setChecked(false)
 		end
 	end
+	self._handling = false
 	if self.onSelectionChanged then
 		self:onSelectionChanged(index)
 	end

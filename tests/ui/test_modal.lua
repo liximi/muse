@@ -57,7 +57,9 @@ function test.create(parent)
 		w = 60,
 		h = 28,
 		on_click = function()
+			print("[Modal] Close button clicked")
 			modal:dismiss()
+			print("[Modal] dismiss() called")
 		end,
 	}))
 

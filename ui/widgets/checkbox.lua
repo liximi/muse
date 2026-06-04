@@ -29,11 +29,14 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 	self.outline_width = datas and datas.outline_width or self.theme.checkbox.outline_width
 	self.outline_color = datas and datas.outline_color or self.theme.checkbox.outline_color
 	self.rounding_radius = datas and datas.rounding_radius or self.theme.checkbox.rounding_radius
+
+	-- 用独立字段追踪逻辑选中状态（cur_state 在 PRESSED 时会丢失）
+	self._checked = datas and datas.checked or false
 	self.onChecked = datas and datas.on_checked
 
-	-- 初始选中状态
-	if datas and datas.checked then
-		self:setSelected(true)
+	-- 初始视觉状态
+	if self._checked then
+		ButtonBase.setSelected(self, true)
 	end
 
 	-- 可选标签
@@ -50,23 +53,22 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 end)
 
 
---- 是否处于选中状态
+--- 是否处于选中状态（逻辑状态，不依赖视觉 cur_state）
 function Checkbox:isChecked()
-	return self.cur_state == BTN_STATES.SELECTED
-		or self.cur_state == BTN_STATES.SELECTED_HOVER
+	return self._checked
 end
 
 --- 编程式设置选中状态
 ---@param checked boolean
 function Checkbox:setChecked(checked)
-	if checked ~= self:isChecked() then
+	if checked ~= self._checked then
 		self:setSelected(checked)
 	end
 end
 
 --- 切换选中状态
 function Checkbox:toggle()
-	self:setChecked(not self:isChecked())
+	self:setChecked(not self._checked)
 end
 
 
@@ -89,12 +91,11 @@ function Checkbox:onMouseReleased(x, y, button)
 	if button == 1 and self.cur_state == BTN_STATES.PRESSED then
 		local inside = self:regionDetection(x, y)
 			and (not self.fineRegionDetection or self:fineRegionDetection())
-		local was_selected = self:isChecked()
 		self:toggle()
 		if inside then
-			self:setState(self:isChecked() and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER)
+			self:setState(self._checked and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER)
 		else
-			self:setState(self:isChecked() and BTN_STATES.SELECTED or BTN_STATES.NORMAL)
+			self:setState(self._checked and BTN_STATES.SELECTED or BTN_STATES.NORMAL)
 		end
 		if self.onClick then
 			self:onClick()
@@ -102,16 +103,16 @@ function Checkbox:onMouseReleased(x, y, button)
 	end
 end
 
--- 覆写：setSelected 后触发 onChecked 回调
+-- 覆写：同步 _checked 并触发 onChecked 回调
 function Checkbox:setSelected(selected)
-	local old_selected = self:isChecked()
-	-- 当从 PRESSED 状态触发时，父类 setSelected 无法识别当前已选中状态，
-	-- 需先手动恢复到基础状态
+	local old = self._checked
+	self._checked = selected
+	-- 从 PRESSED 恢复时需要先回到基础状态
 	if self.cur_state == BTN_STATES.PRESSED then
-		self.cur_state = old_selected and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER
+		self.cur_state = old and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER
 	end
 	ButtonBase.setSelected(self, selected)
-	if old_selected ~= selected and self.onChecked then
+	if old ~= selected and self.onChecked then
 		self:onChecked(selected)
 	end
 end
@@ -128,7 +129,7 @@ function Checkbox:onDraw()
 		love.graphics.translate(-px, -py)
 	end
 
-	local is_checked = self:isChecked()
+	local is_checked = self._checked
 	local box_cx = x + self.box_size / 2
 	local box_cy = y + h / 2
 	local half = self.box_size / 2
