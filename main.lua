@@ -14,6 +14,12 @@ local Image = require "ui.widgets.image"
 local ImageButton = require "ui.widgets.imagebutton"
 local NineSlice = require "ui.widgets.nineslice"
 local TextInput = require "ui.widgets.textinput"
+local ProgressBar = require "ui.widgets.progressbar"
+local Checkbox = require "ui.widgets.checkbox"
+local RadioButton = require "ui.widgets.radiobutton"
+local RadioGroup = require "ui.widgets.radiogroup"
+local Modal = require "ui.widgets.modal"
+local TabView = require "ui.widgets.tabview"
 
 local Scroll = require "ui.widgets.containers.scroll_container"
 local ChatHistory = require "ui.widgets.advanced.chat_history"
@@ -118,6 +124,146 @@ function love.load()
         text = "测试文本：\nMermaid 是一种基于文本的图表绘制工具，通过简单的语法就能生成流程图、时序图、类图等多种图表，广泛应用于文档、笔记和代码注释中。\n一、基础结构\nMermaid 代码通常包裹在 ```mermaid 和 ``` 标签之间。",
     }))
     -- text_input:enableDebug(true)
+
+    -- 新增 Widget 测试区域
+    local progress = left_panel:addChild(ProgressBar({
+        value = 0.65,
+        anchor = {0, 0, 1, 0},
+        padding = {20, 20, 490, 0},
+        h = 12,
+    }))
+
+    local chk = left_panel:addChild(Checkbox({
+        checked = true,
+        label = "Enable notifications",
+        anchor = {0, 0, 1, 0},
+        padding = {20, 0, 515, 0},
+        h = 24,
+        on_checked = function(checked)
+            print("Checkbox:", checked)
+        end,
+    }))
+
+    -- 中心测试面板
+    local center_panel = ui_root:addChild(Panel({
+        anchor = {0, 0, 1, 1},
+        padding = {420, 400, 20, 20},
+    }))
+
+    local center_title = center_panel:addChild(Text({
+        text = "New Widgets Test",
+        font_size = 18,
+        font_key = "default_bold",
+        h = 24,
+        text_color = UiUtils.UI_COLORS.TITLE,
+        anchor = {0, 0, 1, 0},
+        padding = {12, 12, 12},
+    }))
+
+    -- RadioGroup 测试
+    local radio_group = center_panel:addChild(RadioGroup({
+        anchor = {0, 0, 1, 0},
+        padding = {12, 12, 48, 0},
+        h = 100,
+        items = {
+            {label = "Option A — Light theme"},
+            {label = "Option B — Dark theme"},
+            {label = "Option C — System default"},
+        },
+        selected_index = 2,
+        on_selection_changed = function(idx)
+            print("RadioGroup selected:", idx)
+        end,
+    }))
+
+    -- Modal 测试按钮
+    local modal  -- 前置声明，闭包捕获此变量
+    local show_modal_btn = center_panel:addChild(Button({
+        normal = UiUtils.newButtonStateStyle("Show Modal"),
+        anchor = {0, 0, 1, 0},
+        padding = {12, 12, 160, 0},
+        h = 32,
+        on_click = function()
+            modal:show()
+        end,
+    }))
+
+    -- Modal（作为根 widget 添加到 UiManager）
+    local modal_content = Widget()
+    local modal_bg = modal_content:addChild(Panel({
+        w = 300,
+        h = 160,
+        bg_color = UiUtils.UI_COLORS.SURFACE,
+        rounding_radius = 8,
+        outline_width = 1,
+        outline_color = UiUtils.UI_COLORS.LINE,
+    }))
+    modal_bg:addChild(Text({
+        text = "Modal Dialog",
+        font_size = 18,
+        font_key = "default_bold",
+        text_color = UiUtils.UI_COLORS.TITLE,
+        anchor = {0, 0, 1, 0},
+        padding = {20, 20, 16, 0},
+        h = 24,
+    }))
+    modal_bg:addChild(Text({
+        text = "Click outside or press Escape to close.",
+        font_size = 14,
+        text_color = UiUtils.UI_COLORS.SECONDARY_TEXT,
+        anchor = {0, 0, 1, 0},
+        padding = {20, 20, 50, 0},
+        h = 20,
+    }))
+    modal_bg:addChild(Button({
+        normal = UiUtils.newButtonStateStyle("Close"),
+        anchor = {1, 1, 1, 1},
+        padding = {-80, 20, -40, 20},
+        w = 60,
+        h = 28,
+        on_click = function()
+            modal:dismiss()
+        end,
+    }))
+    modal = UiManager:addWidget(Modal({
+        content = modal_content,
+    }))
+    modal:hide()
+
+    -- TabView 测试
+    local tab1_content = Widget()
+    tab1_content:addChild(Text({
+        text = "Tab 1 — First content panel.",
+        text_color = UiUtils.UI_COLORS.PRIMARY_TEXT,
+        anchor = {0, 0, 1, 1},
+        padding = {12, 12, 12, 12},
+    }))
+    local tab2_content = Widget()
+    tab2_content:addChild(Text({
+        text = "Tab 2 — More information here.",
+        text_color = UiUtils.UI_COLORS.PRIMARY_TEXT,
+        anchor = {0, 0, 1, 1},
+        padding = {12, 12, 12, 12},
+    }))
+    local tab3_content = Widget()
+    tab3_content:addChild(Text({
+        text = "Tab 3 — Settings panel.",
+        text_color = UiUtils.UI_COLORS.PRIMARY_TEXT,
+        anchor = {0, 0, 1, 1},
+        padding = {12, 12, 12, 12},
+    }))
+    center_panel:addChild(TabView({
+        anchor = {0, 0, 1, 1},
+        padding = {12, 12, 210, 12},
+        tabs = {
+            {label = "Info", content = tab1_content},
+            {label = "Details", content = tab2_content},
+            {label = "Settings", content = tab3_content},
+        },
+        on_tab_changed = function(idx)
+            print("TabView selected:", idx)
+        end,
+    }))
 
     local chat_history = ui_root:addChild(ChatHistory({
         space = 8,

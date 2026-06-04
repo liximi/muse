@@ -57,9 +57,11 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			love.graphics.translate(-px, -py)
 		end
 		love.graphics.setScissor(x, y, w, h)
+		_self._clip_rect = {x, y, w, h}
 	end
 	function self.scroll_root.onPostDraw(_self)
 		love.graphics.setScissor()
+		_self._clip_rect = nil
 		love.graphics.pop()
 	end
 

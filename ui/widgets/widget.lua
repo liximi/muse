@@ -63,6 +63,8 @@ local Widget = Class(function(self, name, datas, theme)
 	self.shown = true
 	self.focus = false
 	self.focusable = false
+	self.always_draw = false
+	self._clip_rect = nil
 end)
 
 
@@ -210,11 +212,23 @@ function Widget:draw()
 	if not self:shouldDraw() then
 		return
 	end
+	-- 可见性裁剪：如果完全在裁剪区域外，跳过自身及子树的绘制
+	if not self.always_draw and self._clip_rect then
+		local ax, ay, aw, ah = self.transform:getGlobalAABB()
+		local cx, cy, cw, ch = unpack(self._clip_rect)
+		if ax + aw < cx or ax > cx + cw or ay + ah < cy or ay > cy + ch then
+			return
+		end
+	end
 	if self.onDraw then
 		self:onDraw()
 	end
+	-- 将裁剪矩形传播给子元素
 	for _, child in ipairs(self.children) do
+		local prev_clip = child._clip_rect
+		child._clip_rect = self._clip_rect or child._clip_rect
 		child:draw()
+		child._clip_rect = prev_clip
 	end
 	if self.onPostDraw then
 		self:onPostDraw()

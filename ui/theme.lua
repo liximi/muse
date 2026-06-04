@@ -71,6 +71,48 @@ local Theme = Class(function(self)
 		sensitivity = 0.8,
 	}
 
+	self.progressbar = {
+		bg_color = Utils.UI_COLORS.BG,
+		fill_color = Utils.UI_COLORS.ACCENT,
+		rounding_radius = 4,
+	}
+
+	self.checkbox = {
+		box_color = Utils.UI_COLORS.BTN_NORMAL,
+		check_color = Utils.UI_COLORS.ACCENT,
+		box_size = 20,
+		outline_width = 1,
+		outline_color = Utils.UI_COLORS.LINE,
+		rounding_radius = 3,
+		label_color = Utils.UI_COLORS.PRIMARY_TEXT,
+		knob_color = Utils.UI_COLORS.TITLE,
+	}
+
+	self.radiobutton = {
+		circle_color = Utils.UI_COLORS.BTN_NORMAL,
+		dot_color = Utils.UI_COLORS.ACCENT,
+		circle_size = 20,
+		outline_width = 1,
+		outline_color = Utils.UI_COLORS.LINE,
+		label_color = Utils.UI_COLORS.PRIMARY_TEXT,
+	}
+
+	self.modal = {
+		overlay_color = {0, 0, 0, 0.5},
+	}
+
+	self.tabview = {
+		tab_height = 36,
+		tab_bg_normal = Utils.UI_COLORS.BTN_NORMAL,
+		tab_bg_selected = Utils.UI_COLORS.SURFACE,
+		tab_text_normal = Utils.UI_COLORS.SECONDARY_TEXT,
+		tab_text_selected = Utils.UI_COLORS.TITLE,
+		tab_font_size = 14,
+		tab_outline_color = Utils.UI_COLORS.LINE,
+		content_bg = Utils.UI_COLORS.SURFACE,
+		content_rounding_radius = 4,
+	}
+
 	self.imagebutton = {
 		font_key = "default",
 		normal = Utils.newImageButtonStateStyle(
