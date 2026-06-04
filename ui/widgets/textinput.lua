@@ -713,11 +713,53 @@ end
 --------------------------------------------------
 
 function TextInput:copy()
-	--TODO
+	if self:_hasSelection() then
+		love.system.setClipboardText(self:_getSelectedText())
+	end
 end
 
 function TextInput:paste()
-	--TODO
+	local text = love.system.getClipboardText()
+	if not text or text == "" then
+		return
+	end
+	if self:_hasSelection() then
+		self:_deleteSelection()
+	end
+	-- 按换行符分段插入
+	local new_sections = split_by_newline(text)
+	if #new_sections == 1 then
+		-- 单行粘贴，直接在当前段落插入
+		local old_text = self.sections[self.cursor.section]
+		local old_idx = self.cursor.index
+		local first_part = splitText(old_text, old_idx, "first")
+		local second_part = splitText(old_text, old_idx, "second")
+		self.sections[self.cursor.section] = first_part .. new_sections[1] .. second_part
+		self:flushText()
+		self:setCursorIndex(old_idx + utf8.len(new_sections[1]))
+	else
+		-- 多行粘贴，拆分当前段落
+		local old_text = self.sections[self.cursor.section]
+		local old_idx = self.cursor.index
+		local first_part = splitText(old_text, old_idx, "first")
+		local second_part = splitText(old_text, old_idx, "second")
+		-- 第一行附加到当前段落头部
+		self.sections[self.cursor.section] = first_part .. new_sections[1]
+		-- 中间行作为新段落插入
+		for i = 2, #new_sections do
+			self:insertNewSection(self.cursor.section + i - 1, new_sections[i])
+		end
+		-- 最后一行附加 second_part
+		local last_inserted = self.cursor.section + #new_sections - 1
+		self.sections[last_inserted] = self.sections[last_inserted] .. second_part
+		self:flushText()
+		self.cursor.section = last_inserted
+		self:setCursorIndex(utf8.len(self.sections[last_inserted]) - utf8.len(second_part) + 1)
+	end
+	if self.height_adaptive then
+		self:refreshHeight()
+	end
+	self:refreshHint()
 end
 
 
@@ -758,6 +800,7 @@ local CTRL_KEY_MAP = {
 	a = function(self) self:selectAll() end,
 	c = function(self) self:copy() end,
 	v = function(self) self:paste() end,
+	x = function(self) self:copy(); if self:_hasSelection() then self:_deleteSelection() end end,
 }
 function TextInput:onKeyPressed(key, isrepeat)
 	local handler
