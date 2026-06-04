@@ -3,6 +3,7 @@ local Theme = require "ui.theme"
 local Manager = Class(function(self)
 	self.hierarchy = {}
 	self.default_theme = Theme()
+	self.current_focus = nil
 end)
 
 
@@ -15,6 +16,38 @@ function Manager:addWidget(widget)
 	end
 	table.insert(self.hierarchy, widget)
 	return widget
+end
+
+
+--------------------------------------------------
+-- Focus Management
+--------------------------------------------------
+
+function Manager:setFocus(widget)
+	if self.current_focus == widget then
+		return
+	end
+	if self.current_focus then
+		self.current_focus.focus = false
+		if self.current_focus.onRemoveFocus then
+			self.current_focus:onRemoveFocus()
+		end
+	end
+	self.current_focus = widget
+	if widget then
+		widget.focus = true
+		if widget.onFocus then
+			widget:onFocus()
+		end
+	end
+end
+
+function Manager:getFocus()
+	return self.current_focus
+end
+
+function Manager:clearFocus()
+	self:setFocus(nil)
 end
 
 
@@ -70,12 +103,56 @@ end
 
 
 function Manager:KeyPressed(key, isrepeat)
+	-- Tab 键焦点切换（在分发给 widget 之前拦截）
+	if key == "tab" then
+		self:_handleTabFocus(key, isrepeat)
+		return
+	end
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		widget:handleEvent("KeyPressed", key, isrepeat)
 	end
 end
 
+
+function Manager:_collectFocusable(widget, list)
+	if not widget or not widget:isOperational() then
+		return
+	end
+	if widget.focusable then
+		table.insert(list, widget)
+	end
+	for _, child in ipairs(widget.children) do
+		self:_collectFocusable(child, list)
+	end
+end
+
+function Manager:_handleTabFocus(key, isrepeat)
+	local list = {}
+	for _, widget in ipairs(self.hierarchy) do
+		self:_collectFocusable(widget, list)
+	end
+	if #list == 0 then
+		return
+	end
+	local current_idx = 0
+	if self.current_focus then
+		for i, w in ipairs(list) do
+			if w == self.current_focus then
+				current_idx = i
+				break
+			end
+		end
+	end
+	local shift = love.keyboard.isDown("lshift", "rshift")
+	local next_idx
+	if shift then
+		next_idx = current_idx > 1 and current_idx - 1 or #list
+	else
+		next_idx = current_idx < #list and current_idx + 1 or 1
+	end
+	self:setFocus(list[next_idx])
+end
 
 function Manager:KeyReleased(key)
 	for i = #self.hierarchy, 1, -1 do
@@ -105,6 +182,10 @@ function Manager:MousePressed(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		widget:handleEvent("MousePressed", x, y, button)
+	end
+	-- 点击外部区域清除焦点
+	if self.current_focus and not self.current_focus:regionDetection(x, y) then
+		self:clearFocus()
 	end
 end
 

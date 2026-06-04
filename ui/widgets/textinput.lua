@@ -93,6 +93,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.cursor_blinking = true
 	self.cursor_blinking_timer = 0
 
+	self.focusable = true
+
 	self.text = self:addChild(Text({
 		anchor = {0, 0, 1, 1},
 		padding = datas.text_padding or self.theme.textinput.text_padding or {0, 0, 0, 0},

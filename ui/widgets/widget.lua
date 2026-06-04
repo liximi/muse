@@ -52,6 +52,7 @@ local Widget = Class(function(self, name, datas, theme)
 	self.enabled = true
 	self.shown = true
 	self.focus = false
+	self.focusable = false
 end)
 
 
@@ -288,17 +289,11 @@ end
 --------------------------------------------------
 
 function Widget:setFocus()
-	self.focus = true
-	if self.onFocus then
-		self:onFocus()
-	end
+	UiManager:setFocus(self)
 end
 
 function Widget:removeFocus()
-	self.focus = false
-	if self.onRemoveFocus then
-		self:onRemoveFocus()
-	end
+	UiManager:clearFocus()
 end
 
 function Widget:isFocus()
