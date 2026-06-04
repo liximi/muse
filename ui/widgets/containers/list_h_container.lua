@@ -16,6 +16,8 @@ local List = Class(Widget, function(self, datas, theme)
 	self.items = {}
 	self.space = datas and datas.space or 8	--元素之间的间距，单位：像素
 	self.list_total_width = 0
+	self._layout_dirty = true
+	self._in_layout = false
 
 	if datas and datas.items then
 		self:setItems(datas.items)
@@ -68,6 +70,8 @@ function List:removeAtPos(pos)
 end
 
 function List:layout()
+	if self._in_layout then return end
+	self._in_layout = true
 	self.list_total_width = 0
 	local width_offset = 0
 	for i, v in ipairs(self.items) do
@@ -77,11 +81,16 @@ function List:layout()
 	end
 	self.list_total_width = math.max(0, width_offset - self.space)
 	self.transform:setSize(self.list_total_width)
+	self._layout_dirty = false
+	self._in_layout = false
 end
 
 
 function List:onUpdate(dt)
-	self:layout()
+	if self._layout_dirty then
+		self:layout()
+		self._layout_dirty = false
+	end
 end
 
 
