@@ -102,6 +102,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self._undo_stack_max = 100
 	self._undo_group = nil       -- 当前操作组的起点快照
 	self._undo_group_type = nil  -- "input" | "backspace" | "delete" | nil
+	self._undo_inactivity_timer = 0
+	self._undo_inactivity_threshold = 0.3
 
 	self.focusable = true
 
@@ -821,6 +823,7 @@ end
 
 --- 在 mutation 前调用：若操作类型变化则提交旧组，若无活跃组则保存快照
 function TextInput:_preMutation(mutation_type)
+	self._undo_inactivity_timer = 0
 	if self._undo_group_type and self._undo_group_type ~= mutation_type then
 		self:_commitUndoGroup()
 	end
@@ -1020,6 +1023,13 @@ function TextInput:onUpdate(dt)
 		self.cursor_blinking = true
 	else
 		self.cursor_blinking = false
+	end
+	-- 撤销操作组停顿计时器：超过阈值自动提交当前组
+	if self._undo_group then
+		self._undo_inactivity_timer = self._undo_inactivity_timer + dt
+		if self._undo_inactivity_timer > self._undo_inactivity_threshold then
+			self:_commitUndoGroup()
+		end
 	end
 end
 
