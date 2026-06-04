@@ -21,11 +21,11 @@ function test.create(parent)
 		padding = {0, 0, 0},
 	}))
 
-	-- Create the modal once, reuse on button clicks
-	local modal_content = Widget()
+	-- Modal 内容容器 — 给显式尺寸让子树的全局坐标计算正确
+	local modal_content = Widget({ w = 320, h = 180 })
 	local modal_bg = modal_content:addChild(Panel({
-		w = 320,
-		h = 180,
+		anchor = {0, 0, 1, 1},
+		padding = {0, 0, 0, 0},
 		bg_color = Utils.UI_COLORS.SURFACE,
 		rounding_radius = 8,
 		outline_width = 1,
@@ -49,7 +49,7 @@ function test.create(parent)
 		h = 36,
 	}))
 
-	local modal  -- forward declaration for the Close button closure
+	local modal  -- 前置声明
 	modal_bg:addChild(Button({
 		normal = Utils.newButtonStateStyle("Close"),
 		anchor = {1, 1, 1, 1},
@@ -57,9 +57,7 @@ function test.create(parent)
 		w = 60,
 		h = 28,
 		on_click = function()
-			print("[Modal] Close button clicked")
 			modal:dismiss()
-			print("[Modal] dismiss() called")
 		end,
 	}))
 
