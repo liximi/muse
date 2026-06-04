@@ -373,7 +373,7 @@ local function Transform()
 
 		setParent = function (self, parent_transform)
 			self.parent = parent_transform
-			self:onUpdate()
+			self:onUpdate(true)
 		end,
 		setPosition = setPosition,
 		setSize = setSize,
@@ -403,7 +403,38 @@ local function Transform()
 
 		screenToLocal = screenToLocal,
 
-		onUpdate = function(self)
+		onUpdate = function(self, force)
+			local parent_w = self.parent and self.parent.w or love.graphics.getWidth()
+			local parent_h = self.parent and self.parent.h or love.graphics.getHeight()
+			if not force and self._cache then
+				if self._cache.amin1 == self.anchor_min[1]
+					and self._cache.amax1 == self.anchor_max[1]
+					and self._cache.amin2 == self.anchor_min[2]
+					and self._cache.amax2 == self.anchor_max[2]
+					and self._cache.p1 == self.pivot[1]
+					and self._cache.p2 == self.pivot[2]
+					and self._cache.l == self.left
+					and self._cache.r == self.right
+					and self._cache.t == self.top
+					and self._cache.b == self.bottom
+					and self._cache.x == self.x
+					and self._cache.y == self.y
+					and self._cache.w == self.w
+					and self._cache.h == self.h
+					and self._cache.pw == parent_w
+					and self._cache.ph == parent_h
+				then
+					return
+				end
+			end
+			self._cache = {
+				amin1 = self.anchor_min[1], amax1 = self.anchor_max[1],
+				amin2 = self.anchor_min[2], amax2 = self.anchor_max[2],
+				p1 = self.pivot[1], p2 = self.pivot[2],
+				l = self.left, r = self.right, t = self.top, b = self.bottom,
+				x = self.x, y = self.y, w = self.w, h = self.h,
+				pw = parent_w, ph = parent_h,
+			}
 			if self.anchor_min[1] == self.anchor_max[1] then
 				_updateLeftRight(self)
 			else
