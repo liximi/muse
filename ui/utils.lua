@@ -39,36 +39,42 @@ function Utils.RGB(r, g, b, a)
 end
 
 local grayscale_colors = {
-    light = Utils.RGB(245, 245, 245),
-    light_gray1 = Utils.RGB(224, 224, 224),
-    light_gray2 = Utils.RGB(189, 189, 189),
-    light_gray3 = Utils.RGB(110, 110, 110),
-    dark_gray1 = Utils.RGB(97, 97, 97),
-    dark_gray2 = Utils.RGB(45, 45, 45),
-    dark_gray3 = Utils.RGB(30, 30, 30),
-    dark = Utils.RGB(18, 18, 18),
+    light      = Utils.RGB(240, 240, 240),
+    light_gray1 = Utils.RGB(200, 200, 200),
+    light_gray2 = Utils.RGB(155, 155, 155),
+    light_gray3 = Utils.RGB(100, 100, 100),
+    dark_gray1  = Utils.RGB(70, 70, 70),
+    dark_gray2  = Utils.RGB(50, 50, 50),
+    dark_gray3  = Utils.RGB(38, 38, 38),
+    dark        = Utils.RGB(26, 26, 26),
 }
 Utils.UI_COLORS = {
-    WHITE = Utils.RGB(255, 255, 255),
-    BG = grayscale_colors.dark,
-    LINE = grayscale_colors.light_gray3,
+    WHITE     = Utils.RGB(255, 255, 255),
+    BG        = grayscale_colors.dark,
+    SURFACE   = grayscale_colors.dark_gray2,
+    LINE      = grayscale_colors.dark_gray1,
 
-    TITLE = grayscale_colors.light,
-    PRIMARY_TEXT = grayscale_colors.light_gray1,
+    TITLE          = grayscale_colors.light,
+    PRIMARY_TEXT   = grayscale_colors.light_gray1,
     SECONDARY_TEXT = grayscale_colors.light_gray3,
-    HINT = grayscale_colors.dark_gray1,
+    HINT           = grayscale_colors.light_gray2,
 
-    BTN_NORMAL = grayscale_colors.dark_gray3,
-    BTN_HOVER = grayscale_colors.dark_gray2,
-    BTN_DISABLED = grayscale_colors.dark_gray2,
-    BTN_SELECTED = Utils.RGB(255, 110, 160, 0.35),
-    BTN_SELECTED_HOVER = Utils.RGB(255, 110, 160, 0.45),
+    BTN_NORMAL        = grayscale_colors.dark_gray3,
+    BTN_HOVER         = grayscale_colors.dark_gray2,
+    BTN_DISABLED      = grayscale_colors.dark_gray2,
+    BTN_SELECTED      = Utils.RGB(70, 110, 170, 0.30),
+    BTN_SELECTED_HOVER = Utils.RGB(70, 110, 170, 0.45),
 
-    PINK = Utils.RGB(245, 105, 160),
-    LIGHT_PINK = Utils.RGB(255, 110, 160),
-    BLUE = Utils.RGB(39, 170, 225),
-    LIGHT_BLUE = Utils.RGB(42, 190, 225),
-    YELLOW = Utils.RGB(240, 255, 70),
+    ACCENT       = Utils.RGB(80, 120, 180),
+    ACCENT_LIGHT = Utils.RGB(100, 145, 210),
+    WARNING      = Utils.RGB(210, 170, 80),
+
+    -- 旧名称兼容
+    PINK = Utils.RGB(80, 120, 180),
+    LIGHT_PINK = Utils.RGB(100, 145, 210),
+    BLUE = Utils.RGB(80, 120, 180),
+    LIGHT_BLUE = Utils.RGB(100, 145, 210),
+    YELLOW = Utils.RGB(210, 170, 80),
 }
 
 

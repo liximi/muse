@@ -7,10 +7,10 @@ local Utils = require "ui.utils"
 --另外，任何widget也都支持在datas参数中设置一些样式相关的参数，这些设置是最高优先级的，将会覆盖该widget的主题中的相同设置
 local Theme = Class(function(self)
 	self.panel = {
-		bg_color = Utils.UI_COLORS.BG,
+		bg_color = Utils.UI_COLORS.SURFACE,
 		outline_color = Utils.UI_COLORS.LINE,
-		rounding_radius = 8,
-		outline_width = 1,
+		rounding_radius = 4,
+		outline_width = 0,
 	}
 
 	self.text = {
@@ -32,30 +32,29 @@ local Theme = Class(function(self)
 	}
 
 	self.button = {
-		font_key = "default",--不支持在按钮状态改变时切换字体
+		font_key = "default",
 		normal = Utils.newButtonStateStyle(
-			"Botton", Utils.UI_COLORS.TITLE, 18,--text, text_color, font_size
-			Utils.UI_COLORS.LIGHT_PINK,--bg_color
-			nil, nil, nil, nil, 8--outline_width, outline_color, offset, scale, rounding_radius
+			"Botton", Utils.UI_COLORS.TITLE, 16,
+			Utils.UI_COLORS.BTN_NORMAL,
+			nil, nil, nil, nil, 4
 		),
-		--以下所有设置，都是表示按钮在不同状态下的样式，如果缺少某种样式，则会使用normal状态下的对应样式
 		pressed = Utils.newButtonStateStyle(
-			nil, nil, nil, nil, nil, nil, {0, 2}--offset
+			nil, nil, nil, nil, nil, nil, {0, 2}
 		),
 		selected = Utils.newButtonStateStyle(
-			nil, nil, nil,
+			nil, Utils.UI_COLORS.TITLE, nil,
 			Utils.UI_COLORS.BTN_SELECTED,
-			2, Utils.UI_COLORS.LIGHT_PINK
+			1, Utils.UI_COLORS.ACCENT
 		),
 		hover = Utils.newButtonStateStyle(
 			nil, nil, nil,
-			Utils.UI_COLORS.PINK,
+			Utils.UI_COLORS.BTN_HOVER,
 			nil, nil, {0, -1}
 		),
 		selected_hover = Utils.newButtonStateStyle(
 			nil, nil, nil,
 			Utils.UI_COLORS.BTN_SELECTED_HOVER,
-			2, Utils.UI_COLORS.LIGHT_PINK
+			1, Utils.UI_COLORS.ACCENT_LIGHT
 		),
 		disabled = Utils.newButtonStateStyle(
 			nil, Utils.UI_COLORS.SECONDARY_TEXT, nil,
@@ -64,7 +63,7 @@ local Theme = Class(function(self)
 	}
 
 	self.sliderbar = {
-		track_color = Utils.UI_COLORS.LINE,
+		track_color = Utils.UI_COLORS.BG,
 		block_color = Utils.UI_COLORS.BTN_NORMAL,
 		block_hover_color = Utils.UI_COLORS.BTN_HOVER,
 		outline_color = Utils.UI_COLORS.LINE,
@@ -73,23 +72,24 @@ local Theme = Class(function(self)
 	}
 
 	self.imagebutton = {
-		font_key = "default",--不支持在按钮状态改变时切换字体
+		font_key = "default",
 		normal = Utils.newImageButtonStateStyle(
-			nil, nil,--texture, tint
-			"Botton", Utils.UI_COLORS.TITLE, 18,--text, text_color, font_size
-			nil, nil--offset, scale
+			nil, nil,
+			"Botton", Utils.UI_COLORS.TITLE, 16,
+			nil, nil
 		),
-		--以下所有设置，都是表示按钮在不同状态下的样式，如果缺少某种样式，则会使用normal状态下的对应样式
 		pressed = Utils.newImageButtonStateStyle(
-			nil, nil, nil, nil, nil, {0, 2}--offset
+			nil, nil, nil, nil, nil, {0, 2}
 		),
-		selected = Utils.newImageButtonStateStyle(),
+		selected = Utils.newImageButtonStateStyle(
+			nil, {1, 1, 1, 1}, nil, nil, nil, nil, nil
+		),
 		hover = Utils.newImageButtonStateStyle(
 			nil, nil, nil, nil, nil, {0, -1}
 		),
 		selected_hover = Utils.newImageButtonStateStyle(),
 		disabled = Utils.newImageButtonStateStyle(
-			nil, Utils.UI_COLORS.BTN_DISABLED,
+			nil, {0.4, 0.4, 0.4, 1},
 			nil, Utils.UI_COLORS.SECONDARY_TEXT
 		),
 	}

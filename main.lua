@@ -126,16 +126,16 @@ function love.load()
         pivot = {1, 0},
     }))
     chat_history:setChatBubbleStyle("user", chat_history:createChatBubbleStyle(
-        UiUtils.UI_COLORS.LIGHT_PINK,
-        6, 250, nil, nil,
-        UiUtils.UI_COLORS.PRIMARY_TEXT,
-        {6, 6, 6, 6}, "right"
+        UiUtils.UI_COLORS.ACCENT,
+        4, 280, nil, nil,
+        UiUtils.UI_COLORS.TITLE,
+        {8, 8, 6, 6}, "right"
     ))
     chat_history:setChatBubbleStyle("agent", chat_history:createChatBubbleStyle(
-        UiUtils.UI_COLORS.SECONDARY_TEXT,
-        6, 250, nil, nil,
+        UiUtils.UI_COLORS.SURFACE,
+        4, 280, nil, nil,
         UiUtils.UI_COLORS.PRIMARY_TEXT,
-        {6, 6, 6, 6}, "left"
+        {8, 8, 6, 6}, "left"
     ))
     chat_history:setChatHistory({
         {"user", "中午吃啥啊？纠结半天了"},
@@ -169,8 +169,8 @@ function love.update(dt)
 end
 
 
-local line_color1 = UiUtils.RGB(160, 160, 160, 0.1)
-local line_color2 = UiUtils.RGB(200, 200, 200, 0.25)
+local line_color1 = UiUtils.RGB(120, 120, 120, 0.06)
+local line_color2 = UiUtils.RGB(160, 160, 160, 0.12)
 local grid_canvas
 local screen_size = {0, 0}
 local function DrawGridBG()
