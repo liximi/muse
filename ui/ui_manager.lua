@@ -110,7 +110,9 @@ function Manager:KeyPressed(key, isrepeat)
 	end
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("KeyPressed", key, isrepeat)
+		if widget:handleEvent("KeyPressed", key, isrepeat) then
+			break
+		end
 	end
 end
 
@@ -157,7 +159,9 @@ end
 function Manager:KeyReleased(key)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("KeyReleased", key)
+		if widget:handleEvent("KeyReleased", key) then
+			break
+		end
 	end
 end
 
@@ -165,7 +169,9 @@ end
 function Manager:TextInput(text)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("TextInput", text)
+		if widget:handleEvent("TextInput", text) then
+			break
+		end
 	end
 end
 
@@ -173,7 +179,9 @@ end
 function Manager:MouseMoved(x, y, dx, dy)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("MouseMoved", x, y, dx, dy)
+		if widget:handleEvent("MouseMoved", x, y, dx, dy) then
+			break
+		end
 	end
 end
 
@@ -181,7 +189,9 @@ end
 function Manager:MousePressed(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("MousePressed", x, y, button)
+		if widget:handleEvent("MousePressed", x, y, button) then
+			break
+		end
 	end
 	-- 点击外部区域清除焦点
 	if self.current_focus and not self.current_focus:regionDetection(x, y) then
@@ -193,7 +203,9 @@ end
 function Manager:MouseReleased(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("MouseReleased", x, y, button)
+		if widget:handleEvent("MouseReleased", x, y, button) then
+			break
+		end
 	end
 end
 
@@ -201,7 +213,9 @@ end
 function Manager:WheelMoved(x, y)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
-		widget:handleEvent("WheelMoved", x, y)
+		if widget:handleEvent("WheelMoved", x, y) then
+			break
+		end
 	end
 end
 

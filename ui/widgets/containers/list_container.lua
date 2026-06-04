@@ -98,9 +98,26 @@ end
 
 
 function List:onUpdate(dt)
+	-- 检测子元素尺寸变化，自动触发重新布局
+	if not self._layout_dirty then
+		for _, v in ipairs(self.items) do
+			local sw, sh = v.transform:getScaledSize()
+			local last = self._child_sizes and self._child_sizes[v]
+			if not last or last[1] ~= sw or last[2] ~= sh then
+				self._layout_dirty = true
+				break
+			end
+		end
+	end
 	if self._layout_dirty then
 		self:layout()
 		self._layout_dirty = false
+	end
+	-- 记录子元素尺寸供下一帧比较
+	self._child_sizes = {}
+	for _, v in ipairs(self.items) do
+		local sw, sh = v.transform:getScaledSize()
+		self._child_sizes[v] = {sw, sh}
 	end
 end
 

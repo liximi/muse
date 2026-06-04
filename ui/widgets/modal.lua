@@ -27,6 +27,24 @@ local Modal = Class(Widget, function(self, datas, theme)
 		bg_color = overlay_color,
 	}))
 
+	-- 遮罩拦截所有鼠标事件，防止穿透到背景 UI
+	-- 子元素优先处理（内容区域的按钮等），未被处理的才到遮罩
+	function self.overlay.onMousePressed(_self, x, y, button)
+		if self.dismiss_on_outside_click and not self.content_container:regionDetection(x, y) then
+			self:dismiss()
+		end
+		return true
+	end
+	function self.overlay.onMouseReleased(_self, x, y, button)
+		return true
+	end
+	function self.overlay.onMouseMoved(_self, x, y, dx, dy)
+		return true
+	end
+	function self.overlay.onWheelMoved(_self, x, y)
+		return true
+	end
+
 	-- 居中内容容器
 	self.content_container = self.overlay:addChild(Widget({
 		pivot = {0.5, 0.5},
@@ -85,27 +103,14 @@ end
 
 
 -- 点击遮罩空白区域关闭
--- 因为事件传播是子节点优先，此 handler 仅在内容区域的子元素未拦截事件时才触发
-function Modal:onMousePressed(x, y, button)
-	if not self._is_showing then return end
-	if button == 1 then
-		if self.dismiss_on_outside_click then
-			-- 检查点击是否在内容容器外部
-			if not self.content_container:regionDetection(x, y) then
-				self:dismiss()
-			end
-		end
-		return true  -- 始终拦截事件，防止穿透到背后的 UI
-	end
-end
-
+-- 因为遮罩的 onMousePressed 已拦截所有事件，此 handler 不再需要
 function Modal:onKeyPressed(key, isrepeat)
 	if not self._is_showing then return end
 	if self.dismiss_on_escape and key == "escape" then
 		self:dismiss()
 		return true
 	end
-	-- 不拦截其他键盘事件，让内容元素处理
+	return true  -- 拦截其他键盘事件
 end
 
 

@@ -61,9 +61,6 @@ end
 function Checkbox:setChecked(checked)
 	if checked ~= self:isChecked() then
 		self:setSelected(checked)
-		if self.onChecked then
-			self:onChecked(checked)
-		end
 	end
 end
 
@@ -108,6 +105,11 @@ end
 -- 覆写：setSelected 后触发 onChecked 回调
 function Checkbox:setSelected(selected)
 	local old_selected = self:isChecked()
+	-- 当从 PRESSED 状态触发时，父类 setSelected 无法识别当前已选中状态，
+	-- 需先手动恢复到基础状态
+	if self.cur_state == BTN_STATES.PRESSED then
+		self.cur_state = old_selected and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER
+	end
 	ButtonBase.setSelected(self, selected)
 	if old_selected ~= selected and self.onChecked then
 		self:onChecked(selected)
