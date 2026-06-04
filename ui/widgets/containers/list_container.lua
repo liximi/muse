@@ -83,8 +83,9 @@ function List:layout()
 			x_arg, y_arg = nil, offset
 		end
 		v:setPosition(x_arg, y_arg)
-		local total_size = v.transform:getScaledSize()
-		offset = offset + total_size + self.space
+		local sw, sh = v.transform:getScaledSize()
+		local item_size = a.pos == "x" and sw or sh
+		offset = offset + item_size + self.space
 	end
 	local list_total = math.max(0, offset - self.space)
 	self.transform:setSize(
