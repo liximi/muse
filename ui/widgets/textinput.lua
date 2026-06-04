@@ -846,10 +846,10 @@ function TextInput:_saveOneShot()
 end
 
 function TextInput:undo()
+	self:_commitUndoGroup()
 	if #self._undo_stack == 0 then
 		return
 	end
-	self:_commitUndoGroup()
 	table.insert(self._redo_stack, self:_makeSnapshot())
 	if #self._redo_stack > self._undo_stack_max then
 		table.remove(self._redo_stack, 1)
@@ -859,10 +859,10 @@ function TextInput:undo()
 end
 
 function TextInput:redo()
+	self:_commitUndoGroup()
 	if #self._redo_stack == 0 then
 		return
 	end
-	self:_commitUndoGroup()
 	table.insert(self._undo_stack, self:_makeSnapshot())
 	if #self._undo_stack > self._undo_stack_max then
 		table.remove(self._undo_stack, 1)
