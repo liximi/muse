@@ -15,17 +15,27 @@ end
 local function _updateWidthAndX(transform)
 	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
 	local anchor_w = parent_w * (transform.anchor_max[1] - transform.anchor_min[1])
-	local w = anchor_w - transform.left - transform.right
-	transform.w = w
-	transform.x = transform.left + w * transform.pivot[1]
+	if anchor_w > 0 then
+		local w = anchor_w - transform.left - transform.right
+		transform.w = w
+		transform.x = transform.left + w * transform.pivot[1]
+	else
+		-- 点锚点：w 由 setSize 决定，仅从 padding 更新 x 位置
+		transform.x = transform.left + transform.w * transform.pivot[1]
+	end
 end
 
 local function _updateHeightAndY(transform)
 	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
 	local anchor_h = parent_h * (transform.anchor_max[2] - transform.anchor_min[2])
-	local h = anchor_h - transform.top - transform.bottom
-	transform.h = h
-	transform.y = transform.top + h * transform.pivot[2]
+	if anchor_h > 0 then
+		local h = anchor_h - transform.top - transform.bottom
+		transform.h = h
+		transform.y = transform.top + h * transform.pivot[2]
+	else
+		-- 点锚点：h 由 setSize 决定，仅从 padding 更新 y 位置
+		transform.y = transform.top + transform.h * transform.pivot[2]
+	end
 end
 
 
@@ -126,18 +136,10 @@ local function setPadding(self, left, right, top, bottom)
 		self.bottom = bottom
 	end
 	if left or right then
-		if self.anchor_min[1] < self.anchor_max[1] then
-			_updateWidthAndX(self)
-		else
-			self.x = self.left + self.w * self.pivot[1]
-		end
+		_updateWidthAndX(self)
 	end
 	if top or bottom then
-		if self.anchor_min[2] < self.anchor_max[2] then
-			_updateHeightAndY(self)
-		else
-			self.y = self.top + self.h * self.pivot[2]
-		end
+		_updateHeightAndY(self)
 	end
 end
 
