@@ -10,7 +10,7 @@ local Theme = Class(function(self)
 		bg_color = Utils.UI_COLORS.SURFACE,
 		outline_color = Utils.UI_COLORS.LINE,
 		rounding_radius = 4,
-		outline_width = 0,
+		outline_width = 1,
 	}
 
 	self.text = {
