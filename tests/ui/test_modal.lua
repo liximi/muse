@@ -9,20 +9,12 @@ local UiManager = require "ui.ui_manager":GetInstance()
 local test = {}
 test.name = "Modal"
 
-function test.create(parent)
-	parent:removeAllChildren()
+-- Modal 只创建一次，避免切换标签页时重复添加到 UiManager
+local modal
 
-	parent:addChild(Text({
-		text = "Modal — overlay dialog with click-outside dismiss",
-		font_size = 14,
-		h = 20,
-		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 0},
-	}))
-
-	-- Modal 内容容器 — 给显式尺寸让子树的全局坐标计算正确
-	local modal_content = Widget({ w = 320, h = 180 })
+local function buildModal()
+	-- 内容容器
+	local modal_content = Widget({ pivot = {0.5, 0.5}, w = 320, h = 180 })
 	local modal_bg = modal_content:addChild(Panel({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
@@ -49,20 +41,14 @@ function test.create(parent)
 		h = 36,
 	}))
 
-	local modal  -- 前置声明
 	modal_bg:addChild(Button({
 		normal = Utils.newButtonStateStyle("Close"),
 		anchor = {1, 1, 1, 1},
 		padding = {-80, 20, -40, 20},
 		w = 60,
 		h = 28,
-		on_pressed = function()
-			print("[Modal] Close button pressed")
-		end,
 		on_click = function()
-			print("[Modal] Close button onClick fired")
 			modal:dismiss()
-			print("[Modal] dismiss() returned")
 		end,
 	}))
 
@@ -72,6 +58,24 @@ function test.create(parent)
 		dismiss_on_escape = true,
 	}))
 	modal:hide()
+end
+
+function test.create(parent)
+	parent:removeAllChildren()
+
+	-- 首次调用时创建 Modal
+	if not modal then
+		buildModal()
+	end
+
+	parent:addChild(Text({
+		text = "Modal — overlay dialog with click-outside dismiss",
+		font_size = 14,
+		h = 20,
+		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
+		anchor = {0, 0, 1, 0},
+		padding = {0, 0, 0},
+	}))
 
 	parent:addChild(Button({
 		normal = Utils.newButtonStateStyle("Open Modal"),

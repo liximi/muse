@@ -12,6 +12,10 @@ local Utils = require "ui.utils"
 	on_dismiss = function  -- 关闭回调
 ]]
 local Modal = Class(Widget, function(self, datas, theme)
+	-- Modal 作为根 widget 需要 fill 全屏，窗口 resize 时遮罩自适应
+	datas = datas or {}
+	datas.anchor = datas.anchor or {0, 0, 1, 1}
+
 	Widget.new(self, "Modal", datas, theme)
 
 	self._is_showing = false
@@ -30,10 +34,8 @@ local Modal = Class(Widget, function(self, datas, theme)
 	-- 遮罩拦截所有鼠标事件，防止穿透到背景 UI
 	-- 子元素优先处理（内容区域的按钮等），未被处理的才到遮罩
 	function self.overlay.onMousePressed(_self, x, y, button)
-		print("[Modal] overlay.onMousePressed x=" .. x .. " y=" .. y .. " inside_content=" .. tostring(self.content_container:regionDetection(x, y)))
 		if self.dismiss_on_outside_click and not self.content_container:regionDetection(x, y) then
 			self:dismiss()
-			print("[Modal] dismissed by outside click")
 		end
 		return true
 	end
@@ -80,7 +82,6 @@ function Modal:show()
 	self._is_showing = true
 	self.shown = true
 	self:moveToTop()
-	print("[Modal] show() — _is_showing=true shown=true")
 end
 
 --- 隐藏模态框
@@ -88,13 +89,16 @@ function Modal:hide()
 	if not self._is_showing then return end
 	self._is_showing = false
 	self.shown = false
-	print("[Modal] hide() — _is_showing=false shown=false shouldDraw=" .. tostring(self:shouldDraw()))
 end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
 function Modal:dismiss()
-	if not self._is_showing then return end
+	if not self._is_showing then
+		print("[Modal] dismiss() skipped — not showing")
+		return
+	end
 	self:hide()
+	print("[Modal] dismiss() done, shown=" .. tostring(self.shown))
 	if self.onDismiss then
 		self:onDismiss()
 	end
@@ -106,8 +110,6 @@ function Modal:isShowing()
 end
 
 
--- 点击遮罩空白区域关闭
--- 因为遮罩的 onMousePressed 已拦截所有事件，此 handler 不再需要
 function Modal:onKeyPressed(key, isrepeat)
 	if not self._is_showing then return end
 	if self.dismiss_on_escape and key == "escape" then
