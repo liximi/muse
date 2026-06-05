@@ -34,8 +34,19 @@ local Modal = Class(Widget, function(self, datas, theme)
 	-- 遮罩拦截所有鼠标事件，防止穿透到背景 UI
 	-- 子元素优先处理（内容区域的按钮等），未被处理的才到遮罩
 	function self.overlay.onMousePressed(_self, x, y, button)
-		if self.dismiss_on_outside_click and not self.content_container:regionDetection(x, y) then
-			self:dismiss()
+		if self.dismiss_on_outside_click then
+			-- content_container 本身是居中容器(w=0,h=0)，
+			-- 需检查实际内容子元素而非容器自身
+			local inside = false
+			for _, child in ipairs(self.content_container.children) do
+				if child:regionDetection(x, y) then
+					inside = true
+					break
+				end
+			end
+			if not inside then
+				self:dismiss()
+			end
 		end
 		return true
 	end
@@ -93,12 +104,8 @@ end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
 function Modal:dismiss()
-	if not self._is_showing then
-		print("[Modal] dismiss() skipped — not showing")
-		return
-	end
+	if not self._is_showing then return end
 	self:hide()
-	print("[Modal] dismiss() done, shown=" .. tostring(self.shown))
 	if self.onDismiss then
 		self:onDismiss()
 	end
