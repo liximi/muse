@@ -80,6 +80,7 @@ function Modal:show()
 	self._is_showing = true
 	self.shown = true
 	self:moveToTop()
+	print("[Modal] show() — _is_showing=true shown=true")
 end
 
 --- 隐藏模态框
@@ -87,6 +88,7 @@ function Modal:hide()
 	if not self._is_showing then return end
 	self._is_showing = false
 	self.shown = false
+	print("[Modal] hide() — _is_showing=false shown=false shouldDraw=" .. tostring(self:shouldDraw()))
 end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
