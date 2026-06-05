@@ -48,7 +48,9 @@ local function buildModal()
 		w = 60,
 		h = 28,
 		on_click = function()
+			print("[Modal] Close onClick, _is_showing=" .. tostring(modal._is_showing))
 			modal:dismiss()
+			print("[Modal] after dismiss, shown=" .. tostring(modal.shown))
 		end,
 	}))
 

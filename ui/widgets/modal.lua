@@ -97,9 +97,13 @@ end
 
 --- 隐藏模态框
 function Modal:hide()
-	if not self._is_showing then return end
+	if not self._is_showing then
+		print("[Modal] hide() skipped: _is_showing=false")
+		return
+	end
 	self._is_showing = false
 	self.shown = false
+	print("[Modal] hide() done: shown=false")
 end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
