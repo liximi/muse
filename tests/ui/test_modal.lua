@@ -56,8 +56,13 @@ function test.create(parent)
 		padding = {-80, 20, -40, 20},
 		w = 60,
 		h = 28,
+		on_pressed = function()
+			print("[Modal] Close button pressed")
+		end,
 		on_click = function()
+			print("[Modal] Close button onClick fired")
 			modal:dismiss()
+			print("[Modal] dismiss() returned")
 		end,
 	}))
 

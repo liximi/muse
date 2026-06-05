@@ -30,8 +30,10 @@ local Modal = Class(Widget, function(self, datas, theme)
 	-- 遮罩拦截所有鼠标事件，防止穿透到背景 UI
 	-- 子元素优先处理（内容区域的按钮等），未被处理的才到遮罩
 	function self.overlay.onMousePressed(_self, x, y, button)
+		print("[Modal] overlay.onMousePressed x=" .. x .. " y=" .. y .. " inside_content=" .. tostring(self.content_container:regionDetection(x, y)))
 		if self.dismiss_on_outside_click and not self.content_container:regionDetection(x, y) then
 			self:dismiss()
+			print("[Modal] dismissed by outside click")
 		end
 		return true
 	end
