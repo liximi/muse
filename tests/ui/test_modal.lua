@@ -41,32 +41,16 @@ local function buildModal()
 		h = 36,
 	}))
 
-	local close_btn = modal_bg:addChild(Panel({
+	modal_bg:addChild(Button({
+		normal = Utils.newButtonStateStyle("Close"),
 		anchor = {1, 1, 1, 1},
 		padding = {-80, 20, -40, 20},
 		w = 60,
 		h = 28,
-		bg_color = Utils.UI_COLORS.BTN_NORMAL,
-		rounding_radius = 4,
-		outline_width = 1,
-		outline_color = Utils.UI_COLORS.LINE,
-	}))
-	close_btn:addChild(Text({
-		text = "Close",
-		font_size = 13,
-		text_color = Utils.UI_COLORS.TITLE,
-		anchor = {0, 0, 1, 1},
-		pivot = {0.5, 0.5},
-		padding = {4, 4, 4, 4},
-		h_align = "center",
-		v_align = "center",
-	}))
-	function close_btn.onMousePressed(_self, x, y, button)
-		if button == 1 then
+		on_click = function()
 			modal:dismiss()
-			return true
-		end
-	end
+		end,
+	}))
 
 	modal = UiManager:addWidget(Modal({
 		content = modal_content,
