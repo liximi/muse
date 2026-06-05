@@ -18,7 +18,7 @@ local Modal = Class(Widget, function(self, datas, theme)
 
 	Widget.new(self, "Modal", datas, theme)
 
-	self._is_showing = false
+	self.shown = false  -- Modal 默认隐藏，必须通过 show() 显示
 	self.dismiss_on_outside_click = datas and datas.dismiss_on_outside_click ~= false
 	self.dismiss_on_escape = datas and datas.dismiss_on_escape ~= false
 	self.onDismiss = datas and datas.on_dismiss
@@ -89,26 +89,18 @@ end
 
 --- 显示模态框
 function Modal:show()
-	if self._is_showing then return end
-	self._is_showing = true
+	if self.shown then return end
 	self.shown = true
 	self:moveToTop()
 end
 
 --- 隐藏模态框
 function Modal:hide()
-	if not self._is_showing then
-		print("[Modal] hide() skipped: _is_showing=false")
-		return
-	end
-	self._is_showing = false
 	self.shown = false
-	print("[Modal] hide() done: shown=false")
 end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
 function Modal:dismiss()
-	if not self._is_showing then return end
 	self:hide()
 	if self.onDismiss then
 		self:onDismiss()
@@ -117,12 +109,12 @@ end
 
 --- 是否正在显示
 function Modal:isShowing()
-	return self._is_showing
+	return self.shown
 end
 
 
 function Modal:onKeyPressed(key, isrepeat)
-	if not self._is_showing then return end
+	if not self.shown then return end
 	if self.dismiss_on_escape and key == "escape" then
 		self:dismiss()
 		return true
