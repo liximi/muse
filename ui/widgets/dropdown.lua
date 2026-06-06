@@ -208,6 +208,7 @@ function Dropdown:_buildItems()
 			anchor = {0, 0, 1, 1},
 			padding = {0, SCROLL_BAR_W + SCROLL_BAR_GAP, 0, 0},
 			scrollbar_gap = SCROLL_BAR_GAP,
+			hide_slider_when_cannot_scroll = true,
 		})
 		self.panel:addChild(scroll)
 	end
