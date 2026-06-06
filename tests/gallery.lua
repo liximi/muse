@@ -91,6 +91,7 @@ local function Gallery(parent)
 		gallery_btns[i] = btn
 	end
 	scroll:setItem(btn_list)
+		scroll:setScrollableH(total_h)
 
 	--------------------------------------------------
 	-- 右侧展示画布
