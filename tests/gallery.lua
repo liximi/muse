@@ -18,6 +18,7 @@ local test_modules = {
 	require "tests.ui.test_chat",
 	require "tests.ui.test_transform",
 	require "tests.ui.test_tooltip",
+	require "tests.ui.test_dropdown",
 }
 
 --[[
