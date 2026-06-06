@@ -21,6 +21,7 @@ local test_modules = {
 	require "tests.ui.test_dropdown",
 	require "tests.ui.test_image",
 	require "tests.ui.test_nineslice",
+	require "tests.ui.test_collapsible_panel",
 }
 
 --[[
