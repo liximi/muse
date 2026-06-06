@@ -3,7 +3,13 @@ local Components = {}
 
 function Components.addHoverState(widget)
 	widget.hovered = false
+	local original_onMouseMoved = widget.onMouseMoved
 	widget.onMouseMoved = function(self, x, y, dx, dy)
+		-- 先调用原始 handler（如 TextInput 的拖选逻辑），避免被完全覆盖
+		if original_onMouseMoved then
+			original_onMouseMoved(self, x, y, dx, dy)
+		end
+		-- 然后执行 hover 检测
 		if self:regionDetection(x, y) then
 			if not self.hovered then
 				self.hovered = true

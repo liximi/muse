@@ -1027,8 +1027,8 @@ function TextInput:onMousePressed(x, y, button)
 		self._is_dragging = true
 		if not is_focus then
 			self:setFocus()
-			return
 		end
+		return true -- 拦截事件，防止父容器干扰
 	end
 	if not is_in_scope and is_focus then
 		self:removeFocus()

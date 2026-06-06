@@ -6,9 +6,11 @@
 
 ## 🔧 待修复
 
-### TextInput 鼠标拖动选择文本
+### TextInput 鼠标拖动选择文本 ✅ 已修复 (2026-06-06)
 
-代码中已有 `onMouseMoved` + `_is_dragging` + `_sel_start/_sel_end` 逻辑，但实际不工作。需排查 `onMouseMoved` 是否被正确路由到 TextInput（可能有事件拦截问题）。
+**根因**：`addHoverState` 直接覆盖 `widget.onMouseMoved`，不调用原始 handler。TextInput 构造中调用 `addHoverState(self)` 后，`TextInput:onMouseMoved`（拖选逻辑）被完全遮蔽。
+
+**修复**：`addHoverState` 保存原始 `onMouseMoved` 引用并在新函数中先调用它，再做 hover 检测。同时修正 `onMousePressed` 返回 `true` 拦截事件防止父容器干扰。
 
 ---
 
