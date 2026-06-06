@@ -714,7 +714,11 @@ function TextInput:_deleteSelection()
 	local first_part = splitText(self.sections[s_section], s_idx, "first")
 	local second_part = ""
 	if e_section <= #self.sections then
-		second_part = splitText(self.sections[e_section], e_idx, "second")
+		local section = self.sections[e_section]
+		if e_idx <= utf8.len(section) then
+			second_part = splitText(section, e_idx, "second")
+		end
+		-- e_idx = utf8.len(section) + 1 时 second_part 保持 ""，选区已到段尾
 	end
 
 	-- 删除中间段落（从后往前删）
