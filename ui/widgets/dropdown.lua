@@ -24,6 +24,7 @@ local POPUP_OFFSET_Y = 2        -- 弹出面板距触发按钮的垂直间距（
 local SCROLL_BAR_W = 6          -- 滚动条宽度（像素）
 local SCROLL_BAR_GAP = 0        -- 滚动条与内容间距（像素）
 local SCROLL_EDGE_PAD = 2       -- 滚动条两端距面板边缘的默认边距（像素）
+local SCROLL_BOTTOM_PAD = 4     -- 滚动内容底部额外空白边距（像素），避免滚动到底时太拥挤
 local SCREEN_EDGE_GAP = 8       -- 屏幕边缘最小间距（像素）
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
@@ -33,6 +34,7 @@ local SCREEN_EDGE_GAP = 8       -- 屏幕边缘最小间距（像素）
 	max_visible_items = number  同时可见最多选项数（默认 6）
 	placeholder = string        未选择时的占位文本
 	scrollbar_edge_pad = number 滚动条两端距面板边缘的边距（像素，默认 2）
+	scroll_bottom_pad = number  滚动内容底部额外空白（像素，默认 4），避免滚动到底太拥挤
 ]]
 local Dropdown = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Dropdown", datas, theme)
@@ -42,6 +44,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	self.onSelect = datas.on_select
 	self.max_visible_items = datas.max_visible_items or MAX_VISIBLE_ITEMS
 	self._scrollbar_edge_pad = (datas.scrollbar_edge_pad ~= nil) and datas.scrollbar_edge_pad or SCROLL_EDGE_PAD
+	self._scroll_bottom_pad = (datas.scroll_bottom_pad ~= nil) and datas.scroll_bottom_pad or SCROLL_BOTTOM_PAD
 	self._is_open = false
 	self._item_btns = {}
 
@@ -227,7 +230,6 @@ function Dropdown:_buildItems()
 		local list = Widget({
 			anchor = {0, 0, 1, 0},
 		})
-		list.transform:setSize(nil, #self.options * ITEM_HEIGHT)
 
 		for i, option_text in ipairs(self.options) do
 			local btn = self:_createItemBtn(i, option_text, (i - 1) * ITEM_HEIGHT)
@@ -245,6 +247,10 @@ function Dropdown:_buildItems()
 			v_bar_pad_bottom = self._scrollbar_edge_pad,
 		})
 		self.panel:addChild(scroll)
+			-- 内容高度 = 选项数 * 单项高 + 底部空白边距
+			local content_h = #self.options * ITEM_HEIGHT + self._scroll_bottom_pad
+			list.transform:setSize(nil, content_h)
+			scroll:setScrollableH(content_h)
 	end
 end
 
