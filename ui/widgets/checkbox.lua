@@ -4,7 +4,6 @@ local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
-
 -- 复选框组件，支持方框+对勾或滑动开关两种样式
 --[[datas: 此处不包括基类所支持的字段
 	checked = boolean  -- 初始选中状态
@@ -48,11 +47,10 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 			text_color = datas.label_color or self.theme.checkbox.label_color,
 			font_size = datas.label_font_size,
 			anchor = {0, 0, 0, 1},
-			padding = {self.box_size + 6, 0, 0, 0},
+			padding = {self.box_size + 6, 0, 0, 0}
 		}))
 	end
 end)
-
 
 --- 是否处于选中状态（逻辑状态，不依赖视觉 cur_state）
 function Checkbox:isChecked()
@@ -72,11 +70,9 @@ function Checkbox:toggle()
 	self:setChecked(not self._checked)
 end
 
-
 -- 覆写：允许从 SELECTED/SELECTED_HOVER 状态按下（普通按钮只允许 NORMAL/HOVER）
 function Checkbox:onMousePressed(x, y, button)
-	if button == 1 and self:regionDetection(x, y)
-		and (not self.fineRegionDetection or self:fineRegionDetection()) then
+	if button == 1 and self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection()) then
 		if self.cur_state ~= BTN_STATES.PRESSED and self.cur_state ~= BTN_STATES.DISABLED then
 			self:setState(BTN_STATES.PRESSED)
 			if self.onPressed then
@@ -90,8 +86,7 @@ end
 -- 覆写：释放时切换选中状态
 function Checkbox:onMouseReleased(x, y, button)
 	if button == 1 and self.cur_state == BTN_STATES.PRESSED then
-		local inside = self:regionDetection(x, y)
-			and (not self.fineRegionDetection or self:fineRegionDetection())
+		local inside = self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection())
 		self:toggle()
 		if inside then
 			self:setState(self._checked and BTN_STATES.SELECTED_HOVER or BTN_STATES.HOVER)
@@ -117,7 +112,6 @@ function Checkbox:setSelected(selected)
 		self:onChecked(selected)
 	end
 end
-
 
 function Checkbox:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -177,17 +171,13 @@ function Checkbox:onDraw()
 			local pad = half * 0.3
 			local mid_x = box_cx - half * 0.15
 			local mid_y = box_cy + half * 0.05
-			love.graphics.line(
-				mid_x - half * 0.5, mid_y - half * 0.1,
-				mid_x, mid_y + half * 0.45,
-				mid_x + half * 0.8, mid_y - half * 0.45
-			)
+			love.graphics.line(mid_x - half * 0.5, mid_y - half * 0.1, mid_x, mid_y + half * 0.45, mid_x + half * 0.8,
+				mid_y - half * 0.45)
 			love.graphics.setLineWidth(1)
 		end
 	end
 
 	love.graphics.pop()
 end
-
 
 return Checkbox

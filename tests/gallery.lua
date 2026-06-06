@@ -5,7 +5,6 @@ local Button = require "ui.widgets.button"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local UiUtils = require "ui.utils"
 
-
 -- 加载所有测试模块
 local test_modules = {
 	require "tests.ui.test_buttons",
@@ -19,7 +18,6 @@ local test_modules = {
 	require "tests.ui.test_chat",
 }
 
-
 --[[
 	创建 UI Gallery 浏览器，作为 parent 的子元素添加
 	返回 { selectTest = function(index) }
@@ -28,7 +26,7 @@ local function Gallery(parent)
 	local display_area
 	local current_test
 	local gallery_btns = {}
-	local selectTest  -- 前置声明，供按钮闭包捕获
+	local selectTest -- 前置声明，供按钮闭包捕获
 
 	--------------------------------------------------
 	-- 左侧导航面板
@@ -37,7 +35,7 @@ local function Gallery(parent)
 	local left_panel = parent:addChild(Panel({
 		w = sidebar_w,
 		anchor = {0, 0, 0, 1},
-		padding = {0, nil, 0, 0},
+		padding = {0, nil, 0, 0}
 	}))
 
 	left_panel:addChild(Text({
@@ -47,7 +45,7 @@ local function Gallery(parent)
 		h = 28,
 		text_color = UiUtils.UI_COLORS.TITLE,
 		anchor = {0, 0, 1, 0},
-		padding = {16, 16, 12, 0},
+		padding = {16, 16, 12, 0}
 	}))
 
 	left_panel:addChild(Text({
@@ -56,21 +54,21 @@ local function Gallery(parent)
 		h = 16,
 		text_color = UiUtils.UI_COLORS.SECONDARY_TEXT,
 		anchor = {0, 0, 1, 0},
-		padding = {16, 16, 42, 0},
+		padding = {16, 16, 42, 0}
 	}))
 
 	-- 可滚动的导航按钮列表
 	local scroll = left_panel:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {4, 4, 62, 4},
-		enable_scroll_h = false,
+		enable_scroll_h = false
 	}))
 
-	local scroll_content_w = sidebar_w - 8  -- left_panel.w - scroll.padding
+	local scroll_content_w = sidebar_w - 8 -- left_panel.w - scroll.padding
 
 	local btn_list = Widget({
 		w = scroll_content_w,
-		anchor = {0, 0, 0, 0},
+		anchor = {0, 0, 0, 0}
 	})
 	local btn_h = 32
 	local btn_space = 4
@@ -87,7 +85,7 @@ local function Gallery(parent)
 			normal = UiUtils.newButtonStateStyle(mod.name),
 			on_click = function()
 				selectTest(i)
-			end,
+			end
 		})
 		btn_list:addChild(btn)
 		gallery_btns[i] = btn
@@ -99,7 +97,7 @@ local function Gallery(parent)
 	--------------------------------------------------
 	local right_panel = parent:addChild(Panel({
 		anchor = {0, 0, 1, 1},
-		padding = {sidebar_w + 4, 4, 4, 4},
+		padding = {sidebar_w + 4, 4, 4, 4}
 	}))
 
 	right_panel:addChild(Text({
@@ -108,17 +106,19 @@ local function Gallery(parent)
 		h = 20,
 		text_color = UiUtils.UI_COLORS.HINT,
 		anchor = {0, 0, 1, 0},
-		padding = {12, 12, 12, 0},
+		padding = {12, 12, 12, 0}
 	}))
 
 	display_area = right_panel:addChild(Widget({
 		anchor = {0, 0, 1, 1},
-		padding = {12, 12, 38, 12},
+		padding = {12, 12, 38, 12}
 	}))
 
 	-- 切换测试模块
 	selectTest = function(index)
-		if index == current_test then return end
+		if index == current_test then
+			return
+		end
 
 		if current_test and gallery_btns[current_test] then
 			gallery_btns[current_test]:setSelected(false)
@@ -137,8 +137,9 @@ local function Gallery(parent)
 		selectTest(1)
 	end
 
-	return { selectTest = selectTest }
+	return {
+		selectTest = selectTest
+	}
 end
-
 
 return Gallery

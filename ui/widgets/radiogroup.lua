@@ -2,7 +2,6 @@ local Widget = require "ui.widgets.widget"
 local RadioButton = require "ui.widgets.radiobutton"
 local Class = require "dependencies.classic"
 
-
 -- 单选按钮组，管理一组 RadioButton 的互斥行为
 --[[datas: 此处不包括基类所支持的字段
 	items = {{label = string, ...}, ...}  -- 各选项的 datas 表，会被传给 RadioButton 构造
@@ -20,7 +19,6 @@ local RadioGroup = Class(Widget, function(self, datas, theme)
 		self:setItems(datas.items, datas.selected_index)
 	end
 end)
-
 
 --- 设置选项列表
 ---@param items table 各选项的 datas 表数组
@@ -58,11 +56,12 @@ function RadioGroup:setItems(items, selected_index)
 	end
 end
 
-
 -- 内部：当某个按钮被选中时，取消其他按钮的选中
 -- 用 _handling 守卫防止取消操作触发 onChecked 回调导致的级联反选
 function RadioGroup:_onButtonChecked(index)
-	if self._handling then return end
+	if self._handling then
+		return
+	end
 	self._handling = true
 	self._selected_index = index
 	for i, btn in ipairs(self.buttons) do
@@ -75,7 +74,6 @@ function RadioGroup:_onButtonChecked(index)
 		self:onSelectionChanged(index)
 	end
 end
-
 
 --- 获取当前选中项的索引
 ---@return number|nil
@@ -91,6 +89,5 @@ function RadioGroup:setSelected(index)
 		self.buttons[index]:setChecked(true)
 	end
 end
-
 
 return RadioGroup

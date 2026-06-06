@@ -2,7 +2,6 @@ local Checkbox = require "ui.widgets.checkbox"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-
 -- 单选按钮，继承 Checkbox，渲染圆形轮廓+实心圆点
 --[[datas: 与 Checkbox 相同，额外支持：
 	circle_size = number  -- 圆形尺寸，默认从主题读取
@@ -14,16 +13,13 @@ local Class = require "dependencies.classic"
 local RadioButton = Class(Checkbox, function(self, datas, theme)
 	Checkbox.new(self, datas, theme, "RadioButton")
 
-	self.style = "radio"  -- 固定为 radio 样式，不允许切换
-	self.box_size = datas and datas.circle_size
-		or datas and datas.box_size
-		or self.theme.radiobutton.circle_size
+	self.style = "radio" -- 固定为 radio 样式，不允许切换
+	self.box_size = datas and datas.circle_size or datas and datas.box_size or self.theme.radiobutton.circle_size
 	self.box_color = datas and datas.circle_color or self.theme.radiobutton.circle_color
 	self.check_color = datas and datas.dot_color or self.theme.radiobutton.dot_color
 	self.outline_width = datas and datas.outline_width or self.theme.radiobutton.outline_width
 	self.outline_color = datas and datas.outline_color or self.theme.radiobutton.outline_color
 end)
-
 
 -- 覆写 onDraw：绘制圆形轮廓+实心圆点
 function RadioButton:onDraw()
@@ -62,6 +58,5 @@ function RadioButton:onDraw()
 
 	love.graphics.pop()
 end
-
 
 return RadioButton

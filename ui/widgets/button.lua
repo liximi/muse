@@ -6,7 +6,6 @@ local Fonts = require "ui.fonts"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
-
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	font_key = string
 	normal = Utils.newButtonStateStyle
@@ -16,7 +15,7 @@ local BTN_STATES = Utils.BTN_STATES
 	selected = Utils.newButtonStateStyle
 	selected_hover = Utils.newButtonStateStyle
 ]]
-local Button = Class(ButtonBase, function (self, datas, theme)
+local Button = Class(ButtonBase, function(self, datas, theme)
 	datas = datas or {}
 	ButtonBase.new(self, "Button", datas, theme)
 
@@ -26,7 +25,7 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 		pressed = datas.pressed,
 		disabled = datas.disabled,
 		selected = datas.selected,
-		selected_hover = datas.selected_hover,
+		selected_hover = datas.selected_hover
 	}
 
 	self.text = self:addChild(Text({
@@ -36,12 +35,13 @@ local Button = Class(ButtonBase, function (self, datas, theme)
 		h_align = "center",
 		v_align = "center",
 		text = self.state_styles.normal and self.state_styles.normal.text or "Button",
-		text_color = self.state_styles.normal and self.state_styles.normal.text_color or (self.theme.button and self.theme.button.normal.text_color),
+		text_color = self.state_styles.normal and self.state_styles.normal.text_color or
+			(self.theme.button and self.theme.button.normal.text_color),
 		font_key = datas.font_key,
-		font_size = self.state_styles.normal and self.state_styles.normal.font_size or (self.theme.button and self.theme.button.normal.font_size),
+		font_size = self.state_styles.normal and self.state_styles.normal.font_size or
+			(self.theme.button and self.theme.button.normal.font_size)
 	}))
 end)
-
 
 --- 设置按钮在某个状态下的样式
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
@@ -55,14 +55,13 @@ function Button:setStateStyle(state, style)
 	self:setState(self.cur_state)
 end
 
-
 --- 获取按钮在某个状态下的样式，会自动合并自定义样式、normal状态样式和主题样式
 --- state_styles里对应状态的数据 > state_styles里normal状态的数据 > 主题里对应状态的数据 > 主题里normal状态的数据
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 function Button:getStateStyle(state)
 	local style = {}
-	local t1 = { self.state_styles, self.theme.button }
-	local t2 = state == "normal" and { "normal" } or { state, "normal" }
+	local t1 = {self.state_styles, self.theme.button}
+	local t2 = state == "normal" and {"normal"} or {state, "normal"}
 	for _, t in ipairs(t1) do
 		for _, s in ipairs(t2) do
 			if t[s] then
@@ -77,14 +76,12 @@ function Button:getStateStyle(state)
 	return style
 end
 
-
 function Button:onSetState(old_state, new_state)
 	local old_style = self:getStateStyle(old_state)
 	local new_style = self:getStateStyle(new_state)
 	Components.applyButtonTextStyle(self, new_style)
 	Components.applyButtonTransform(self, old_style, new_style)
 end
-
 
 function Button:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -114,12 +111,10 @@ function Button:onDraw()
 	love.graphics.pop()
 end
 
-
 function Button:onDebugDraw()
 	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("debug", 16), x, y + h, w)
 end
-
 
 return Button

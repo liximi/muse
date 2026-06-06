@@ -5,7 +5,6 @@ local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
 local Class = require "dependencies.classic"
 
-
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	item = Widget,
 	enable_scroll_h = bool 默认为false
@@ -28,7 +27,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self.scrollable_w = datas and datas.scrollable_w or self.transform.w
 	self.scrollable_h = datas and datas.scrollable_h or self.transform.h
 
-	self.sensitivity = datas and datas.sensitivity or 100--鼠标滚轮控制滚动的灵敏度(像素)
+	self.sensitivity = datas and datas.sensitivity or 100 -- 鼠标滚轮控制滚动的灵敏度(像素)
 
 	self.show_slider_bar = true
 	self.hide_slider_when_cannot_scroll = datas and datas.hide_slider_when_cannot_scroll or false
@@ -43,10 +42,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		end
 	end
 
-
 	self.scroll_root = self:addChild(Widget("ScrollRoot", {
 		anchor = {0, 0, self.enable_scroll_h and 0 or 1, self.enable_scroll_v and 0 or 1},
-		padding = {0, 0, 0, 0},
+		padding = {0, 0, 0, 0}
 	}))
 	function self.scroll_root.onDraw(_self)
 		local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -66,12 +64,10 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		love.graphics.pop()
 	end
 
-
 	self.item = nil
 	if datas and datas.item then
 		self:setItem(datas.item)
 	end
-
 
 	local h_slider_bar_height = datas and datas.h_slider_bar_height or 8
 	local v_slider_bar_width = datas and datas.v_slider_bar_width or 8
@@ -79,13 +75,13 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		local percent = Utils.clamp(self.transform.w / self.scrollable_w, 0, 1)
 		local padding_right = self.enable_scroll_v and v_slider_bar_width or 0
 		self.slider_bar_h = self:addChild(SliderBar({
-				orientation = "horizontal",
+			orientation = "horizontal",
 			pivot = {0, 1},
 			anchor = {0, 1, 1, 1},
 			padding = {0, padding_right, -h_slider_bar_height, 0},
 			max_limit = math.max(self.scrollable_w - self.transform.w, 0),
 			block_length_percent = percent,
-			on_value_update = function (val, percent)
+			on_value_update = function(val, percent)
 				self:setXOffset(val, false)
 			end
 		}))
@@ -97,7 +93,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
 		local padding_bottom = self.enable_scroll_h and h_slider_bar_height or 0
 		self.slider_bar_v = self:addChild(SliderBar({
-				orientation = "vertical",
+			orientation = "vertical",
 			pivot = {1, 0},
 			anchor = {1, 0, 1, 1},
 			padding = {-v_slider_bar_width, 0, 0, padding_bottom},
@@ -116,7 +112,6 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self:onSizeChanged(self.transform.w, self.transform.h)
 end)
 
-
 --- 设置要显示的内容
 ---@param item Widget 要显示的UI
 function Scroll:setItem(item)
@@ -125,7 +120,6 @@ function Scroll:setItem(item)
 		self.item = self.scroll_root:addChild(item)
 	end
 end
-
 
 function Scroll:setXOffset(offset, tween)
 	local new_offset = Utils.clamp(offset, 0, math.max(self.scrollable_w - self.transform.w, 0))
@@ -243,7 +237,6 @@ function Scroll:updateVBlockLengthPercent()
 	end
 end
 
-
 --------------------------------------------------
 ---@region Event Handlers
 --------------------------------------------------
@@ -259,7 +252,6 @@ function Scroll:onWheelMoved(x, y)
 		self:setYOffset(self.offset_y + self.sensitivity, true)
 	end
 end
-
 
 function Scroll:onSizeChanged(w, h)
 	self:updateHBlockLengthPercent()
@@ -287,7 +279,6 @@ function Scroll:onUpdate(dt)
 	end
 end
 
-
 function Scroll:onDebugDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
@@ -299,10 +290,11 @@ function Scroll:onDebugDraw()
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	local font = Fonts:getFont("default", 16)
-	love.graphics.printf(string.format("Height: %.1f | Scrollable H: %.1f", self.transform.h, self.scrollable_h), font, x, y+h, w)
-	love.graphics.printf(string.format("Offset X: %.1f | Offset Y: %.1f", self.offset_x, self.offset_y), font, x, y+h+14, w)
+	love.graphics.printf(string.format("Height: %.1f | Scrollable H: %.1f", self.transform.h, self.scrollable_h), font,
+		x, y + h, w)
+	love.graphics.printf(string.format("Offset X: %.1f | Offset Y: %.1f", self.offset_x, self.offset_y), font, x,
+		y + h + 14, w)
 	love.graphics.pop()
 end
-
 
 return Scroll

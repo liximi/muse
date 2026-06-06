@@ -4,59 +4,58 @@ local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 local Class = require "dependencies.classic"
 
-
---尝试使用自定义的自动换行方法，但是没有成功...
+-- 尝试使用自定义的自动换行方法，但是没有成功...
 local function _getWrap_char(font, str, limit)
-    --该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
-    local char_width_cache = {}
-    local max_width = 0
-    local line_start = 1
-    local linew = 0
-    local line_ranges = {}
-    for pos, code in utf8.codes(str) do
-        if code == 10 then-- 遇到换行符，强制结束当前行（不包含换行符本身）
-            max_width = math.max(max_width, linew)
-            if line_start <= pos - 1 then
-                table.insert(line_ranges, {line_start, pos - 1})
-            else
-                table.insert(line_ranges, {pos, pos - 1})-- 处理连续换行符的情况（如空行）
-            end
-            line_start = pos + 1
-            linew = 0
-            goto continue
-        end
+	-- 该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
+	local char_width_cache = {}
+	local max_width = 0
+	local line_start = 1
+	local linew = 0
+	local line_ranges = {}
+	for pos, code in utf8.codes(str) do
+		if code == 10 then -- 遇到换行符，强制结束当前行（不包含换行符本身）
+			max_width = math.max(max_width, linew)
+			if line_start <= pos - 1 then
+				table.insert(line_ranges, {line_start, pos - 1})
+			else
+				table.insert(line_ranges, {pos, pos - 1}) -- 处理连续换行符的情况（如空行）
+			end
+			line_start = pos + 1
+			linew = 0
+			goto continue
+		end
 
-        local char = utf8.char(code)
-        local cw = char_width_cache[char] or font:getWidth(char)
-        if not char_width_cache[char] then
-            char_width_cache[char] = cw
-        end
-        local neww = linew + cw
-        if neww > limit then
-            max_width = math.max(max_width, linew)
-            table.insert(line_ranges, {line_start, pos - 1})
-            line_start = pos
-            linew = cw
-        else
-            linew = neww
-        end
+		local char = utf8.char(code)
+		local cw = char_width_cache[char] or font:getWidth(char)
+		if not char_width_cache[char] then
+			char_width_cache[char] = cw
+		end
+		local neww = linew + cw
+		if neww > limit then
+			max_width = math.max(max_width, linew)
+			table.insert(line_ranges, {line_start, pos - 1})
+			line_start = pos
+			linew = cw
+		else
+			linew = neww
+		end
 
-        ::continue::
-    end
-    if line_start <= #str then
-        table.insert(line_ranges, {line_start, #str})
-        max_width = math.max(max_width, linew)
-    end
+		::continue::
+	end
+	if line_start <= #str then
+		table.insert(line_ranges, {line_start, #str})
+		max_width = math.max(max_width, linew)
+	end
 
-    local wrappedtext = {}
-    for _, range in ipairs(line_ranges) do
-        table.insert(wrappedtext, string.sub(str, range[1], range[2]))
-    end
-    return max_width, wrappedtext
+	local wrappedtext = {}
+	for _, range in ipairs(line_ranges) do
+		table.insert(wrappedtext, string.sub(str, range[1], range[2]))
+	end
+	return max_width, wrappedtext
 end
 
---TODO: 设置文本溢出行为
---如果没看到创建出来的文本，请检查是否设置了该 UI 的尺寸。
+-- TODO: 设置文本溢出行为
+-- 如果没看到创建出来的文本，请检查是否设置了该 UI 的尺寸。
 --[[data: 此处不包括当前Widget继承的基类所支持的字段
 	text = string|table(coloredtext)
 	font_key = string
@@ -70,28 +69,26 @@ local Text = Class(Widget, function(self, datas, theme)
 
 	self.font_key = datas and datas.font_key or self.theme.text.font_key
 	self.font_size = datas and datas.font_size or self.theme.text.font_size
-	self.text_color = datas and datas.text_color or self.theme.text.text_color--当text是一个coloredtext时，该属性将会和文本的颜色组合（相乘）
+	self.text_color = datas and datas.text_color or self.theme.text.text_color -- 当text是一个coloredtext时，该属性将会和文本的颜色组合（相乘）
 
-	self.text = datas and datas.text or ""--也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
+	self.text = datas and datas.text or "" -- 也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
 
 	self.wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
 	self.overflow_mode = Utils.TEXT_OVERFLOW_MODE.NONE
 	self.overflow_ellipsis_char = "…"
-	self.horizontal_align = datas and datas.h_align or "left"	--"left"|"right"|"center"|"justify"
-	self.vertical_align = datas and datas.v_align or "top"	--"top"|"bottom"|"center"
+	self.horizontal_align = datas and datas.h_align or "left" -- "left"|"right"|"center"|"justify"
+	self.vertical_align = datas and datas.v_align or "top" -- "top"|"bottom"|"center"
 
 	self.__text = love.graphics.newText(Fonts:getFont(self.font_key, self.font_size))
 	self:updateTextLayout()
 	self:enableSizeChangedEvent(true)
 end)
 
-
---也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
+-- 也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
 function Text:setText(text)
 	self.text = text
 	self:updateTextLayout()
 end
-
 
 local function _getText(coloredtext)
 	local text = ""
@@ -119,16 +116,13 @@ function Text:getTextColor()
 	return self.text_color
 end
 
-
-
-
 --- 设置字体
 ---@param font_key string 所有字体都需要先存入ui.fonts.lua里，再通过key使用。
 function Text:setFont(font_key, size)
 	if font_key and Fonts[font_key] then
 		local font = Fonts:getFont(font_key, size)
 		if not font then
-			print("Text:setFont|Unregistered fonts: "..tostring(font_key))
+			print("Text:setFont|Unregistered fonts: " .. tostring(font_key))
 			return
 		end
 		self.font_key = font_key
@@ -157,9 +151,6 @@ function Text:getFontSize()
 	return self.font_size
 end
 
-
-
-
 --- 设置水平方向的对齐方式
 ---@param align "left"|"right"|"center"|"justify"
 function Text:setHAlign(align)
@@ -173,9 +164,6 @@ function Text:setVAlign(align)
 	self.vertical_align = align
 	self:updateTextLayout()
 end
-
-
-
 
 function Text:setWrapMode(wrap_mode)
 	self.wrap_mode = wrap_mode
@@ -234,9 +222,6 @@ function Text:onSizeChanged(w, h)
 	self:updateTextLayout()
 end
 
-
-
-
 function Text:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	local sx, sy = self:getGlobalScale()
@@ -261,7 +246,6 @@ function Text:onDraw()
 
 	love.graphics.pop()
 end
-
 
 function Text:onDebugDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -289,6 +273,5 @@ function Text:onDebugDraw()
 
 	love.graphics.pop()
 end
-
 
 return Text

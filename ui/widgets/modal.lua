@@ -3,7 +3,6 @@ local Panel = require "ui.widgets.panel"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-
 -- 模态框，全屏半透明遮罩 + 居中内容
 --[[datas: 此处不包括基类所支持的字段
 	overlay_color = {r, g, b, a}  -- 遮罩颜色
@@ -19,7 +18,7 @@ local Modal = Class(Widget, function(self, datas, theme)
 
 	Widget.new(self, "Modal", datas, theme)
 
-	self.shown = false  -- Modal 默认隐藏，必须通过 show() 显示
+	self.shown = false -- Modal 默认隐藏，必须通过 show() 显示
 	self.dismiss_on_outside_click = datas and datas.dismiss_on_outside_click ~= false
 	self.dismiss_on_escape = datas and datas.dismiss_on_escape ~= false
 	self.onDismiss = datas and datas.on_dismiss
@@ -29,7 +28,7 @@ local Modal = Class(Widget, function(self, datas, theme)
 	self.overlay = self:addChild(Panel({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
-		bg_color = overlay_color,
+		bg_color = overlay_color
 	}))
 
 	-- 遮罩拦截所有鼠标事件，防止穿透到背景 UI
@@ -64,14 +63,13 @@ local Modal = Class(Widget, function(self, datas, theme)
 	-- 居中内容容器
 	self.content_container = self.overlay:addChild(Widget({
 		pivot = {0.5, 0.5},
-		anchor = {0.5, 0.5, 0.5, 0.5},
+		anchor = {0.5, 0.5, 0.5, 0.5}
 	}))
 
 	if datas and datas.content then
 		self:setContent(datas.content)
 	end
 end)
-
 
 --- 设置模态框的内容
 ---@param widget Widget
@@ -90,7 +88,9 @@ end
 
 --- 显示模态框
 function Modal:show()
-	if self.shown then return end
+	if self.shown then
+		return
+	end
 	self.shown = true
 	self:moveToTop()
 end
@@ -113,15 +113,15 @@ function Modal:isShowing()
 	return self.shown
 end
 
-
 function Modal:onKeyPressed(key, isrepeat)
-	if not self.shown then return end
+	if not self.shown then
+		return
+	end
 	if self.dismiss_on_escape and key == "escape" then
 		self:dismiss()
 		return true
 	end
-	return true  -- 拦截其他键盘事件
+	return true -- 拦截其他键盘事件
 end
-
 
 return Modal

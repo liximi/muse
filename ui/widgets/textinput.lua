@@ -2,12 +2,10 @@ local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local utf8 = require "utf8"
 local Utils = require "ui.utils"
-local addHoverState = require "ui.components".addHoverState
+local addHoverState = require"ui.components".addHoverState
 local Class = require "dependencies.classic"
 
-
 local cursor_blinking_duration, cursor_blinking_duration_half = 1, 0.5
-
 
 ---使用utf8字符的下标来分割文本
 ---@param text string
@@ -30,10 +28,10 @@ end
 
 local function getNearestIndex(text, target_x, font)
 	local last_delta = math.huge
-	local count = 0--距离最近的字符的索引
+	local count = 0 -- 距离最近的字符的索引
 	local is_break = false
 	for pos, code in utf8.codes(text) do
-		local temp_text = string.sub(text, 1, pos-1)
+		local temp_text = string.sub(text, 1, pos - 1)
 		local delta = math.abs(font:getWidth(temp_text) - target_x)
 		if last_delta > delta then
 			last_delta = delta
@@ -43,7 +41,7 @@ local function getNearestIndex(text, target_x, font)
 		end
 		count = count + 1
 	end
-	if not is_break then--处理光标位于行尾的情况
+	if not is_break then -- 处理光标位于行尾的情况
 		local delta = math.abs(font:getWidth(text) - target_x)
 		if last_delta > delta then
 			last_delta = delta
@@ -52,7 +50,6 @@ local function getNearestIndex(text, target_x, font)
 	end
 	return count
 end
-
 
 --[[data: 此处不包括当前Widget继承的基类所支持的字段
 	height_adaptive = boolean 是否自动调节高度以适应文本高度
@@ -83,15 +80,15 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.bg.transform:setPadding(0, 0, 0, 0)
 	end
 
-	self.sections = {""}--array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
+	self.sections = {""} -- array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
 	self.cursor = {
 		show = false,
-		section = 1,--正在编辑的段落
-		index = 1,--在当前的段落中的开始索引位置(基于utf8)
-		head_or_tail = true,--当光标位于自动换行的位置时，光标显示在上一行的末尾还是下一行的开始，true表示显示在下一行的开始
-		_local_pos_cache = {0, 0},--相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
-		_sel_start = nil,  -- 选区起点 {section, index}，nil 表示无选区
-		_sel_end = nil,    -- 选区终点 {section, index}
+		section = 1, -- 正在编辑的段落
+		index = 1, -- 在当前的段落中的开始索引位置(基于utf8)
+		head_or_tail = true, -- 当光标位于自动换行的位置时，光标显示在上一行的末尾还是下一行的开始，true表示显示在下一行的开始
+		_local_pos_cache = {0, 0}, -- 相对本地坐标系的坐标（左上角为文本的原点，考虑padding）
+		_sel_start = nil, -- 选区起点 {section, index}，nil 表示无选区
+		_sel_end = nil -- 选区终点 {section, index}
 	}
 	self.cursor_blinking = true
 	self.cursor_blinking_timer = 0
@@ -101,8 +98,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self._undo_stack = {}
 	self._redo_stack = {}
 	self._undo_stack_max = 100
-	self._undo_group = nil       -- 当前操作组的起点快照
-	self._undo_group_type = nil  -- "input" | "backspace" | "delete" | nil
+	self._undo_group = nil -- 当前操作组的起点快照
+	self._undo_group_type = nil -- "input" | "backspace" | "delete" | nil
 	self._undo_inactivity_timer = 0
 	self._undo_inactivity_threshold = 0.3
 
@@ -115,14 +112,14 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		font_size = datas.font_size or self.theme.textinput.font_size,
 		text_color = datas.text_color or self.theme.textinput.text_color,
 		h_align = datas.h_align,
-		v_align = datas.v_align,
+		v_align = datas.v_align
 	}))
 	if datas.hint then
 		self.hint = self:addChild(Text({
 			text = datas.hint,
 			text_color = datas.hint_color or self.theme.textinput.hint_color,
 			anchor = {0, 0, 1, 1},
-			padding = datas.text_padding or {0, 0, 0, 0},
+			padding = datas.text_padding or {0, 0, 0, 0}
 		}))
 	end
 
@@ -132,17 +129,16 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	end
 end)
 
-
 --------------------------------------------------
 ---@region Text
 --------------------------------------------------
 
 local function split_by_newline(str)
-    local lines = {}
-    for line in string.gmatch(str .. "\n", "(.-)\r?\n") do
-        table.insert(lines, line)
-    end
-    return lines
+	local lines = {}
+	for line in string.gmatch(str .. "\n", "(.-)\r?\n") do
+		table.insert(lines, line)
+	end
+	return lines
 end
 --- 设置文本，会覆盖当前的文本。注意设置文本后是否需要更新光标位置
 ---@param text string
@@ -202,7 +198,6 @@ function TextInput:flushText()
 	self.text:setText(table.concat(self.sections, "\n"))
 end
 
-
 --------------------------------------------------
 ---@region Hint
 --------------------------------------------------
@@ -219,7 +214,6 @@ function TextInput:refreshHint()
 	end
 end
 
-
 --------------------------------------------------
 ---@region Height
 --------------------------------------------------
@@ -233,7 +227,6 @@ function TextInput:refreshHeight()
 		self.transform:setSize(w, text_h + text_padding.top + text_padding.bottom)
 	end
 end
-
 
 --------------------------------------------------
 ---@region Cursor
@@ -251,9 +244,9 @@ end
 function TextInput:setCursorIndex(index)
 	index = index or self.cursor.index
 	local text = self.sections[self.cursor.section]
-	index = math.max(1, math.min(utf8.len(text) + 1, index))--clamp
+	index = math.max(1, math.min(utf8.len(text) + 1, index)) -- clamp
 	self.cursor.index = index
-	--计算光标的坐标
+	-- 计算光标的坐标
 	text = table.concat(self.sections, "\n")
 	if not text or text == "" then
 		self.cursor._local_pos_cache[1] = 0
@@ -270,7 +263,8 @@ function TextInput:setCursorIndex(index)
 					local len = utf8.len(s)
 					line = line + 1
 					if len + 1 > index then
-						self.cursor._local_pos_cache[1] = font:getWidth(string.sub(wrappedtext[l], 1, utf8.offset(wrappedtext[l], index) - 1))
+						self.cursor._local_pos_cache[1] = font:getWidth(
+							string.sub(wrappedtext[l], 1, utf8.offset(wrappedtext[l], index) - 1))
 						break
 					elseif len + 1 == index then
 						if self.cursor.head_or_tail and l < #wrappedtext then
@@ -300,7 +294,7 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	local text = table.concat(self.sections, "\n")
 	local maxw, wrappedtext = font:getWrap(text, self.text.transform.w)
 	local line_height = font:getHeight() * font:getLineHeight()
-	local line = math.max(math.min(math.ceil(local_y/line_height), #wrappedtext), 1)
+	local line = math.max(math.min(math.ceil(local_y / line_height), #wrappedtext), 1)
 
 	local _len = 0
 	for l, s in ipairs(wrappedtext) do
@@ -310,7 +304,7 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 		end
 	end
 	local target_section = 1
-	local temp_lines = line--用于存储target_section里占据的行数
+	local temp_lines = line -- 用于存储target_section里占据的行数
 	for i, section in ipairs(self.sections) do
 		local _, _wrappedtext = font:getWrap(section, self.text.transform.w)
 		_len = _len - #section
@@ -377,7 +371,6 @@ function TextInput:moveCursorRight()
 	self:setCursorIndex(new_idx)
 end
 
-
 local function findLineByIndex(wrappedtext, index, head_or_tail)
 	local len = 0
 	local total_line = #wrappedtext
@@ -409,8 +402,8 @@ function TextInput:moveCursorUp()
 		local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
 		if line == 1 then
 			move_to_last_section = true
-		else--移动到当前段落里的上一行
-			local last_line_text = wrappedtext[line-1]
+		else -- 移动到当前段落里的上一行
+			local last_line_text = wrappedtext[line - 1]
 			local count = getNearestIndex(last_line_text, x_cache, font)
 			self:setCursorIndex(len - utf8.len(last_line_text) + count)
 		end
@@ -418,7 +411,7 @@ function TextInput:moveCursorUp()
 		move_to_last_section = true
 	end
 
-	if move_to_last_section and old_section > 1 then--移动到上一段落里的最后一行
+	if move_to_last_section and old_section > 1 then -- 移动到上一段落里的最后一行
 		local _, wrappedtext = font:getWrap(self.sections[old_section - 1], self.text.transform.w)
 		local last_line_text = wrappedtext[#wrappedtext]
 		local count = getNearestIndex(last_line_text, x_cache, font)
@@ -439,7 +432,7 @@ function TextInput:moveCursorDown()
 		local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
 		if line == #wrappedtext then
 			move_to_next_section = true
-		else--移动到当前段落里的下一行
+		else -- 移动到当前段落里的下一行
 			local count = getNearestIndex(wrappedtext[line + 1], x_cache, font)
 			self:setCursorIndex(len + cur_line_len + count)
 		end
@@ -447,7 +440,7 @@ function TextInput:moveCursorDown()
 		move_to_next_section = true
 	end
 
-	if move_to_next_section and old_section < #self.sections then--移动到下一段落里的第一行
+	if move_to_next_section and old_section < #self.sections then -- 移动到下一段落里的第一行
 		local _, wrappedtext = font:getWrap(self.sections[old_section + 1], self.text.transform.w)
 		local count = getNearestIndex(wrappedtext[1], x_cache, font)
 		self:toNextSection(count)
@@ -488,7 +481,7 @@ function TextInput:lineBreak()
 	local old_idx = self.cursor.index
 	local first_text, second_text = splitText(old_text, old_idx, "both")
 	self.sections[old_section] = first_text
-	self:insertNewSection(self.cursor.section+1, second_text)
+	self:insertNewSection(self.cursor.section + 1, second_text)
 	self:toNextSection(1)
 	self:flushText()
 	if self.height_adaptive then
@@ -513,14 +506,14 @@ function TextInput:backspace()
 	local old_text = self.sections[old_section]
 	local first_text, second_text = splitText(old_text, old_idx, "both")
 
-	if old_idx == 1 then--将当前段落加入上一个段落
+	if old_idx == 1 then -- 将当前段落加入上一个段落
 		local last_section = self.sections[old_section - 1]
 		if second_text ~= "" then
 			self.sections[old_section - 1] = last_section .. second_text
 		end
 		self:removeSection(old_section)
 		self:toLastSection(utf8.len(last_section) + 1)
-	else--删除本段落当前index的前一个字符
+	else -- 删除本段落当前index的前一个字符
 		first_text = splitText(first_text, -1, "first")
 		self.sections[old_section] = first_text .. second_text
 		self:setCursorIndex(old_idx - 1)
@@ -551,13 +544,13 @@ function TextInput:delete()
 
 	local first_text, second_text = splitText(old_text, old_idx, "both")
 
-	if old_idx == old_text_len + 1 then--将下一段落加入当前段落
+	if old_idx == old_text_len + 1 then -- 将下一段落加入当前段落
 		local next_section = self.sections[old_section + 1]
 		if next_section ~= "" then
 			self.sections[old_section] = old_text .. next_section
 		end
 		self:removeSection(old_section + 1)
-	else--删除本段落当前index的字符
+	else -- 删除本段落当前index的字符
 		second_text = splitText(second_text, 2, "second")
 		self.sections[old_section] = first_text .. second_text
 	end
@@ -568,7 +561,6 @@ function TextInput:delete()
 	end
 	self:refreshHint()
 end
-
 
 --------------------------------------------------
 ---@region Section
@@ -617,7 +609,6 @@ function TextInput:toLastSection(index)
 	return new_section
 end
 
-
 --------------------------------------------------
 ---@region Select Text
 --------------------------------------------------
@@ -631,14 +622,18 @@ function TextInput:_comparePos(s1, i1, s2, i2)
 	if s1 ~= s2 then
 		return s1 < s2 and -1 or 1
 	end
-	if i1 == i2 then return 0 end
+	if i1 == i2 then
+		return 0
+	end
 	return i1 < i2 and -1 or 1
 end
 
 function TextInput:_hasSelection()
 	local s = self.cursor._sel_start
 	local e = self.cursor._sel_end
-	if not s or not e then return false end
+	if not s or not e then
+		return false
+	end
 	return self:_comparePos(s[1], s[2], e[1], e[2]) ~= 0
 end
 
@@ -651,7 +646,9 @@ end
 function TextInput:_getOrderedSelection()
 	local s = self.cursor._sel_start
 	local e = self.cursor._sel_end
-	if not s or not e then return nil end
+	if not s or not e then
+		return nil
+	end
 	if self:_comparePos(s[1], s[2], e[1], e[2]) <= 0 then
 		return s[1], s[2], e[1], e[2]
 	else
@@ -661,7 +658,9 @@ end
 
 function TextInput:_getSelectedText()
 	local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
-	if not s_section then return "" end
+	if not s_section then
+		return ""
+	end
 	local parts = {}
 	for i = s_section, e_section do
 		local section = self.sections[i]
@@ -682,7 +681,9 @@ end
 
 function TextInput:_deleteSelection()
 	local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
-	if not s_section then return end
+	if not s_section then
+		return
+	end
 
 	-- 合并被选区截断的段落
 	local first_part = splitText(self.sections[s_section], s_idx, "first")
@@ -722,7 +723,6 @@ function TextInput:selectAll()
 	local last_section = #self.sections
 	self.cursor._sel_end = {last_section, utf8.len(self.sections[last_section]) + 1}
 end
-
 
 --------------------------------------------------
 ---@region Copy & Paste
@@ -779,7 +779,6 @@ function TextInput:paste()
 	self:refreshHint()
 end
 
-
 --------------------------------------------------
 ---@region Undo & Redo
 --------------------------------------------------
@@ -792,7 +791,7 @@ function TextInput:_makeSnapshot()
 	return {
 		sections = sections_copy,
 		cursor_section = self.cursor.section,
-		cursor_index = self.cursor.index,
+		cursor_index = self.cursor.index
 	}
 end
 
@@ -875,7 +874,6 @@ function TextInput:redo()
 	self:_restoreSnapshot(snap)
 end
 
-
 --------------------------------------------------
 ---@region Event Handlers
 --------------------------------------------------
@@ -899,24 +897,64 @@ local function _withShift(self, fn)
 end
 
 local KEY_MAP = {
-	backspace = function(self) self:backspace() end,
-	delete = function(self) self:delete() end,
-	kpenter = function(self) self:lineBreak() end,
-	["return"] = function(self) self:lineBreak() end,
-	left = function(self) _withShift(self, self.moveCursorLeft) end,
-	right = function(self) _withShift(self, self.moveCursorRight) end,
-	up = function(self) _withShift(self, self.moveCursorUp) end,
-	down = function(self) _withShift(self, self.moveCursorDown) end,
-	home = function(self) _withShift(self, self.moveCursorToHead) end,
-	["end"] = function(self) _withShift(self, self.moveCursorToEnd) end,
+	backspace = function(self)
+		self:backspace()
+	end,
+	delete = function(self)
+		self:delete()
+	end,
+	kpenter = function(self)
+		self:lineBreak()
+	end,
+	["return"] = function(self)
+		self:lineBreak()
+	end,
+	left = function(self)
+		_withShift(self, self.moveCursorLeft)
+	end,
+	right = function(self)
+		_withShift(self, self.moveCursorRight)
+	end,
+	up = function(self)
+		_withShift(self, self.moveCursorUp)
+	end,
+	down = function(self)
+		_withShift(self, self.moveCursorDown)
+	end,
+	home = function(self)
+		_withShift(self, self.moveCursorToHead)
+	end,
+	["end"] = function(self)
+		_withShift(self, self.moveCursorToEnd)
+	end
 }
 local CTRL_KEY_MAP = {
-	a = function(self) self:selectAll() end,
-	c = function(self) self:copy() end,
-	v = function(self) self:paste() end,
-	x = function(self) self:_saveOneShot(); self:copy(); if self:_hasSelection() then self:_deleteSelection() end end,
-	z = function(self) if love.keyboard.isDown("lshift", "rshift") then self:redo() else self:undo() end end,
-	y = function(self) self:redo() end,
+	a = function(self)
+		self:selectAll()
+	end,
+	c = function(self)
+		self:copy()
+	end,
+	v = function(self)
+		self:paste()
+	end,
+	x = function(self)
+		self:_saveOneShot();
+		self:copy();
+		if self:_hasSelection() then
+			self:_deleteSelection()
+		end
+	end,
+	z = function(self)
+		if love.keyboard.isDown("lshift", "rshift") then
+			self:redo()
+		else
+			self:undo()
+		end
+	end,
+	y = function(self)
+		self:redo()
+	end
 }
 function TextInput:onKeyPressed(key, isrepeat)
 	if not self:isFocus() then
@@ -927,7 +965,7 @@ function TextInput:onKeyPressed(key, isrepeat)
 		handler = CTRL_KEY_MAP[key]
 	else
 		handler = KEY_MAP[key]
-    end
+	end
 	if handler then
 		handler(self)
 	end
@@ -1041,7 +1079,6 @@ function TextInput:onUpdate(dt)
 	end
 end
 
-
 function TextInput:onPostDraw()
 	local org_x, org_y, _, _, r = self.text.transform:getGlobalBounds()
 	local font = self.text:getFont()
@@ -1077,10 +1114,13 @@ function TextInput:onPostDraw()
 						local sel_start = math.max(section_s_idx, line_start_idx)
 						local sel_end = math.min(section_e_idx, line_end_idx)
 						if sel_start < sel_end then
-							local prefix = (sel_start > line_start_idx) and string.sub(line_text, 1, utf8.offset(line_text, sel_start - char_offset) - 1) or ""
+							local prefix = (sel_start > line_start_idx) and
+											   string.sub(line_text, 1,
+									utf8.offset(line_text, sel_start - char_offset) - 1) or ""
 							local sel_start_byte = utf8.offset(line_text, math.max(1, sel_start - char_offset))
 							local sel_end_rel = math.min(line_len + 1, sel_end - char_offset)
-							local sel_end_byte = (sel_end_rel > line_len) and (#line_text + 1) or utf8.offset(line_text, sel_end_rel)
+							local sel_end_byte = (sel_end_rel > line_len) and (#line_text + 1) or
+													 utf8.offset(line_text, sel_end_rel)
 							local sel_text = ""
 							if sel_start_byte and sel_end_byte and sel_start_byte < sel_end_byte then
 								sel_text = string.sub(line_text, sel_start_byte, sel_end_byte - 1)
@@ -1116,18 +1156,17 @@ function TextInput:onPostDraw()
 		local bottom_y = top_y + font:getHeight()
 
 		love.graphics.push()
-			if r ~= 0 and r ~= Utils.TWO_PI then
-				local px, py = self.text.transform:getGlobalPosition()
-				love.graphics.translate(px, py)
-				love.graphics.rotate(r)
-				love.graphics.translate(-px, -py)
-			end
-			love.graphics.setColor(1, 1, 1, 1)
-			love.graphics.setLineWidth(1)
-			love.graphics.line(top_x, top_y, top_x, bottom_y)
+		if r ~= 0 and r ~= Utils.TWO_PI then
+			local px, py = self.text.transform:getGlobalPosition()
+			love.graphics.translate(px, py)
+			love.graphics.rotate(r)
+			love.graphics.translate(-px, -py)
+		end
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.setLineWidth(1)
+		love.graphics.line(top_x, top_y, top_x, bottom_y)
 		love.graphics.pop()
 	end
 end
-
 
 return TextInput

@@ -2,7 +2,6 @@ local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-
 -- 进度条组件，支持水平和垂直方向
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	fill_color = {r, g, b, a}
@@ -16,11 +15,9 @@ local ProgressBar = Class(Widget, function(self, datas, theme)
 	self.value = Utils.clamp(datas and datas.value or 0, 0, 1)
 	self.fill_color = datas and datas.fill_color or self.theme.progressbar.fill_color
 	self.bg_color = datas and datas.bg_color or self.theme.progressbar.bg_color
-	self.rounding_radius = datas and datas.rounding_radius
-		or self.theme.progressbar.rounding_radius
+	self.rounding_radius = datas and datas.rounding_radius or self.theme.progressbar.rounding_radius
 	self.orientation = datas and datas.orientation or "horizontal"
 end)
-
 
 --- 设置当前进度值
 ---@param v number 0~1
@@ -39,7 +36,6 @@ end
 function ProgressBar:getValue()
 	return self.value
 end
-
 
 function ProgressBar:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -73,6 +69,5 @@ function ProgressBar:onDraw()
 
 	love.graphics.pop()
 end
-
 
 return ProgressBar

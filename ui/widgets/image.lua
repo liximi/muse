@@ -3,8 +3,7 @@ local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
 local Class = require "dependencies.classic"
 
-
---覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。
+-- 覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	texture = Texture
 	use_texture_size = bool
@@ -17,14 +16,13 @@ local Image = Class(Widget, function(self, datas, theme)
 
 	-- self.texture = nil
 	if datas and datas.texture then
-		--注意：use_texture_size和锚点【范围定位】机制是冲突的
-		--也会覆盖datas.w 和 datas.h
+		-- 注意：use_texture_size和锚点【范围定位】机制是冲突的
+		-- 也会覆盖datas.w 和 datas.h
 		self:setTexture(datas.texture, datas.use_texture_size)
 	end
 
 	self.tint = datas and datas.tint or self.theme.image.tint
 end)
-
 
 --- 设置贴图对象
 ---@param texture love.Texture
@@ -36,11 +34,9 @@ function Image:setTexture(texture, resize)
 	end
 end
 
-
 function Image:getTexture()
 	return self.texture
 end
-
 
 function Image:setTint(r, g, b, a)
 	if type(r) == "table" then
@@ -50,11 +46,9 @@ function Image:setTint(r, g, b, a)
 	end
 end
 
-
 function Image:getTint()
 	return self.tint
 end
-
 
 --- 获取UI贴图资源的原始尺寸
 function Image:getTextureRowSize()
@@ -65,7 +59,6 @@ function Image:getTextureRowSize()
 	end
 end
 
-
 --- 将UI的尺寸还原到贴图资源的原始尺寸
 function Image:reSize()
 	if self.texture then
@@ -75,7 +68,6 @@ function Image:reSize()
 		self.transform:setSize(0, 0)
 	end
 end
-
 
 function Image:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -110,7 +102,6 @@ function Image:onDraw()
 	love.graphics.pop()
 end
 
-
 function Image:onDebugDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 
@@ -126,7 +117,8 @@ function Image:onDebugDraw()
 	if self.texture then
 		local rw, rh = self:getTextureRowSize()
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh), Fonts:getFont("debug", 14), x, y + h, w)
+		love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh),
+			Fonts:getFont("debug", 14), x, y + h, w)
 	else
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 		love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
@@ -134,6 +126,5 @@ function Image:onDebugDraw()
 
 	love.graphics.pop()
 end
-
 
 return Image

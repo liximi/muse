@@ -4,20 +4,28 @@ local Panel = require "ui.widgets.panel"
 local Button = require "ui.widgets.button"
 local Class = require "dependencies.classic"
 
-
 local AXIS = {
 	vertical = {
-		pos = "y", size = "h", delta = "dy", scale = "sy",
-		neg_dir = "up", pos_dir = "down",
-		alter_pos = "x", alter_size = "w",
+		pos = "y",
+		size = "h",
+		delta = "dy",
+		scale = "sy",
+		neg_dir = "up",
+		pos_dir = "down",
+		alter_pos = "x",
+		alter_size = "w"
 	},
 	horizontal = {
-		pos = "x", size = "w", delta = "dx", scale = "sx",
-		neg_dir = "left", pos_dir = "right",
-		alter_pos = "y", alter_size = "h",
-	},
+		pos = "x",
+		size = "w",
+		delta = "dx",
+		scale = "sx",
+		neg_dir = "left",
+		pos_dir = "right",
+		alter_pos = "y",
+		alter_size = "h"
+	}
 }
-
 
 local function updateValueInternal(self, value, call_callback, update_block_pos)
 	local a = self._axis
@@ -30,13 +38,9 @@ local function updateValueInternal(self, value, call_callback, update_block_pos)
 	if update_block_pos then
 		local track_len = self.transform[a.size] - self.block.transform[a.size]
 		local new_pos = track_len * new_val / self.max_limit
-		self.block:setPosition(
-			a.pos == "x" and new_pos or nil,
-			a.pos == "y" and new_pos or nil
-		)
+		self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
 	end
 end
-
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	orientation = "vertical" | "horizontal"
@@ -65,35 +69,26 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self.onValueUpdate = datas.on_value_update
 
 	-- 背景 track
-	local track_rounding = orientation == "vertical"
-		and self.transform.w / 2
-		or self.transform.h / 2
+	local track_rounding = orientation == "vertical" and self.transform.w / 2 or self.transform.h / 2
 	self.bg = self:addChild(Panel({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 		rounding_radius = track_rounding,
 		bg_color = self.theme.sliderbar.track_color,
-		outline_width = 0,
+		outline_width = 0
 	}))
 
 	-- 滑块 block
-	local block_rounding = orientation == "vertical"
-		and (self.transform.w + 2) / 2
-		or (self.transform.h + 2) / 2
-	local block_style = Utils.newButtonStateStyle("", nil, nil,
-		self.theme.sliderbar.block_color, 1, self.theme.sliderbar.outline_color,
-		{0, 0}, {1, 1}, block_rounding)
-	local block_hover_style = Utils.newButtonStateStyle(nil, nil, nil,
-		self.theme.sliderbar.block_hover_color, 1, self.theme.sliderbar.outline_color,
-		{0, 0}, {1, 1}, block_rounding)
+	local block_rounding = orientation == "vertical" and (self.transform.w + 2) / 2 or (self.transform.h + 2) / 2
+	local block_style = Utils.newButtonStateStyle("", nil, nil, self.theme.sliderbar.block_color, 1,
+		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, block_rounding)
+	local block_hover_style = Utils.newButtonStateStyle(nil, nil, nil, self.theme.sliderbar.block_hover_color, 1,
+		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, block_rounding)
 
 	-- 锚点和 padding 根据方向不同
-	local block_anchor = orientation == "vertical"
-		and {0, 0, 1, 0}   -- 水平方向拉伸
-		or  {0, 0, 0, 1}   -- 垂直方向拉伸
-	local block_padding = orientation == "vertical"
-		and {-1, -1, 0, nil}
-		or  {0, nil, -1, -1}
+	local block_anchor = orientation == "vertical" and {0, 0, 1, 0} -- 水平方向拉伸
+	or {0, 0, 0, 1} -- 垂直方向拉伸
+	local block_padding = orientation == "vertical" and {-1, -1, 0, nil} or {0, nil, -1, -1}
 	local block_init_size = {}
 	block_init_size[a.size] = self.block_length_percent * self.transform[a.size]
 
@@ -109,12 +104,11 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		normal = block_style,
 		hover = block_hover_style,
 		pressed = block_hover_style,
-		datas = block_init_size,
+		datas = block_init_size
 	}))
 
 	self:enableSizeChangedEvent(true)
 end)
-
 
 function SliderBar:setValue(val)
 	updateValueInternal(self, val, false, true)
@@ -132,38 +126,30 @@ end
 function SliderBar:setBlockLengthtPercent(percent)
 	local a = self._axis
 	self.block_length_percent = Utils.clamp(percent, 0, 1)
-	self.block.transform:setSize(
-		a.pos == "x" and (self.block_length_percent * self.transform[a.size]) or nil,
-		a.pos == "y" and (self.block_length_percent * self.transform[a.size]) or nil
-	)
+	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * self.transform[a.size]) or nil,
+		a.pos == "y" and (self.block_length_percent * self.transform[a.size]) or nil)
 end
 
 function SliderBar:setOnValueUpdateFn(callback_fn)
 	self.onValueUpdate = callback_fn
 end
 
-
 local function moveBlock(self, dir)
 	local a = self._axis
 	local cur_pos = self.block.transform[a.pos]
 	local track_len = self.transform[a.size] - self.block.transform[a.size]
 	local delta = self.block.transform[a.size] * self.sensitivity
-	local new_pos = Utils.clamp(
-		cur_pos + (dir == a.neg_dir and -delta or delta),
-		0, track_len
-	)
+	local new_pos = Utils.clamp(cur_pos + (dir == a.neg_dir and -delta or delta), 0, track_len)
 	if new_pos ~= cur_pos then
-		self.block:setPosition(
-			a.pos == "x" and new_pos or nil,
-			a.pos == "y" and new_pos or nil
-		)
+		self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
 		updateValueInternal(self, self.max_limit * new_pos / track_len, true)
 	end
 end
 
-
 function SliderBar:onMousePressed(x, y, button)
-	if button ~= 1 then return end
+	if button ~= 1 then
+		return
+	end
 	local a = self._axis
 	local is_in_scope = self:regionDetection(x, y)
 	if is_in_scope then
@@ -180,15 +166,17 @@ function SliderBar:onMousePressed(x, y, button)
 	end
 end
 
-
 function SliderBar:onMouseReleased(x, y, button)
-	if button ~= 1 then return end
+	if button ~= 1 then
+		return
+	end
 	self.pressed = false
 end
 
-
 function SliderBar:onMouseMoved(x, y, dx, dy)
-	if not self.drag then return end
+	if not self.drag then
+		return
+	end
 	local a = self._axis
 	local cur_pos = self.block.transform[a.pos]
 	local sx, sy = self:getGlobalScale()
@@ -196,16 +184,14 @@ function SliderBar:onMouseMoved(x, y, dx, dy)
 	local mouse_delta = a.pos == "x" and dx or dy
 	local track_len = self.transform[a.size] - self.block.transform[a.size]
 	local new_pos = Utils.clamp(cur_pos + mouse_delta / gs_axis, 0, track_len)
-	self.block:setPosition(
-		a.pos == "x" and new_pos or nil,
-		a.pos == "y" and new_pos or nil
-	)
+	self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
 	updateValueInternal(self, self.max_limit * new_pos / track_len, true)
 end
 
-
 function SliderBar:onUpdate(dt)
-	if not self.pressed then return end
+	if not self.pressed then
+		return
+	end
 	local a = self._axis
 	self.pressed_timer = self.pressed_timer + dt
 	if self.pressed_timer > 0.25 then
@@ -221,15 +207,11 @@ function SliderBar:onUpdate(dt)
 	end
 end
 
-
 function SliderBar:onSizeChanged(w, h)
 	local a = self._axis
-	self.block.transform:setSize(
-		a.pos == "x" and (self.block_length_percent * w) or nil,
-		a.pos == "y" and (self.block_length_percent * h) or nil
-	)
+	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * w) or nil,
+		a.pos == "y" and (self.block_length_percent * h) or nil)
 	updateValueInternal(self, self.value, false, true)
 end
-
 
 return SliderBar

@@ -1,6 +1,5 @@
---对一般功能的封装
+-- 对一般功能的封装
 local Components = {}
-
 
 function Components.addHoverState(widget)
 	widget.hovered = false
@@ -22,10 +21,11 @@ function Components.addHoverState(widget)
 	end
 end
 
-
 --- 应用按钮文本样式变更
 function Components.applyButtonTextStyle(button, new_style)
-	if not button.text then return end
+	if not button.text then
+		return
+	end
 	local new_text = new_style.text
 	if new_text then
 		button.text:setText(new_text)
@@ -51,6 +51,5 @@ function Components.applyButtonTransform(button, old_style, new_style)
 	local scale = new_style.scale or {1, 1}
 	button.transform:setScale(scale[1], scale[2])
 end
-
 
 return Components

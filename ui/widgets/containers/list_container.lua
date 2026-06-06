@@ -1,12 +1,18 @@
 local Widget = require "ui.widgets.widget"
 local Class = require "dependencies.classic"
 
-
 local AXIS = {
-	vertical   = { pos = "y", size = "h", alter = "x" },
-	horizontal = { pos = "x", size = "w", alter = "y" },
+	vertical = {
+		pos = "y",
+		size = "h",
+		alter = "x"
+	},
+	horizontal = {
+		pos = "x",
+		size = "w",
+		alter = "y"
+	}
 }
-
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	orientation = "vertical" | "horizontal"
@@ -30,7 +36,6 @@ local List = Class(Widget, function(self, datas, theme)
 	end
 end)
 
-
 function List:setItems(items)
 	self:removeAllChildren()
 	self.items = {}
@@ -40,7 +45,6 @@ function List:setItems(items)
 	end
 	self:layout()
 end
-
 
 function List:insert(item, pos)
 	if pos then
@@ -70,9 +74,10 @@ function List:removeAtPos(pos)
 	return item
 end
 
-
 function List:layout()
-	if self._in_layout then return end
+	if self._in_layout then
+		return
+	end
 	self._in_layout = true
 	local a = self._axis
 	local offset = 0
@@ -89,14 +94,10 @@ function List:layout()
 		offset = offset + item_size + self.space
 	end
 	local list_total = math.max(0, offset - self.space)
-	self.transform:setSize(
-		a.pos == "x" and list_total or nil,
-		a.pos == "y" and list_total or nil
-	)
+	self.transform:setSize(a.pos == "x" and list_total or nil, a.pos == "y" and list_total or nil)
 	self._layout_dirty = false
 	self._in_layout = false
 end
-
 
 function List:onUpdate(dt)
 	-- 检测子元素尺寸变化，自动触发重新布局
@@ -121,6 +122,5 @@ function List:onUpdate(dt)
 		self._child_sizes[v] = {sw, sh}
 	end
 end
-
 
 return List

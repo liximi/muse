@@ -5,7 +5,6 @@ local ListContainer = require "ui.widgets.containers.list_v_container"
 local ScrollContainer = require "ui.widgets.containers.scroll_container"
 local Class = require "dependencies.classic"
 
-
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	chatter_id = string
 
@@ -31,7 +30,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 	self.root = self:addChild(Widget("BubbleRoot", {
 		anchor = {x, 0, x, 0},
 		padding = {0, 0, 0, 0},
-		pivot = {x, 0},
+		pivot = {x, 0}
 	}))
 
 	self.bg = self.root:addChild(Panel({
@@ -39,7 +38,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 		outline_width = 0,
 		rounding_radius = datas and datas.rounding_radius,
 		anchor = {0, 0, 1, 1},
-		padding = {0, 0, 0, 0},
+		padding = {0, 0, 0, 0}
 	}))
 
 	self.text = self.root:addChild(Text({
@@ -47,7 +46,7 @@ local ChatBubble = Class(Widget, function(self, datas, theme)
 		font_size = datas and datas.font_size,
 		text_color = datas and datas.text_color,
 		anchor = {0, 0, 1, 1},
-		padding = datas and datas.text_padding or {0, 0, 0, 0},
+		padding = datas and datas.text_padding or {0, 0, 0, 0}
 	}))
 	self:setText(datas and datas.text)
 end)
@@ -78,14 +77,6 @@ function ChatBubble:updateStyle(style)
 	self:setText()
 end
 
-
-
-
-
-
-
-
-
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	space = number 气泡间隔
 ]]
@@ -98,17 +89,16 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 	self.list = ListContainer({
 		space = datas and datas.space,
 		anchor = {0, 0, 1, 0},
-		padding = {0, 12, 0, 0},
+		padding = {0, 12, 0, 0}
 	})
 	self.scroll_container = self:addChild(ScrollContainer({
 		item = self.list,
 		anchor = {0, 0, 1, 1},
-		padding = {0, 0, 0, 0},
+		padding = {0, 0, 0, 0}
 		-- show_slider_bar = false,
-        -- hide_slider_when_cannot_scroll = true,
+		-- hide_slider_when_cannot_scroll = true,
 	}))
 end)
-
 
 --- 设置要显示的聊天记录，必须在添加聊天记录之前设置样式
 ---@param history table {{"chatter_id", "content"}, {"chatter_id", "content"}, ...}
@@ -157,7 +147,8 @@ end
 ---@param text_color table {r, g, b, a}
 ---@param text_padding table {left, right, top, bottom}
 ---@param alignment "left"|"right"
-function ChatHistory:createChatBubbleStyle(bg_color, rounding_radius, max_width, font_key, font_size, text_color, text_padding, alignment)
+function ChatHistory:createChatBubbleStyle(bg_color, rounding_radius, max_width, font_key, font_size, text_color,
+	text_padding, alignment)
 	return {
 		bg_color = bg_color,
 		rounding_radius = rounding_radius,
@@ -166,10 +157,9 @@ function ChatHistory:createChatBubbleStyle(bg_color, rounding_radius, max_width,
 		font_size = font_size,
 		text_color = text_color,
 		text_padding = text_padding,
-		alignment = alignment,
+		alignment = alignment
 	}
 end
-
 
 function ChatHistory:createChatBubble(chatter_id, text)
 	local bubble_style = self.chatter_styles[chatter_id]
@@ -186,7 +176,7 @@ function ChatHistory:createChatBubble(chatter_id, text)
 		text_padding = bubble_style.text_padding,
 
 		anchor = {0, 0, 1, 0},
-		padding = {0, 0},
+		padding = {0, 0}
 	})
 	return bubble
 end
@@ -198,7 +188,6 @@ function ChatHistory:updateChatBubble(bubble, chatter_id, text)
 		bubble:updateStyle(self.chatter_styles[chatter_id])
 	end
 end
-
 
 function ChatHistory:refresh()
 	local new_count = #self.history
@@ -226,7 +215,6 @@ function ChatHistory:refresh()
 	end
 end
 
-
 function ChatHistory:onUpdate(dt)
 	local list_h = self.list.transform.h
 	local scrollable_h = self.scroll_container.scrollable_h
@@ -234,6 +222,5 @@ function ChatHistory:onUpdate(dt)
 		self.scroll_container:setScrollableH(list_h)
 	end
 end
-
 
 return ChatHistory

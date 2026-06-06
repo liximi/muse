@@ -38,7 +38,6 @@ local function _updateHeightAndY(transform)
 	end
 end
 
-
 local twoPi = 2 * math.pi
 local function normalizeRadians(rad)
 	if rad > 0 and rad < twoPi then
@@ -50,7 +49,6 @@ local function normalizeRadians(rad)
 	end
 	return normalized
 end
-
 
 local function _calcAABB(x, y, sw, sh, px, py, r)
 	local dx_left = -sw * px
@@ -66,11 +64,10 @@ local function _calcAABB(x, y, sw, sh, px, py, r)
 	local sin_dx_r = dx_right * sin
 	local cos_dy_t = dy_top * cos
 	local cos_dy_b = dy_bottom * cos
-	local verts = {
-		{x + cos_dx_l - sin_dy_t, y + sin_dx_l + cos_dy_t},--Left Top
-		{x + cos_dx_r - sin_dy_t, y + sin_dx_r + cos_dy_t},--Right Top
-		{x + cos_dx_l - sin_dy_b, y + sin_dx_l + cos_dy_b},--Left Bottom
-		{x + cos_dx_r - sin_dy_b, y + sin_dx_r + cos_dy_b},--Right Bottom
+	local verts = {{x + cos_dx_l - sin_dy_t, y + sin_dx_l + cos_dy_t}, -- Left Top
+	{x + cos_dx_r - sin_dy_t, y + sin_dx_r + cos_dy_t}, -- Right Top
+	{x + cos_dx_l - sin_dy_b, y + sin_dx_l + cos_dy_b}, -- Left Bottom
+	{x + cos_dx_r - sin_dy_b, y + sin_dx_r + cos_dy_b} -- Right Bottom
 	}
 	local minx, maxx, miny, maxy = verts[1][1], verts[1][1], verts[1][2], verts[1][2]
 	for i, v in ipairs(verts) do
@@ -91,11 +88,9 @@ local function _calcAABB(x, y, sw, sh, px, py, r)
 	return minx, miny, maxx - minx, maxy - miny
 end
 
-
 --------------------------------------------------
 -- Public Setter
 --------------------------------------------------
-
 
 --- 会额外影响Padding
 local function setPosition(self, x, y)
@@ -200,11 +195,9 @@ local function setRotation(self, rot)
 	self.rotation = normalizeRadians(rot)
 end
 
-
 --------------------------------------------------
 -- Public Getter
 --------------------------------------------------
-
 
 local function getPosition(self)
 	return self.x, self.y
@@ -235,14 +228,13 @@ local function getPadding(self)
 		left = self.left,
 		right = self.right,
 		top = self.top,
-		bottom = self.bottom,
+		bottom = self.bottom
 	}
 end
 
 local function getRotation(self)
 	return self.rotation
 end
-
 
 local two_pi = math.pi * 2
 local function getGlobalPosition(self)
@@ -269,8 +261,8 @@ local function getGlobalPosition(self)
 		-- 应用父级旋转
 		local cos_r = math.cos(parent_r)
 		local sin_r = math.sin(parent_r)
-		local dx_rot = dx * cos_r - dy * sin_r  -- 旋转后的x偏移
-		local dy_rot = dx * sin_r + dy * cos_r  -- 旋转后的y偏移
+		local dx_rot = dx * cos_r - dy * sin_r -- 旋转后的x偏移
+		local dy_rot = dx * sin_r + dy * cos_r -- 旋转后的y偏移
 		-- 最终全局坐标 = 父级旋转中心全局坐标 + 旋转后的偏移量
 		return parent_x + dx_rot, parent_y + dy_rot
 	end
@@ -320,10 +312,7 @@ end
 ---@return number r
 local function getBounds(self)
 	local sw, sh = getScaledSize(self)
-	return
-		self.x - sw * self.pivot[1],
-		self.y - sh * self.pivot[2],
-		sw, sh, self.rotation
+	return self.x - sw * self.pivot[1], self.y - sh * self.pivot[2], sw, sh, self.rotation
 end
 
 ---@return number x
@@ -334,62 +323,55 @@ end
 local function getGlobalBounds(self)
 	local x, y = getGlobalPosition(self)
 	local sw, sh = getGlobalScaledSize(self)
-	return
-		x - sw * self.pivot[1],
-		y - sh * self.pivot[2],
-		sw, sh, self:getGlobalRotation()
+	return x - sw * self.pivot[1], y - sh * self.pivot[2], sw, sh, self:getGlobalRotation()
 end
-
 
 local function screenToLocal(self, screen_x, screen_y)
 	local gx, gy = self:getGlobalPosition()
 	local gr = self:getGlobalRotation()
 	local gsx, gsy = self:getGlobalScale()
 
-    local offset_x = screen_x - gx
-    local offset_y = screen_y - gy
+	local offset_x = screen_x - gx
+	local offset_y = screen_y - gy
 
-    local dx, dy
-    if gr == 0 or gr == two_pi then
-        dx = offset_x
-        dy = offset_y
-    else
-        local cos_r = math.cos(gr)
-        local sin_r = math.sin(gr)
-        dx = offset_x * cos_r + offset_y * sin_r
-        dy = -offset_x * sin_r + offset_y * cos_r
-    end
-    return dx/gsx, dy/gsy
+	local dx, dy
+	if gr == 0 or gr == two_pi then
+		dx = offset_x
+		dy = offset_y
+	else
+		local cos_r = math.cos(gr)
+		local sin_r = math.sin(gr)
+		dx = offset_x * cos_r + offset_y * sin_r
+		dy = -offset_x * sin_r + offset_y * cos_r
+	end
+	return dx / gsx, dy / gsy
 end
-
-
-
 
 local function Transform()
 	return {
 		-- parent = Transform(),
-		x = 0,--pivot相对锚点范围左边缘的偏移量（像素）
-		y = 0,--pivot相对锚点范围上边缘的偏移量（像素）
+		x = 0, -- pivot相对锚点范围左边缘的偏移量（像素）
+		y = 0, -- pivot相对锚点范围上边缘的偏移量（像素）
 
 		w = 0,
 		h = 0,
 
-		rotation = 0,--单位：弧度
+		rotation = 0, -- 单位：弧度
 
 		scale_x = 1,
 		scale_y = 1,
-		--锚点，决定了元素在父容器中的定位基准，虽然说是点，但其实是一个范围
-		anchor_min = {0, 0},--锚点的左上角坐标（百分比）
-		anchor_max = {0, 0},--锚点的右下角坐标（百分比）
-		--支点，决定了元素自身坐标的原点，同时也是旋转、缩放等变换的中心（百分比）。
+		-- 锚点，决定了元素在父容器中的定位基准，虽然说是点，但其实是一个范围
+		anchor_min = {0, 0}, -- 锚点的左上角坐标（百分比）
+		anchor_max = {0, 0}, -- 锚点的右下角坐标（百分比）
+		-- 支点，决定了元素自身坐标的原点，同时也是旋转、缩放等变换的中心（百分比）。
 		pivot = {0, 0},
 
-		left = 0,--元素的左边缘到锚点左侧的距离（像素）
-		right = 0,--元素的右边缘到锚点右侧的距离（像素）
-		top = 0,--元素的上边缘到锚点顶部的距离（像素）
-		bottom = 0,--元素的下边缘到锚点底部的距离（像素）
+		left = 0, -- 元素的左边缘到锚点左侧的距离（像素）
+		right = 0, -- 元素的右边缘到锚点右侧的距离（像素）
+		top = 0, -- 元素的上边缘到锚点顶部的距离（像素）
+		bottom = 0, -- 元素的下边缘到锚点底部的距离（像素）
 
-		setParent = function (self, parent_transform)
+		setParent = function(self, parent_transform)
 			self.parent = parent_transform
 			self:onUpdate(true)
 		end,
@@ -425,33 +407,32 @@ local function Transform()
 			local parent_w = self.parent and self.parent.w or love.graphics.getWidth()
 			local parent_h = self.parent and self.parent.h or love.graphics.getHeight()
 			if not force and self._cache then
-				if self._cache.amin1 == self.anchor_min[1]
-					and self._cache.amax1 == self.anchor_max[1]
-					and self._cache.amin2 == self.anchor_min[2]
-					and self._cache.amax2 == self.anchor_max[2]
-					and self._cache.p1 == self.pivot[1]
-					and self._cache.p2 == self.pivot[2]
-					and self._cache.l == self.left
-					and self._cache.r == self.right
-					and self._cache.t == self.top
-					and self._cache.b == self.bottom
-					and self._cache.x == self.x
-					and self._cache.y == self.y
-					and self._cache.w == self.w
-					and self._cache.h == self.h
-					and self._cache.pw == parent_w
-					and self._cache.ph == parent_h
-				then
+				if self._cache.amin1 == self.anchor_min[1] and self._cache.amax1 == self.anchor_max[1] and
+					self._cache.amin2 == self.anchor_min[2] and self._cache.amax2 == self.anchor_max[2] and
+					self._cache.p1 == self.pivot[1] and self._cache.p2 == self.pivot[2] and self._cache.l == self.left and
+					self._cache.r == self.right and self._cache.t == self.top and self._cache.b == self.bottom and
+					self._cache.x == self.x and self._cache.y == self.y and self._cache.w == self.w and self._cache.h ==
+					self.h and self._cache.pw == parent_w and self._cache.ph == parent_h then
 					return
 				end
 			end
 			self._cache = {
-				amin1 = self.anchor_min[1], amax1 = self.anchor_max[1],
-				amin2 = self.anchor_min[2], amax2 = self.anchor_max[2],
-				p1 = self.pivot[1], p2 = self.pivot[2],
-				l = self.left, r = self.right, t = self.top, b = self.bottom,
-				x = self.x, y = self.y, w = self.w, h = self.h,
-				pw = parent_w, ph = parent_h,
+				amin1 = self.anchor_min[1],
+				amax1 = self.anchor_max[1],
+				amin2 = self.anchor_min[2],
+				amax2 = self.anchor_max[2],
+				p1 = self.pivot[1],
+				p2 = self.pivot[2],
+				l = self.left,
+				r = self.right,
+				t = self.top,
+				b = self.bottom,
+				x = self.x,
+				y = self.y,
+				w = self.w,
+				h = self.h,
+				pw = parent_w,
+				ph = parent_h
 			}
 			if self.anchor_min[1] == self.anchor_max[1] then
 				_updateLeftRight(self)
@@ -466,8 +447,11 @@ local function Transform()
 		end,
 
 		__tostring = function(self)
-			return string.format("position:[%.2f, %.2f] size:[%.2f, %.2f] rotation:%.2f scale:[%.2f, %.2f] anchor:[%.2f, %.2f, %.2f, %.2f] pivot:[%.2f, %.2f] padding:[l:%.2f, r:%.2f, t:%.2f b:%.2f]",
-				self.x, self.y, self.w, self.h, self.rotation, self.scale_x, self.scale_y, self.anchor_min[1], self.anchor_min[2], self.anchor_max[1], self.anchor_max[2], self.pivot[1], self.pivot[2], self.left, self.right, self.top, self.bottom)
+			return string.format(
+				"position:[%.2f, %.2f] size:[%.2f, %.2f] rotation:%.2f scale:[%.2f, %.2f] anchor:[%.2f, %.2f, %.2f, %.2f] pivot:[%.2f, %.2f] padding:[l:%.2f, r:%.2f, t:%.2f b:%.2f]",
+				self.x, self.y, self.w, self.h, self.rotation, self.scale_x, self.scale_y, self.anchor_min[1],
+				self.anchor_min[2], self.anchor_max[1], self.anchor_max[2], self.pivot[1], self.pivot[2], self.left,
+				self.right, self.top, self.bottom)
 		end
 	}
 end

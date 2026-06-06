@@ -3,7 +3,6 @@ local Utils = require "ui.utils"
 local Transform = require "ui.transform"
 local Class = require "dependencies.classic"
 
-
 --[[datas:
 	pivot = {x, y}
 	anchor = {minx, miny, maxx, maxy}
@@ -68,7 +67,6 @@ local Widget = Class(function(self, name, datas, theme)
 	self.always_draw = false
 	self._clip_rect = nil
 end)
-
 
 --------------------------------------------------
 -- Transform
@@ -258,7 +256,7 @@ function Widget:drawAABB()
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	local x, y, w, h = self.transform:getGlobalAABB()
-	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
+	love.graphics.rectangle("line", x - 1, y - 1, w + 2, h + 2)
 end
 
 function Widget:drawBound()
@@ -270,7 +268,7 @@ function Widget:drawBound()
 	love.graphics.translate(px, py)
 	love.graphics.rotate(r)
 	love.graphics.translate(-px, -py)
-	love.graphics.rectangle("line", x-1, y-1, w+2, h+2)
+	love.graphics.rectangle("line", x - 1, y - 1, w + 2, h + 2)
 	if w < 0 or h < 0 then
 		love.graphics.line(x, y, x + w, y + h)
 		love.graphics.line(x + w, y, x, y + h)
@@ -364,7 +362,6 @@ function Widget:moveToBottom()
 	end
 end
 
-
 --------------------------------------------------
 -- Event Handler
 --------------------------------------------------
@@ -403,7 +400,6 @@ function Widget:enableSizeChangedEvent(enable)
 	end
 end
 
-
 --------------------------------------------------
 -- Debug
 --------------------------------------------------
@@ -415,6 +411,5 @@ end
 function Widget:enableDebug(enable)
 	self._debug = enable == true
 end
-
 
 return Widget

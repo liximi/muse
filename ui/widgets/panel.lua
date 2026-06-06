@@ -2,8 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-
---一个纯色的面板，可设置面板颜色和边框颜色
+-- 一个纯色的面板，可设置面板颜色和边框颜色
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	bg_color = {r, g, b, a}
 	outline_width = number
@@ -17,7 +16,6 @@ local Panel = Class(Widget, function(self, datas, theme)
 	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color
 	self.rounding_radius = datas and datas.rounding_radius or self.theme.panel.rounding_radius
 end)
-
 
 --- 设置背景颜色
 ---@param r number 红色通道的值 0~255
@@ -43,9 +41,6 @@ function Panel:SetOutlineColor(r, g, b)
 	end
 end
 
-
-
-
 function Panel:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 
@@ -66,6 +61,5 @@ function Panel:onDraw()
 	end
 	love.graphics.pop()
 end
-
 
 return Panel

@@ -4,7 +4,6 @@ local Button = require "ui.widgets.button"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-
 -- 标签页视图，顶部 Tab 栏 + 下方内容面板
 --[[datas: 此处不包括基类所支持的字段
 	tabs = {{label = string, content = Widget}, ...}
@@ -26,7 +25,7 @@ local TabView = Class(Widget, function(self, datas, theme)
 	self.tab_bar = self:addChild(Widget({
 		anchor = {0, 0, 1, 0},
 		h = tab_bar_h,
-		padding = {0, 0, 0, 0},
+		padding = {0, 0, 0, 0}
 	}))
 
 	-- 内容区域
@@ -34,14 +33,13 @@ local TabView = Class(Widget, function(self, datas, theme)
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, tab_bar_h, 0},
 		bg_color = datas and datas.content_bg or self.theme.tabview.content_bg,
-		rounding_radius = datas and datas.content_rounding_radius or self.theme.tabview.content_rounding_radius,
+		rounding_radius = datas and datas.content_rounding_radius or self.theme.tabview.content_rounding_radius
 	}))
 
 	if datas and datas.tabs then
 		self:setTabs(datas.tabs, datas.selected_index)
 	end
 end)
-
 
 --- 设置标签页列表
 ---@param tab_list table {{label = string, content = Widget}, ...}
@@ -53,7 +51,9 @@ function TabView:setTabs(tab_list, selected_index)
 	self._tab_buttons = {}
 
 	local n = #tab_list
-	if n == 0 then return end
+	if n == 0 then
+		return
+	end
 
 	for i, tab in ipairs(tab_list) do
 		tab.index = i
@@ -62,20 +62,11 @@ function TabView:setTabs(tab_list, selected_index)
 		local btn = Button({
 			anchor = {(i - 1) / n, 0, i / n, 1},
 			padding = {2, 2, 2, 2},
-			normal = Utils.newButtonStateStyle(
-				tab.label,
-				self.theme.tabview.tab_text_normal,
-				self.theme.tabview.tab_font_size,
-				self.theme.tabview.tab_bg_normal,
-				1,
-				self.theme.tabview.tab_outline_color or Utils.UI_COLORS.LINE
-			),
-			selected = Utils.newButtonStateStyle(
-				nil,
-				self.theme.tabview.tab_text_selected,
-				nil,
-				self.theme.tabview.tab_bg_selected
-			),
+			normal = Utils.newButtonStateStyle(tab.label, self.theme.tabview.tab_text_normal,
+				self.theme.tabview.tab_font_size, self.theme.tabview.tab_bg_normal, 1,
+				self.theme.tabview.tab_outline_color or Utils.UI_COLORS.LINE),
+			selected = Utils.newButtonStateStyle(nil, self.theme.tabview.tab_text_selected, nil,
+				self.theme.tabview.tab_bg_selected),
 			on_click = function()
 				self:selectTab(i)
 			end
@@ -89,12 +80,15 @@ function TabView:setTabs(tab_list, selected_index)
 	end
 end
 
-
 --- 切换到指定索引的标签页
 ---@param index number
 function TabView:selectTab(index)
-	if index == self._selected_index then return end
-	if not self.tabs[index] then return end
+	if index == self._selected_index then
+		return
+	end
+	if not self.tabs[index] then
+		return
+	end
 
 	-- 更新按钮状态
 	if self._selected_index and self._tab_buttons[self._selected_index] then
@@ -114,12 +108,10 @@ function TabView:selectTab(index)
 	end
 end
 
-
 --- 获取当前选中索引
 ---@return number|nil
 function TabView:getSelected()
 	return self._selected_index
 end
-
 
 return TabView

@@ -3,20 +3,18 @@ local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
-
---按钮类的基类，请不要直接使用该类，可使用widget.button.lua中的Button类
+-- 按钮类的基类，请不要直接使用该类，可使用widget.button.lua中的Button类
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	on_click = function
 	on_pressed = function
 ]]
-local ButtonBase = Class(Widget, function (self, name, datas, theme)
+local ButtonBase = Class(Widget, function(self, name, datas, theme)
 	Widget.new(self, name or "ButtonBase", datas, theme)
 
 	self.cur_state = BTN_STATES.NORMAL
 	self.onClick = datas and datas.on_click
 	self.onPressed = datas and datas.on_pressed
 end)
-
 
 function ButtonBase:setState(new_state)
 	if not BTN_STATES[string.upper(new_state)] then
@@ -45,7 +43,6 @@ function ButtonBase:onRemoveFocus()
 		self:setState(BTN_STATES.NORMAL)
 	end
 end
-
 
 function ButtonBase:onMousePressed(x, y, button)
 	if button == 1 and self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection()) then
@@ -108,6 +105,5 @@ end
 function ButtonBase:onDisabled()
 	self:setState(Utils.BTN_STATES.DISABLED)
 end
-
 
 return ButtonBase

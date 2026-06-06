@@ -7,7 +7,6 @@ local Fonts = require "ui.fonts"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
-
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	no_text = boolean
 	normal = Utils.newImageButtonStateStyle
@@ -17,7 +16,7 @@ local BTN_STATES = Utils.BTN_STATES
 	selected = Utils.newImageButtonStateStyle
 	selected_hover = Utils.newImageButtonStateStyle
 ]]
-local ImageButton = Class(ButtonBase, function (self, datas, theme)
+local ImageButton = Class(ButtonBase, function(self, datas, theme)
 	datas = datas or {}
 	if not datas.w then
 		datas.w = datas.normal and datas.normal.texture and datas.normal.texture:getWidth()
@@ -33,14 +32,14 @@ local ImageButton = Class(ButtonBase, function (self, datas, theme)
 		pressed = datas.pressed,
 		disabled = datas.disabled,
 		selected = datas.selected,
-		selected_hover = datas.selected_hover,
+		selected_hover = datas.selected_hover
 	}
 
 	local img_datas = {
 		texture = datas.normal and datas.normal.texture,
 		tint = datas.normal and datas.normal.tint or (self.theme.imagebutton and self.theme.imagebutton.normal.tint),
 		anchor = {0, 0, 1, 1},
-		padding = {0, 0, 0, 0},
+		padding = {0, 0, 0, 0}
 	}
 	self.image = self:addChild(Image(img_datas, theme))
 
@@ -52,13 +51,14 @@ local ImageButton = Class(ButtonBase, function (self, datas, theme)
 			h_align = "center",
 			v_align = "center",
 			text = self.state_styles.normal and self.state_styles.normal.text or "Button",
-			text_color = self.state_styles.normal and self.state_styles.normal.text_color or (self.theme.imagebutton and self.theme.imagebutton.normal.text_color),
+			text_color = self.state_styles.normal and self.state_styles.normal.text_color or
+				(self.theme.imagebutton and self.theme.imagebutton.normal.text_color),
 			font_key = datas.font_key,
-			font_size = self.state_styles.normal and self.state_styles.normal.font_size or (self.theme.imagebutton and self.theme.imagebutton.normal.font_size),
+			font_size = self.state_styles.normal and self.state_styles.normal.font_size or
+				(self.theme.imagebutton and self.theme.imagebutton.normal.font_size)
 		}))
 	end
 end)
-
 
 --- 设置按钮在某个状态下的样式
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
@@ -72,14 +72,13 @@ function ImageButton:setStateStyle(state, style)
 	self:setState(self.cur_state)
 end
 
-
 --- 获取按钮在某个状态下的样式，会自动合并自定义样式、normal状态样式和主题样式
 --- state_styles里对应状态的数据 > state_styles里normal状态的数据 > 主题里对应状态的数据 > 主题里normal状态的数据
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 function ImageButton:getStateStyle(state)
 	local style = {}
-	local t1 = { self.state_styles, self.theme.imagebutton }
-	local t2 = state == "normal" and { "normal" } or { state, "normal" }
+	local t1 = {self.state_styles, self.theme.imagebutton}
+	local t2 = state == "normal" and {"normal"} or {state, "normal"}
 	for _, t in ipairs(t1) do
 		for _, s in ipairs(t2) do
 			if t[s] then
@@ -94,7 +93,6 @@ function ImageButton:getStateStyle(state)
 	return style
 end
 
-
 function ImageButton:onSetState(old_state, new_state)
 	local old_style = self:getStateStyle(old_state)
 	local new_style = self:getStateStyle(new_state)
@@ -107,17 +105,16 @@ function ImageButton:onSetState(old_state, new_state)
 	end
 	local new_tint = new_style.tint or Utils.UI_COLORS.WHITE
 	local cur_tint = self.image:getTint()
-	if cur_tint[1] ~= new_tint[1] or cur_tint[2] ~= new_tint[2] or cur_tint[3] ~= new_tint[3] or cur_tint[4] ~= new_tint[4] then
+	if cur_tint[1] ~= new_tint[1] or cur_tint[2] ~= new_tint[2] or cur_tint[3] ~= new_tint[3] or cur_tint[4] ~=
+		new_tint[4] then
 		self.image:setTint(new_tint)
 	end
 end
-
 
 function ImageButton:onDebugDraw()
 	local x, y, w, h = self.transform:getGlobalAABB()
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	love.graphics.printf(string.format("State: %s", self.cur_state), Fonts:getFont("debug", 16), x, y + h, w)
 end
-
 
 return ImageButton

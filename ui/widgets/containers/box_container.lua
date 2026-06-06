@@ -1,12 +1,20 @@
 local Widget = require "ui.widgets.widget"
 local Class = require "dependencies.classic"
 
-
 local AXIS = {
-	vertical   = { pos = "y", size = "h", alter_pos = "x", alter_size = "w" },
-	horizontal = { pos = "x", size = "w", alter_pos = "y", alter_size = "h" },
+	vertical = {
+		pos = "y",
+		size = "h",
+		alter_pos = "x",
+		alter_size = "w"
+	},
+	horizontal = {
+		pos = "x",
+		size = "w",
+		alter_pos = "y",
+		alter_size = "h"
+	}
 }
-
 
 -- Flexbox 式布局容器，子元素按 flex 权重伸缩
 -- 子 widget 上设置 flex_grow / flex_shrink / flex_min_size 字段来控制布局行为
@@ -30,9 +38,10 @@ local Box = Class(Widget, function(self, datas, theme)
 	self:enableSizeChangedEvent(true)
 end)
 
-
 function Box:layout()
-	if self._in_layout then return end
+	if self._in_layout then
+		return
+	end
 	self._in_layout = true
 
 	local a = self._axis
@@ -57,7 +66,7 @@ function Box:layout()
 			cross_size = cross_size,
 			flex_grow = child.flex_grow or 0,
 			flex_shrink = child.flex_shrink or 1,
-			min_size = child.flex_min_size or 0,
+			min_size = child.flex_min_size or 0
 		}
 		table.insert(visible, entry)
 		total_preferred = total_preferred + main_size
@@ -124,7 +133,7 @@ function Box:layout()
 		elseif self.cross_align == "end" then
 			cross_offset = container_cross - entry.cross_allocated
 		else
-			cross_offset = 0  -- stretch 模式，由尺寸填充
+			cross_offset = 0 -- stretch 模式，由尺寸填充
 		end
 
 		if a.pos == "x" then
@@ -146,7 +155,6 @@ function Box:layout()
 	self._layout_dirty = false
 	self._in_layout = false
 end
-
 
 function Box:addChild(child)
 	Widget.addChild(self, child)
@@ -170,6 +178,5 @@ end
 function Box:onSizeChanged(w, h)
 	self._layout_dirty = true
 end
-
 
 return Box
