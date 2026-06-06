@@ -6,6 +6,9 @@ local Utils = require "ui.utils"
 local UiManager = require "ui.ui_manager":GetInstance()
 local Class = require "dependencies.classic"
 
+-- 跟踪所有活跃的 Dropdown popup，用于测试场景切换时批量清理
+local active_dropdowns = {}
+
 -- 伪常量
 local ITEM_HEIGHT = 28          -- 选项按钮高度（像素）
 local MAX_VISIBLE_ITEMS = 6     -- 默认同时可见最多选项数
@@ -47,6 +50,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	})
 	self.popup.render_layer = Utils.RENDER_LAYERS.DROPDOWN
 	UiManager:addWidget(self.popup)
+	table.insert(active_dropdowns, self)
 
 	-- 弹出面板（在 popup 内部绝对定位）
 	self.panel = self.popup:addChild(Panel({
@@ -72,6 +76,32 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	self:_buildItems()
 	self.popup:hide()
 end)
+
+--- 销毁当前 Dropdown 的 popup 并从 UiManager 移除
+function Dropdown:destroyPopup()
+	if not self.popup then
+		return
+	end
+	for i, w in ipairs(UiManager.hierarchy) do
+		if w == self.popup then
+			table.remove(UiManager.hierarchy, i)
+			break
+		end
+	end
+	self.popup:destroy()
+	self.popup = nil
+end
+
+--- 销毁所有活跃 Dropdown 的 popup（测试场景切换时调用）
+function Dropdown.destroyAll()
+	for _, dd in ipairs(active_dropdowns) do
+		dd:destroyPopup()
+	end
+	-- 清空注册表（但保留表本身，下次创建还会往里加）
+	for i = #active_dropdowns, 1, -1 do
+		active_dropdowns[i] = nil
+	end
+end
 
 function Dropdown:_getDisplayText()
 	if #self.options == 0 then
