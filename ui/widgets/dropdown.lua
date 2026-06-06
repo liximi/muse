@@ -9,6 +9,14 @@ local Class = require "dependencies.classic"
 -- 跟踪所有活跃的 Dropdown popup，用于测试场景切换时批量清理
 local active_dropdowns = {}
 
+-- 递归设置 widget 及其所有子节点的 render_layer
+local function setRenderLayerRecursive(widget, layer)
+	widget.render_layer = layer
+	for _, child in ipairs(widget.children) do
+		setRenderLayerRecursive(child, layer)
+	end
+end
+
 -- 伪常量
 local ITEM_HEIGHT = 28          -- 选项按钮高度（像素）
 local MAX_VISIBLE_ITEMS = 6     -- 默认同时可见最多选项数
@@ -74,6 +82,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	end
 
 	self:_buildItems()
+	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self.popup:hide()
 end)
 
@@ -123,6 +132,8 @@ function Dropdown:_open()
 	if not self.trigger or not self.popup then
 		return
 	end
+	-- 确保 popup 整棵子树都是 DROPDOWN 渲染层（_buildItems 可能新增了节点）
+	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self._is_open = true
 
 	-- 计算面板位置（触发按钮底部）
@@ -185,7 +196,7 @@ function Dropdown:_buildItems()
 			anchor = {0, 0, 1, 0},
 		})
 		list.transform:setSize(nil, #self.options * ITEM_HEIGHT)
-		list.render_layer = Utils.RENDER_LAYERS.DROPDOWN
+		-- render_layer 由外层 setRenderLayerRecursive 统一设置
 
 		for i, option_text in ipairs(self.options) do
 			local btn = self:_createItemBtn(i, option_text, (i - 1) * ITEM_HEIGHT)
@@ -198,7 +209,6 @@ function Dropdown:_buildItems()
 			padding = {0, SCROLL_BAR_W + SCROLL_BAR_GAP, 0, 0},
 			scrollbar_gap = SCROLL_BAR_GAP,
 		})
-		scroll.render_layer = Utils.RENDER_LAYERS.DROPDOWN
 		self.panel:addChild(scroll)
 	end
 end
@@ -225,7 +235,6 @@ function Dropdown:_createItemBtn(index, text, y_pos)
 			self:select(index)
 		end,
 	})
-	btn.render_layer = Utils.RENDER_LAYERS.DROPDOWN
 	return btn
 end
 
