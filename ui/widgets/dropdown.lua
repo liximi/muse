@@ -65,7 +65,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 
 	-- 点击 popup 空白区域关闭下拉
 	function self.popup.onMousePressed(_self, x, y, button)
-		if button == 1 then
+		if button == 1 and self.panel then
 			if not self.panel:regionDetection(x, y) then
 				self:_close()
 				return true
@@ -120,6 +120,9 @@ function Dropdown:_toggle()
 end
 
 function Dropdown:_open()
+	if not self.trigger or not self.popup then
+		return
+	end
 	self._open = true
 
 	-- 计算面板位置（触发按钮底部）
@@ -149,7 +152,9 @@ end
 
 function Dropdown:_close()
 	self._open = false
-	self.popup:hide()
+	if self.popup then
+		self.popup:hide()
+	end
 end
 
 function Dropdown:_calcPanelHeight()
