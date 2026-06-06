@@ -31,7 +31,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	self.selected_index = datas.selected_index or 1
 	self.onSelect = datas.on_select
 	self.max_visible_items = datas.max_visible_items or MAX_VISIBLE_ITEMS
-	self._open = false
+	self._is_open = false
 
 	-- 触发按钮
 	self.trigger = self:addChild(Button({
@@ -112,7 +112,7 @@ function Dropdown:_getDisplayText()
 end
 
 function Dropdown:_toggle()
-	if self._open then
+	if self._is_open then
 		self:_close()
 	else
 		self:_open()
@@ -123,7 +123,7 @@ function Dropdown:_open()
 	if not self.trigger or not self.popup then
 		return
 	end
-	self._open = true
+	self._is_open = true
 
 	-- 计算面板位置（触发按钮底部）
 	local tx, ty = self.trigger.transform:getGlobalPosition()
@@ -151,7 +151,7 @@ function Dropdown:_open()
 end
 
 function Dropdown:_close()
-	self._open = false
+	self._is_open = false
 	if self.popup then
 		self.popup:hide()
 	end
@@ -243,7 +243,7 @@ function Dropdown:select(index)
 	self.trigger:setStateStyle("normal", Utils.newButtonStateStyle(self:_getDisplayText()))
 	self:_buildItems()
 	-- 如果当前打开，关闭再打开以更新面板位置和选项高亮
-	if self._open then
+	if self._is_open then
 		self:_close()
 		self:_open()
 	end
@@ -265,7 +265,7 @@ function Dropdown:setOptions(options, selected_index)
 	self.selected_index = selected_index or 1
 	self.trigger:setStateStyle("normal", Utils.newButtonStateStyle(self:_getDisplayText()))
 	self:_buildItems()
-	if self._open then
+	if self._is_open then
 		self:_close()
 		self:_open()
 	end
