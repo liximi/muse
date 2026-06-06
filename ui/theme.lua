@@ -42,7 +42,7 @@ local Theme = Class(function(self)
 		hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, nil, nil, {0, -1}),
 		selected_hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1,
 			Utils.UI_COLORS.ACCENT_LIGHT),
-		disabled = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.SECONDARY_TEXT, nil, Utils.UI_COLORS.BTN_DISABLED)
+		disabled = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.SECONDARY_TEXT, nil, Utils.UI_COLORS.BTN_DISABLED, 1, Utils.UI_COLORS.LINE)
 	}
 
 	self.sliderbar = {
