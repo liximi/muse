@@ -513,6 +513,9 @@ end
 
 function TextInput:lineBreak()
 	self:_saveOneShot()
+	if self:_hasSelection() then
+		self:_deleteSelection()
+	end
 	local old_section = self.cursor.section
 	local old_text = self.sections[old_section]
 	local old_idx = self.cursor.index
