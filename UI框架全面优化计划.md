@@ -409,3 +409,64 @@
 | 第六阶段 | ~260 | 方法名拼写修正 |
 
 **总计**: 约 2600 行变动（含新增、修改、删除），其中净增约 1800 行。
+
+---
+
+## 执行状态记录
+
+### ✅ 第一阶段：Bug 修复（P0）— 已完成
+
+- **1-1 颜色双重转换**：先止血（方案 A），后根除（方案 B，统一 `setTextColor` 只接受表格式）
+- **1-2 cursor_blinking**：已移至 `self._cursor_blinking` / `self._cursor_blinking_timer`
+
+### ✅ 第二阶段：核心功能补全（P1）— 已完成
+
+- **2-1 焦点管理**：`UiManager.current_focus` + `setFocus/getFocus/clearFocus` + Tab/Shift+Tab 切换 + Widget.focusable
+- **2-2 脏标记**：`_layout_dirty` + `_in_layout` 守卫，`onUpdate` 检测后触发 `layout()`
+- **2-3 文本选区**：Shift+方向键 + 鼠标拖拽 + 高亮渲染（含跨 section 选区修正）
+- **2-4 剪贴板**：Ctrl+C/V/X 集成 `love.system`
+- **2-5 撤销/重做**：操作栈 + 类型合并 + 300ms 非活动计时器自动提交操作组
+
+### ✅ 第三阶段：架构改善（P2）— 已完成
+
+- **3-1 颜色格式统一**：已在 P0 方案 B 顺带完成
+- **3-2 SliderBar 合并**：统一 `sliderbar.lua`，AXIS 轴向抽象，薄兼容层保留
+- **3-3 List 容器合并**：统一 `list_container.lua`，同时合并了 2-2 脏标记逻辑
+- **3-4 主题系统落地**：Theme 新增 sliderbar/progressbar/checkbox/radiobutton/modal/tabview 条目，瑞士现代主义默认主题
+- **3-5 Transform 变更检测**：16 字段缓存比较，跳过无变更帧
+- **3-6 按钮状态机去重**：`components.lua` 新增 `applyButtonTextStyle` + `applyButtonTransform`
+- **3-7 Widget 构造参数统一**：name 改为可选，支持 `Widget(datas, theme)` 调用
+
+### ✅ 第四阶段：功能扩展（P2-P3）— 已完成
+
+- **4-1 基础 Widget 补齐**：
+  - ✅ ProgressBar（纯视觉，支持水平/垂直）
+  - ✅ Checkbox（继承 ButtonBase 六态 FSM，支持 checkbox/toggle 样式，`self._checked` 逻辑状态追踪）
+  - ✅ RadioButton（继承 Checkbox，圆形渲染）+ RadioGroup（互斥管理 + `_handling` 级联守卫）
+  - ✅ Modal（全屏遮罩+居中内容，移除冗余 `_is_showing` 直接复用 Widget.shown，遮罩事件拦截，anchor={0,0,1,1} 窗口自适应）
+  - ✅ TabView（Tab 栏+内容面板切换）
+  - ⏭ Tooltip / Dropdown（跳过，依赖第五阶段渲染层分离）
+- **4-2 Box 容器**：Flexbox 布局（flex_grow/flex_shrink + cross_align），薄包装层
+- **4-3 可见性裁剪**：Widget:draw() 内 AABB intersect 检查 + ScrollContainer `_clip_rect` 传播 + `always_draw` 逃逸
+
+### 🔧 实施中发现并修复的额外 Bug
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| Transform `setPadding` 覆盖点锚点 w/h | `_updateHeightAndY` 对 `anchor_h==0` 计算 `h = -top - bottom` | `_updateWidthAndX`/`_updateHeightAndY` 内部检查 `anchor_w>0`/`anchor_h>0`，点锚点时仅更新位置不碰尺寸 |
+| Transform `setAnchor` 锚点模式不一致 | 始终调点锚点函数 `_updateLeftRight`，对拉伸锚点初始化的 padding 值错误（基于 screen 尺寸） | `setAnchor` 按锚点模式分发：点锚点→`_updateLeftRight`，拉伸→`_updateWidthAndX` |
+| ScrollContainer 按钮事件穿透 | stretch anchor widget 构造时无父级，padding 被 screen 尺寸污染，宽度覆盖整屏 | Gallery 按钮改用点锚点+显式宽度 |
+| Modal Close 按钮失效 | Modal 构造函数未设 anchor（默认点锚点 w=0,h=0），遮罩从 0 父级推算尺寸为 0，`content_container`(w=0,h=0) 的 `regionDetection` 永远 false | Modal 构造注入 `anchor={0,0,1,1}`，遮罩点击检测改用实际内容子元素 |
+| Modal `_is_showing` 与 `shown` 不同步 | `_is_showing` 是冗余 flag，初始 hide() 因 `_is_showing=false` 提前返回，`shown=true` 未修正，弹窗构造即可见但 dismiss 永远无效 | 删除 `_is_showing`，统一用 `self.shown` |
+| Checkbox 无法取消选中 | `isChecked()` 依赖 `cur_state`，PRESSED 状态下返回 false，`toggle()` 永远选中 | 独立 `self._checked` 逻辑状态字段 |
+| Checkbox `onChecked` 触发两次 | `setChecked` 和 `setSelected` 各调一次 | 删除 `setChecked` 中重复调用 |
+| RadioGroup 点击新选项无法选中 | `setChecked(false)` 触发 `onChecked` 回调 → 级联 mutual deselection | `_handling` 重入守卫 |
+| TextInput 键盘事件泄漏 | `onKeyPressed` 缺 `isFocus()` 守卫，所有实例响应 | 加焦点检查 |
+| UiManager 事件分发无 break | 所有根 widget 全部接收事件，Modal 遮罩无法拦截 | 各事件循环加 `if handled then break` |
+| ListContainer 子元素尺寸变化无 re-layout | 仅 `addChild/removeChild` 置脏，子元素自适应高度变化不触发 | `onUpdate` 新增子元素尺寸变更检测 |
+
+### 📐 新增 / 改进
+
+- **测试场景重构**：从单体 main.lua 改为 Gallery 浏览器（`tests/gallery.lua` + `tests/ui/` 9 个独立测试脚本），左侧滚动列表 + 右侧展示画布
+- **瑞士现代主义默认主题**：高对比度灰阶 + 钢蓝强调色 + 4px 圆角 + 1px 描边
+- **CLAUDE.md 更新**：Widget 继承树、Transform 锚点模式陷阱、Gallery 测试模式、闭包前向引用
