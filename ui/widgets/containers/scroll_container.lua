@@ -18,6 +18,7 @@ local Class = require "dependencies.classic"
 	hide_slider_when_cannot_scroll = bool 默认为false
 	h_slider_bar_height = number 水平滚动条的高度 默认为8 (滑块会各自向上下超出1像素)
 	v_slider_bar_width = number 垂直滚动条的宽度(像素) 默认为8 (滑块会各自向左右超出1像素)
+	scrollbar_gap = number 滚动条与内容间距(像素) 默认为2
 ]]
 local Scroll = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Scroll", datas, theme)
@@ -44,8 +45,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 
 		local h_bar_h = datas and datas.h_slider_bar_height or 8
 		local v_bar_w = datas and datas.v_slider_bar_width or 8
-		local right_pad = self.enable_scroll_v and v_bar_w or 0
-		local bottom_pad = self.enable_scroll_h and h_bar_h or 0
+		local bar_gap = (datas and datas.scrollbar_gap) or 2
+		local right_pad = self.enable_scroll_v and (v_bar_w + bar_gap) or 0
+		local bottom_pad = self.enable_scroll_h and (h_bar_h + bar_gap) or 0
 		self.scroll_root = self:addChild(Widget("ScrollRoot", {
 			anchor = {0, 0, 1, 1},
 			padding = {0, right_pad, 0, bottom_pad}
@@ -202,7 +204,7 @@ end
 function Scroll:updateHBlockLengthPercent()
 	if self.enable_scroll_h then
 		local percent = Utils.clamp(self.transform.w / self.scrollable_w, 0, 1)
-		self.slider_bar_h:setBlockLengthtPercent(percent)
+		self.slider_bar_h:setBlockLengthPercent(percent)
 		if self.hide_slider_when_cannot_scroll then
 			if percent >= 1 and self.slider_bar_h:isShown() then
 				self.slider_bar_h:hide()
@@ -222,7 +224,7 @@ end
 function Scroll:updateVBlockLengthPercent()
 	if self.enable_scroll_v then
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
-		self.slider_bar_v:setBlockLengthtPercent(percent)
+		self.slider_bar_v:setBlockLengthPercent(percent)
 		if self.hide_slider_when_cannot_scroll then
 			if percent >= 1 and self.slider_bar_v:isShown() then
 				self.slider_bar_v:hide()

@@ -123,7 +123,7 @@ function SliderBar:setMaxLimit(max)
 	updateValueInternal(self, self.value, true, true)
 end
 
-function SliderBar:setBlockLengthtPercent(percent)
+function SliderBar:setBlockLengthPercent(percent)
 	local a = self._axis
 	self.block_length_percent = Utils.clamp(percent, 0, 1)
 	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * self.transform[a.size]) or nil,
