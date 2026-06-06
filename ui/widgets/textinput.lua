@@ -21,6 +21,18 @@ local SKIP_FIRST_CHAR = 2             -- splitText 跳过首字符的偏移
 ---@param mode "first"|"second"|"both"
 local function splitText(text, pos, mode)
 	local byteoffset = utf8.offset(text, pos)
+	-- LuaJIT 的 utf8.offset 在边界情况返回 nil（标准 Lua 5.3 则有定义行为）
+	if not byteoffset then
+		if pos > 0 then
+			-- pos = utf8.len(text) + 1：指向字符串末尾之后
+			byteoffset = #text + 1
+		elseif pos < 0 then
+			-- 负索引（如 -1 = 最后一个字符）：转为正索引后重试
+			local positive = utf8.len(text) + 1 + pos
+			byteoffset = utf8.offset(text, positive)
+		end
+		-- 若仍为 nil（text 为空等），保持 nil 让调用方处理
+	end
 	if mode == "first" then
 		local first_text = string.sub(text, 1, byteoffset - 1)
 		return first_text
@@ -714,11 +726,7 @@ function TextInput:_deleteSelection()
 	local first_part = splitText(self.sections[s_section], s_idx, "first")
 	local second_part = ""
 	if e_section <= #self.sections then
-		local section = self.sections[e_section]
-		if e_idx <= utf8.len(section) then
-			second_part = splitText(section, e_idx, "second")
-		end
-		-- e_idx = utf8.len(section) + 1 时 second_part 保持 ""，选区已到段尾
+		second_part = splitText(self.sections[e_section], e_idx, "second")
 	end
 
 	-- 删除中间段落（从后往前删）
