@@ -4,6 +4,14 @@
 
 ---
 
+## 🔧 待修复
+
+### TextInput 鼠标拖动选择文本
+
+代码中已有 `onMouseMoved` + `_is_dragging` + `_sel_start/_sel_end` 逻辑，但实际不工作。需排查 `onMouseMoved` 是否被正确路由到 TextInput（可能有事件拦截问题）。
+
+---
+
 ## ⏭ 暂缓
 
 ### Measure 阶段（原 5-1）
