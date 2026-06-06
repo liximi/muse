@@ -84,12 +84,11 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		outline_width = 0
 	}))
 
-	-- 滑块 block
-	local block_rounding = orientation == "vertical" and (self.transform.w + BLOCK_SIZE_ADJUST) / 2 or (self.transform.h + BLOCK_SIZE_ADJUST) / 2
+	-- 滑块 block（初始圆角由 _updateBlockRounding 在 enableSizeChangedEvent 后的首帧更新）
 	local block_style = Utils.newButtonStateStyle("", nil, nil, self.theme.sliderbar.block_color, 1,
-		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, block_rounding)
+		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, 0)
 	local block_hover_style = Utils.newButtonStateStyle(nil, nil, nil, self.theme.sliderbar.block_hover_color, 1,
-		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, block_rounding)
+		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, 0)
 
 	-- 锚点和 padding 根据方向不同
 	local block_anchor = orientation == "vertical" and {0, 0, 1, 0} -- 水平方向拉伸
@@ -134,6 +133,7 @@ function SliderBar:setBlockLengthPercent(percent)
 	self.block_length_percent = Utils.clamp(percent, 0, 1)
 	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * self.transform[a.size]) or nil,
 		a.pos == "y" and (self.block_length_percent * self.transform[a.size]) or nil)
+	self:_updateBlockRounding()
 end
 
 function SliderBar:setOnValueUpdateFn(callback_fn)
@@ -217,13 +217,18 @@ function SliderBar:onSizeChanged(w, h)
 	local a = self._axis
 	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * w) or nil,
 		a.pos == "y" and (self.block_length_percent * h) or nil)
-	-- 更新 block 圆角，保持半圆两端
-	local track_size = (a.size == "w" and h or w) + BLOCK_SIZE_ADJUST
-	local r = math.max(MIN_ROUNDING, track_size / 2)
+	self:_updateBlockRounding()
+	updateValueInternal(self, self.value, false, true)
+end
+
+-- 更新 block 圆角为半圆两端（基于滑块薄边尺寸）
+function SliderBar:_updateBlockRounding()
+	local a = self._axis
+	local thin_edge = self.transform[a.alter_size] -- 垂直滑块取宽度，水平滑块取高度
+	local r = math.max(MIN_ROUNDING, (thin_edge + BLOCK_SIZE_ADJUST) / 2)
 	self.block.state_styles.normal.rounding_radius = r
 	self.block.state_styles.hover.rounding_radius = r
 	self.block.state_styles.pressed.rounding_radius = r
-	updateValueInternal(self, self.value, false, true)
 end
 
 return SliderBar

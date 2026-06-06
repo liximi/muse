@@ -30,19 +30,19 @@ function love.load()
 end
 
 local FPS = 0
+local memo = 0
 local timer = 1
 local update_count = 0
-local FPS2 = 0
 function love.update(dt)
 	Lovebird.update(dt)
 	UiManager:update(dt)
 
-	FPS = 1 / dt
 	update_count = update_count + 1
 	timer = timer - dt
 	if timer <= 0 then
 		timer = 1 - timer
-		FPS2 = update_count
+		FPS = update_count
+		memo = collectgarbage("count")
 		update_count = 0
 	end
 end
@@ -83,19 +83,19 @@ end
 local function DrawPerformanceInfo()
 	love.graphics.setColor(0, 0.6, 0)
 	local window_w = love.graphics.getWidth()
-	local str = string.format("FPS: %.2f | FPS2: %d", FPS, FPS2)
 	local font = Fonts:getFont("default", 14)
+
+	local str = string.format("FPS: %d", FPS)
 	local w = font:getWidth(str)
 	love.graphics.printf(str, font, window_w - w, -2, w)
 
-	local memo = collectgarbage("count")
 	str = string.format("RAM: %.2f kb", memo)
 	w = font:getWidth(str)
 	love.graphics.printf(str, font, window_w - w, 12, w)
 end
 function love.draw()
 	love.graphics.clear(unpack(UiUtils.UI_COLORS.BG))
-	DrawGridBG()
+	-- DrawGridBG()
 
 	love.graphics.setLineStyle("smooth")
 	UiManager:draw()
