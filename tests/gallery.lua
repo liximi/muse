@@ -115,12 +115,16 @@ local function Gallery(parent)
 		padding = {12, 12, 38, 12}
 	}))
 
+	-- 收起时留 tab_visible 宽度可见，展开按钮保持原位
+	local tab_visible = 32  -- 收起后露出面板右侧的宽度（含 24px 按钮 + 边距）
+	left_panel.close_x = -(sidebar_w - tab_visible)
+	left_panel.collapse_btn_x_close = left_panel.collapse_btn_x
+
 	-- 侧边栏收起/展开时同步更新右侧面板左边距
 	local orig_toggle = left_panel.toggleOpen
 	left_panel.toggleOpen = function(self)
 		orig_toggle(self)
-		-- self.open 已在 orig_toggle 中翻转，据此立即更新右侧边距
-		local pad = self.open and (sidebar_w + 4) or 4
+		local pad = self.open and (sidebar_w + 4) or (tab_visible + 4)
 		right_panel.transform:setPadding(pad, nil, nil, nil)
 	end
 
