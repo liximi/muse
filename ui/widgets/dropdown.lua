@@ -40,6 +40,7 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	self.onSelect = datas.on_select
 	self.max_visible_items = datas.max_visible_items or MAX_VISIBLE_ITEMS
 	self._is_open = false
+	self._item_btns = {}
 
 	-- 触发按钮
 	self.trigger = self:addChild(Button({
@@ -174,11 +175,33 @@ function Dropdown:_calcPanelHeight()
 end
 
 --------------------------------------------------
+-- 构造选项按钮样式（不创建 widget，纯数据）
+--------------------------------------------------
+
+function Dropdown:_makeItemStyles(index)
+	local text = self.options[index]
+	if index == self.selected_index then
+		return {
+			normal = Utils.newButtonStateStyle(text, nil, nil, {0.18, 0.3, 0.5, 1}, nil, nil, nil, nil, 0),
+			hover = Utils.newButtonStateStyle(nil, nil, nil, {0.22, 0.35, 0.55, 1}, nil, nil, nil, nil, 0),
+			pressed = Utils.newButtonStateStyle(nil, nil, nil, {0.22, 0.35, 0.55, 1}, nil, nil, nil, nil, 0),
+		}
+	else
+		return {
+			normal = Utils.newButtonStateStyle(text, nil, nil, {0, 0, 0, 0}, nil, nil, nil, nil, 0),
+			hover = Utils.newButtonStateStyle(nil, nil, nil, {0.18, 0.18, 0.22, 1}, nil, nil, nil, nil, 0),
+			pressed = Utils.newButtonStateStyle(nil, nil, nil, {0.18, 0.18, 0.22, 1}, nil, nil, nil, nil, 0),
+		}
+	end
+end
+
+--------------------------------------------------
 -- 构建选项列表
 --------------------------------------------------
 
 function Dropdown:_buildItems()
 	self.panel:removeAllChildren()
+	self._item_btns = {}
 
 	local visible_count = math.min(#self.options, self.max_visible_items)
 	local panel_h = visible_count * ITEM_HEIGHT
@@ -189,6 +212,7 @@ function Dropdown:_buildItems()
 		for i, option_text in ipairs(self.options) do
 			local btn = self:_createItemBtn(i, option_text, (i - 1) * ITEM_HEIGHT)
 			self.panel:addChild(btn)
+			self._item_btns[i] = btn
 		end
 	else
 		-- 超出最大可见数，包裹进滚动容器
@@ -196,11 +220,11 @@ function Dropdown:_buildItems()
 			anchor = {0, 0, 1, 0},
 		})
 		list.transform:setSize(nil, #self.options * ITEM_HEIGHT)
-		-- render_layer 由外层 setRenderLayerRecursive 统一设置
 
 		for i, option_text in ipairs(self.options) do
 			local btn = self:_createItemBtn(i, option_text, (i - 1) * ITEM_HEIGHT)
 			list:addChild(btn)
+			self._item_btns[i] = btn
 		end
 
 		local scroll = Scroll({
@@ -214,21 +238,25 @@ function Dropdown:_buildItems()
 	end
 end
 
-function Dropdown:_createItemBtn(index, text, y_pos)
-	local is_selected = index == self.selected_index
-	local normal_style, hover_style
-	if is_selected then
-		normal_style = Utils.newButtonStateStyle(text, nil, nil, {0.18, 0.3, 0.5, 1}, nil, nil, nil, nil, 0)
-		hover_style = Utils.newButtonStateStyle(nil, nil, nil, {0.22, 0.35, 0.55, 1}, nil, nil, nil, nil, 0)
-	else
-		normal_style = Utils.newButtonStateStyle(text, nil, nil, {0, 0, 0, 0}, nil, nil, nil, nil, 0)
-		hover_style = Utils.newButtonStateStyle(nil, nil, nil, {0.18, 0.18, 0.22, 1}, nil, nil, nil, nil, 0)
+-- 仅更新按钮样式（不重建 widget），避免滚动位置丢失
+function Dropdown:_updateItemStyles()
+	for i, btn in ipairs(self._item_btns) do
+		local styles = self:_makeItemStyles(i)
+		btn:setStateStyle("normal", styles.normal)
+		btn:setStateStyle("hover", styles.hover)
+		btn:setStateStyle("pressed", styles.pressed)
+		-- 刷新当前状态以应用新样式
+		btn:setState(btn.cur_state)
 	end
+end
+
+function Dropdown:_createItemBtn(index, text, y_pos)
+	local styles = self:_makeItemStyles(index)
 
 	local btn = Button({
-		normal = normal_style,
-		hover = hover_style,
-		pressed = hover_style,
+		normal = styles.normal,
+		hover = styles.hover,
+		pressed = styles.pressed,
 		anchor = {0, 0, 1, 0},
 		padding = {0, 0, y_pos, 0},
 		h = ITEM_HEIGHT,
@@ -251,12 +279,9 @@ function Dropdown:select(index)
 	end
 	self.selected_index = index
 	self.trigger:setStateStyle("normal", Utils.newButtonStateStyle(self:_getDisplayText()))
-	self:_buildItems()
-	-- 如果当前打开，关闭再打开以更新面板位置和选项高亮
-	if self._is_open then
-		self:_close()
-		self:_open()
-	end
+	-- 仅更新按钮高亮，不重建列表（保留滚动位置）
+	self:_updateItemStyles()
+	self:_close()
 	if self.onSelect then
 		self:onSelect(index, self.options[index])
 	end
