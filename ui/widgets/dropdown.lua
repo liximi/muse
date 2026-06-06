@@ -82,6 +82,11 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 		end
 	end
 
+	-- 拦截 MouseMoved，防止穿透到背后的 widget 造成焦点争抢/闪烁
+	function self.popup.onMouseMoved(_self, x, y, dx, dy)
+		return true
+	end
+
 	self:_buildItems()
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self.popup:hide()
