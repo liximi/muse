@@ -42,9 +42,13 @@ function test.create(parent)
 			TextInput({
 				anchor = {0, 0, 1, 0},
 				h = 32,
+				single_line = true,
 				bg = Panel(),
 				text_padding = {8, 8, 8, 8},
-				text = "Single line input",
+				text = "Single line input (Enter submits)",
+				on_submit = function()
+					print("TextInput submitted!")
+				end,
 			}),
 		},
 	}))

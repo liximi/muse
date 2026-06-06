@@ -65,6 +65,8 @@ end
 	bg = Widget 背景Widget，将自动保持其尺寸与文本输入框的尺寸一致
 	hint = string
 	hint_color = {r, g, b, a}
+	single_line = boolean 单行模式，Enter 不换行、粘贴过滤换行符（默认 false）
+	on_submit = function 单行模式下按 Enter 的回调
 
 	font_key = string
 	font_size = number
@@ -81,6 +83,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 
 	self.height_adaptive = datas.height_adaptive == true
 	self.min_height = datas.min_height or datas.h or DEFAULT_MIN_HEIGHT
+	self.single_line = datas.single_line == true
+	self.onSubmit = datas.on_submit
 
 	if datas.bg then
 		self.bg = self:addChild(datas.bg)
@@ -751,6 +755,10 @@ function TextInput:paste()
 	if self:_hasSelection() then
 		self:_deleteSelection()
 	end
+	-- 单行模式：去掉所有换行符
+	if self.single_line then
+		text = string.gsub(text, "\r?\n", " ")
+	end
 	-- 按换行符分段插入
 	local new_sections = split_by_newline(text)
 	if #new_sections == 1 then
@@ -912,10 +920,18 @@ local KEY_MAP = {
 		self:delete()
 	end,
 	kpenter = function(self)
-		self:lineBreak()
+		if self.single_line then
+			if self.onSubmit then self:onSubmit() end
+		else
+			self:lineBreak()
+		end
 	end,
 	["return"] = function(self)
-		self:lineBreak()
+		if self.single_line then
+			if self.onSubmit then self:onSubmit() end
+		else
+			self:lineBreak()
+		end
 	end,
 	left = function(self)
 		_withShift(self, self.moveCursorLeft)
