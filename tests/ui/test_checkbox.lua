@@ -20,7 +20,7 @@ function test.create(parent)
 
 	local chk1 = parent:addChild(Checkbox({
 		label = "Unchecked box",
-		anchor = {0, 0, 1, 0},
+		anchor = {0, 0, 0, 0}, w = 300,
 		padding = {0, 0, 32, 0},
 		h = 28,
 		on_checked = function(c) print("Checkbox 1:", c) end,
@@ -29,7 +29,7 @@ function test.create(parent)
 	local chk2 = parent:addChild(Checkbox({
 		checked = true,
 		label = "Checked box",
-		anchor = {0, 0, 1, 0},
+		anchor = {0, 0, 0, 0}, w = 300,
 		padding = {0, 0, 68, 0},
 		h = 28,
 		on_checked = function(c) print("Checkbox 2:", c) end,
@@ -39,7 +39,7 @@ function test.create(parent)
 		style = "toggle",
 		checked = true,
 		label = "Toggle switch style",
-		anchor = {0, 0, 1, 0},
+		anchor = {0, 0, 0, 0}, w = 300,
 		padding = {0, 0, 104, 0},
 		h = 28,
 		on_checked = function(c) print("Toggle:", c) end,

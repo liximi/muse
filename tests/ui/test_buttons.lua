@@ -80,7 +80,7 @@ function test.create(parent)
 		text = "← 点击切换 SELECTED 状态，再点切回",
 		font_size = 12, h = 14,
 		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0.05, 0, 1, 0}, padding = {0, 0, 0, 0},
+		anchor = {0.52, 0, 1, 0}, padding = {16, 0, 8, 0},
 		v_align = "center",
 	}))
 
