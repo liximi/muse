@@ -50,12 +50,12 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 	}))
 	self.bg.render_layer = Utils.RENDER_LAYERS.TOOLTIP
 
-	-- 文本标签
+	-- 文本标签（拉伸锚点填满 bg，padding 提供文字内边距）
 	self.label = self.bg:addChild(Text({
 		text = datas.text or "",
 		text_color = {0.95, 0.95, 0.95, 1},
 		font_size = DEFAULT_FONT_SIZE,
-		anchor = {0, 0, 0, 0},
+		anchor = {0, 0, 1, 1},
 		pivot = {0, 0},
 		padding = {PADDING_X, PADDING_X, PADDING_Y, PADDING_Y},
 	}))
