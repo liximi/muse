@@ -240,6 +240,19 @@ function TextInput:refreshHeight()
 	end
 end
 
+--- 查询 TextInput 的自然尺寸：委托内部 Text 的 measure，加上 padding 和 min_height
+---@param max_w number|nil 可用宽度
+---@param max_h number|nil 可用高度
+---@return table {w = number, h = number}
+function TextInput:measure(max_w, max_h)
+	local m = self.text:measure(max_w, max_h)
+	local pad = self.text.transform:getPadding()
+	return {
+		w = m.w + pad.left + pad.right,
+		h = math.max(self.min_height, m.h + pad.top + pad.bottom),
+	}
+end
+
 --------------------------------------------------
 ---@region Cursor
 --------------------------------------------------

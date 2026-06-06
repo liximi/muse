@@ -171,6 +171,27 @@ end)
 -- 变更检测
 --------------------------------------------------
 
+--------------------------------------------------
+-- Measure 协议
+--------------------------------------------------
+
+test("Widget:measure 默认返回 transform 尺寸", function()
+	local Widget = require "ui.widgets.widget"
+	local w = Widget({w = 120, h = 80})
+	local m = w:measure(nil, nil)
+	assert_eq(m.w, 120, "measure w")
+	assert_eq(m.h, 80, "measure h")
+end)
+
+test("Widget:measure 返回表格式 {w, h}", function()
+	local Widget = require "ui.widgets.widget"
+	local w = Widget()
+	local m = w:measure(200, 100)
+	assert_eq(type(m), "table", "result is table")
+	assert_eq(m.w, 0, "default w=0")
+	assert_eq(m.h, 0, "default h=0")
+end)
+
 test("无变更时不重复计算", function()
 	local t = Transform()
 	t:setSize(100, 200)
@@ -199,6 +220,74 @@ test("负尺寸 w<0 不崩溃", function()
 	local x, y, w, h = t:getGlobalAABB()
 	assert_eq(type(x), "number", "x is number")
 	assert_eq(type(w), "number", "w is number")
+end)
+
+--------------------------------------------------
+-- Text.measure / Image.measure / TextInput.measure
+-- 注：需 LÖVE 字体系统，在 love tests/unit 环境下运行
+--------------------------------------------------
+
+test("Text:measure 无约束返回不换行尺寸", function()
+	local ok, Text = pcall(require, "ui.widgets.text")
+	if not ok then print("  SKIP  (font not available)") return end
+	local t = Text({text = "Hello World", font_size = 14, w = 200})
+	local m = t:measure(nil, nil)
+	assert_eq(m.w > 0, true, "width > 0")
+	assert_eq(m.h > 0, true, "height > 0")
+	-- 不换行：只有一行
+	local font = t:getFont()
+	local expected_w = font:getWidth("Hello World")
+	assert_near(m.w, expected_w, 1, "unwrapped width")
+end)
+
+test("Text:measure 给定宽度换行后高度增加", function()
+	local ok, Text = pcall(require, "ui.widgets.text")
+	if not ok then print("  SKIP  (font not available)") return end
+	local t = Text({text = "Hello World This Is A Long Text", font_size = 14, w = 200})
+	local m = t:measure(nil, nil)
+	local single_h = m.h
+	-- 约束到很窄的宽度，应该换行
+	local m2 = t:measure(40, nil)
+	assert_eq(m2.h > single_h, true, "wrapped height > single line")
+end)
+
+test("Image:measure 未设尺寸返回纹理原始尺寸", function()
+	local ok, Image = pcall(require, "ui.widgets.image")
+	if not ok then print("  SKIP  (font not available)") return end
+	local canvas = love.graphics.newCanvas(64, 32)
+	local img = Image({texture = canvas})
+	-- 未设 w/h，应 fallback 到纹理尺寸
+	local m = img:measure(nil, nil)
+	assert_eq(m.w, 64, "texture width")
+	assert_eq(m.h, 32, "texture height")
+end)
+
+test("Image:measure 已设尺寸返回 transform 尺寸", function()
+	local ok, Image = pcall(require, "ui.widgets.image")
+	if not ok then print("  SKIP  (font not available)") return end
+	local canvas = love.graphics.newCanvas(64, 32)
+	local img = Image({texture = canvas, w = 120, h = 80})
+	-- 显式设了 w/h，应返回这些值而非纹理尺寸
+	local m = img:measure(nil, nil)
+	assert_eq(m.w, 120, "explicit w")
+	assert_eq(m.h, 80, "explicit h")
+end)
+
+test("TextInput:measure 含 padding 和 min_height", function()
+	local ok, TextInput = pcall(require, "ui.widgets.textinput")
+	if not ok then print("  SKIP  (font not available)") return end
+	local ti = TextInput({
+		text = "Hello",
+		font_size = 14,
+		w = 200,
+		text_padding = {10, 10, 5, 5},
+		min_height = 100,
+	})
+	local m = ti:measure(nil, nil)
+	local font = ti.text:getFont()
+	local _, wrapped = font:getWrap("Hello", 200)
+	local expected_h = math.max(100, #wrapped * font:getHeight() * font:getLineHeight() + 5 + 5)
+	assert_near(m.h, expected_h, 1, "height with padding + min_height")
 end)
 
 --------------------------------------------------

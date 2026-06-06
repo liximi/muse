@@ -46,13 +46,23 @@
 
 ## ⏭ 暂缓
 
-### Measure 阶段（原 5-1）
+（暂无）
 
-布局系统引入双向协商机制：子元素通过 `measure(max_w, max_h)` 声明最小/首选尺寸，父容器根据子元素需求和自身策略分配空间。当前为纯父→子单向布局。
+---
 
-**暂缓理由**：当前系统工作正常（Box 用 `getScaledSize()`，TextInput 有 `height_adaptive`）。这是布局引擎 2.0 级别变更（~400 行），应在积累更多使用需求后再设计。
+## ✅ 已完成 (2026-06-06 后续)
 
-**触发条件**：Tooltip/Dropdown 落地后暴露了布局系统不足；或 TextInput 高度自适应需要容器联动。
+### Measure 协议（原 5-1）
+
+在 Widget 基类添加 `measure(max_w, max_h)` → `{w, h}` 内容尺寸查询方法。Text/Image/TextInput 覆写返回内容感知尺寸，Box/List 容器用 `measure()` 替代 `getScaledSize()` 获取子元素首选尺寸。
+
+**核心改动**（~90 行）：
+- `Widget:measure()` — 默认返回 `{transform.w, transform.h}`
+- `Text:measure(max_w)` — 用 `font:getWrap(text, max_w)` 计算换行后尺寸，解决 auto-height text
+- `Image:measure()` — 已设尺寸返回 transform，未设 fallback 到纹理原始像素
+- `TextInput:measure()` — 委托 text.measure + padding + min_height
+- Box `layout()` — `cross_align=stretch` 时传 cross 约束给子元素
+- List `layout()` + `onUpdate()` — 用 `measure()` 替代 `getScaledSize()`
 
 ---
 

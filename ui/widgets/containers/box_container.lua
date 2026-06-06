@@ -53,13 +53,24 @@ function Box:layout()
 	local total_preferred = 0
 	local total_flex_grow = 0
 
+	-- cross_align=stretch 时将 cross 约束传给子元素，使其能根据宽度计算自动换行高度（如 Text）
+	local cross_constraint = (self.cross_align == "stretch") and container_cross or nil
+
 	for _, child in ipairs(self.children) do
 		if not child.shown then
 			goto continue
 		end
-		local sw, sh = child.transform:getScaledSize()
-		local main_size = a.pos == "x" and sw or sh
-		local cross_size = a.pos == "x" and sh or sw
+		-- 用 measure() 替代 getScaledSize()：子元素根据内容 + 约束返回自然尺寸
+		local m
+		if a.pos == "x" then
+			-- 水平 Box：cross=height，约束高度
+			m = child:measure(nil, cross_constraint)
+		else
+			-- 垂直 Box：cross=width，约束宽度
+			m = child:measure(cross_constraint, nil)
+		end
+		local main_size = a.pos == "x" and m.w or m.h
+		local cross_size = a.pos == "x" and m.h or m.w
 		local entry = {
 			child = child,
 			main_size = main_size,

@@ -203,6 +203,33 @@ function Text:getGlobalScaledSize()
 	return self:getGlobalScaledDimensions()
 end
 
+--- 查询文本的自然尺寸：给定宽度约束，返回换行后的 {w, h}
+---@param max_w number|nil 可用宽度（nil = 不换行，取最长行宽）
+---@param max_h number|nil 可用高度（当前未用于文本测量）
+---@return table {w = number, h = number}
+function Text:measure(max_w, max_h)
+	local font = self:getFont()
+	local text = self:getText(true)
+	local line_h = font:getHeight() * font:getLineHeight()
+
+	-- 无约束时取不换行的完整宽度
+	local wrap_w = max_w or font:getWidth(text)
+	local _, wrapped = font:getWrap(text, wrap_w)
+
+	-- 取最长行宽
+	local w = 0
+	for _, line in ipairs(wrapped) do
+		local lw = font:getWidth(line)
+		if lw > w then w = lw end
+	end
+	if max_w then
+		w = math.min(w, max_w)
+	end
+
+	local h = #wrapped * line_h
+	return {w = w, h = h}
+end
+
 function Text:updateTextLayout()
 	self.__text:clear()
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.OFF then

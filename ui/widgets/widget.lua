@@ -167,6 +167,19 @@ function Widget:removeAllChildren()
 end
 
 --------------------------------------------------
+-- Measure
+--------------------------------------------------
+
+--- 查询 widget 的自然（内容）尺寸，给定可用空间约束
+---@param max_w number|nil 可用宽度（nil = 无约束）
+---@param max_h number|nil 可用高度（nil = 无约束）
+---@return table {w = number, h = number}
+function Widget:measure(max_w, max_h)
+	local w, h = self.transform:getSize()
+	return {w = w, h = h}
+end
+
+--------------------------------------------------
 -- Destroy
 --------------------------------------------------
 

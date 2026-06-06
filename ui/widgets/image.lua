@@ -63,6 +63,25 @@ function Image:getTextureRowSize()
 	end
 end
 
+--- 查询图片的自然尺寸
+--- 已设显式尺寸时返回 transform.w/h，未设时 fallback 到纹理原始尺寸
+---@param max_w number|nil
+---@param max_h number|nil
+---@return table {w = number, h = number}
+function Image:measure(max_w, max_h)
+	if self.texture then
+		local w, h = self.transform:getSize()
+		-- 已设尺寸（含 use_texture_size 触发的 reSize）→ 返回当前尺寸
+		if w > 0 or h > 0 then
+			return {w = w, h = h}
+		end
+		-- 未设尺寸 → 用纹理原始尺寸作为首选尺寸
+		local rw, rh = self:getTextureRowSize()
+		return {w = rw, h = rh}
+	end
+	return Widget.measure(self, max_w, max_h)
+end
+
 --- 将UI的尺寸还原到贴图资源的原始尺寸
 function Image:reSize()
 	if self.texture then

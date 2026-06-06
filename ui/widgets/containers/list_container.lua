@@ -89,8 +89,9 @@ function List:layout()
 			x_arg, y_arg = nil, offset
 		end
 		v:setPosition(x_arg, y_arg)
-		local sw, sh = v.transform:getScaledSize()
-		local item_size = a.pos == "x" and sw or sh
+		-- 用 measure() 替代 getScaledSize()：子元素根据内容返回自然尺寸
+		local m = v:measure(nil, nil)
+		local item_size = a.pos == "x" and m.w or m.h
 		offset = offset + item_size + self.space
 	end
 	local list_total = math.max(0, offset - self.space)
@@ -100,26 +101,24 @@ function List:layout()
 end
 
 function List:onUpdate(dt)
-	-- 检测子元素尺寸变化，自动触发重新布局
+	-- 收集子元素当前尺寸并检测变化，同时缓存测量结果避免重复 measure()
+	local new_sizes = {}
 	if not self._layout_dirty then
 		for _, v in ipairs(self.items) do
-			local sw, sh = v.transform:getScaledSize()
+			local m = v:measure(nil, nil)
+			new_sizes[v] = {m.w, m.h}
 			local last = self._child_sizes and self._child_sizes[v]
-			if not last or last[1] ~= sw or last[2] ~= sh then
+			if not last or last[1] ~= m.w or last[2] ~= m.h then
 				self._layout_dirty = true
-				break
+				-- 不 break，继续收集以便 layout() 中复用
 			end
 		end
 	end
+	self._child_sizes = new_sizes
+
 	if self._layout_dirty then
 		self:layout()
 		self._layout_dirty = false
-	end
-	-- 记录子元素尺寸供下一帧比较
-	self._child_sizes = {}
-	for _, v in ipairs(self.items) do
-		local sw, sh = v.transform:getScaledSize()
-		self._child_sizes[v] = {sw, sh}
 	end
 end
 
