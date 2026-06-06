@@ -42,10 +42,11 @@ function test.create(parent)
 	local btn_sel = row1:addChild(Button({
 		normal = Utils.newButtonStateStyle("Selected", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
 		selected = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED, 1, Utils.UI_COLORS.ACCENT),
+		selected_hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
 		anchor = {0.5, 0, 0.73, 1}, padding = {0, 2, 0, 0},
 		on_click = function(_self)
-			local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
-			_self:setSelected(not is_sel)
+		local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
+		_self:setSelected(not is_sel)
 		end,
 	}))
 	btn_sel:setSelected(true)
@@ -67,10 +68,11 @@ function test.create(parent)
 	local btn_toggle = row2:addChild(Button({
 		normal = Utils.newButtonStateStyle("Toggle: OFF", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
 		selected = Utils.newButtonStateStyle("Toggle: ON", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED, 1, Utils.UI_COLORS.ACCENT),
+		selected_hover = Utils.newButtonStateStyle("Toggle: ON", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
 		anchor = {0, 0, 0.5, 1}, padding = {0, 2, 0, 0},
 		on_click = function(_self)
-			local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
-			_self:setSelected(not is_sel)
+		local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
+		_self:setSelected(not is_sel)
 		end,
 	}))
 
@@ -93,7 +95,7 @@ function test.create(parent)
 		normal = Utils.newButtonStateStyle("onClick → print", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
 		anchor = {0, 0, 0.45, 1}, padding = {0, 2, 0, 0},
 		on_click = function()
-			print("Button: onClick fired!")
+		print("Button: onClick fired!")
 		end,
 	}))
 
@@ -101,7 +103,7 @@ function test.create(parent)
 		normal = Utils.newButtonStateStyle("onPressed → print", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
 		anchor = {0.5, 0, 1, 1}, padding = {0, 2, 0, 0},
 		on_pressed = function(_self, x, y)
-			print("Button: onPressed at", x, y)
+		print("Button: onPressed at", x, y)
 		end,
 	}))
 end
