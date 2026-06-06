@@ -212,6 +212,14 @@ end
 return MyClass
 ```
 
+## 变更记录
+
+### 2026-06-06 — 回合 1
+- **refactor** (`b7dcfd2`): 提取算法中的魔术数字为 `UPPER_CASE` 伪常量，涵盖 checkbox/sliderbar/scroll_container/widget/theme/textinput/text/button/tabview/image/chat_history 共 11 个文件
+- **fix** (`b5b4ffa`): SliderBar 圆角在 `setBlockLengthPercent` 时同步更新；main.lua 性能显示改为每秒刷新
+  - `_updateBlockRounding()` 用 `self.transform[a.alter_size]`（薄边维度）计算圆角，`onSizeChanged` 和 `setBlockLengthPercent` 两处调用
+  - 根因：窗口 resize→文字重排→`setBlockLengthPercent` 改变 block 尺寸，但 `onSizeChanged` 不触发（SliderBar 自身尺寸未变），圆角停留在旧值导致椭圆变形
+
 ### 类定义
 
 - 使用 `Class(BaseClass, function(self, datas, theme) ... end)`，来自 `dependencies/classic.lua`
