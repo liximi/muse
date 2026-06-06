@@ -64,6 +64,7 @@ local Widget = Class(function(self, name, datas, theme)
 	self.shown = true
 	self.focus = false
 	self.focusable = false
+		self.render_layer = 0
 	self.always_draw = false
 	self._clip_rect = nil
 end)

@@ -96,11 +96,32 @@ function Manager:update(dt)
 end
 
 
-function Manager:draw()
-	for _, widget in ipairs(self.hierarchy) do
-		widget:draw()
+	function Manager:_collectByLayer(widget, layers)
+		if not widget:shouldDraw() then return end
+		local layer = widget.render_layer
+		if not layers[layer] then layers[layer] = {} end
+		table.insert(layers[layer], widget)
+		for _, child in ipairs(widget.children) do
+			self:_collectByLayer(child, layers)
+		end
 	end
-end
+
+	function Manager:draw()
+		local layers = {}
+		for _, widget in ipairs(self.hierarchy) do
+			self:_collectByLayer(widget, layers)
+		end
+		local sorted = {}
+		for layer, _ in pairs(layers) do
+			table.insert(sorted, layer)
+		end
+		table.sort(sorted)
+		for _, layer in ipairs(sorted) do
+			for _, widget in ipairs(layers[layer]) do
+				widget:draw()
+			end
+		end
+	end
 
 
 function Manager:KeyPressed(key, isrepeat)

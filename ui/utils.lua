@@ -1,4 +1,10 @@
 local Utils = {
+	RENDER_LAYERS = {
+		BASE     = 0,
+		OVERLAY  = 50,
+		DROPDOWN = 80,
+		TOOLTIP  = 100,
+	},
     TWO_PI = math.pi * 2,
     TEXT_WRAP_MODE = {
         OFF = "off",
