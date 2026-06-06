@@ -2,6 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Utils = require "ui.utils"
+local UiManager = require "ui.ui_manager":GetInstance()
 local Class = require "dependencies.classic"
 
 -- 伪常量
@@ -13,6 +14,9 @@ local DEFAULT_FONT_SIZE = 13     -- 默认字号
 local PADDING_X = 8              -- 水平内边距（像素）
 local PADDING_Y = 5              -- 垂直内边距（像素）
 local SCREEN_EDGE_GAP = 8        -- 屏幕边缘最小间距（像素）
+
+-- 跟踪所有活跃的 Tooltip 实例，用于批量清理
+local active_tooltips = {}
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	target = Widget      目标 widget（必填）
@@ -57,8 +61,10 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 	}))
 	self.label.render_layer = Utils.RENDER_LAYERS.TOOLTIP
 
-	-- 初始隐藏
+	-- 初始隐藏，直接注册到 UiManager 作为根 widget（避免父容器偏移干扰屏幕坐标定位）
 	self:hide()
+	UiManager:addWidget(self)
+	table.insert(active_tooltips, self)
 end)
 
 function Tooltip:setText(text)
@@ -67,6 +73,34 @@ end
 
 function Tooltip:setTarget(target)
 	self.target = target
+end
+
+--- 销毁当前 Tooltip 并从 UiManager 移除
+function Tooltip:destroy()
+	for i, w in ipairs(UiManager.hierarchy) do
+		if w == self then
+			table.remove(UiManager.hierarchy, i)
+			break
+		end
+	end
+	for i, t in ipairs(active_tooltips) do
+		if t == self then
+			table.remove(active_tooltips, i)
+			break
+		end
+	end
+	Widget.destroy(self)
+end
+
+--- 销毁所有活跃的 Tooltip 实例（测试场景切换时调用）
+function Tooltip.destroyAll()
+	local copy = {}
+	for _, t in ipairs(active_tooltips) do
+		table.insert(copy, t)
+	end
+	for _, t in ipairs(copy) do
+		t:destroy()
+	end
 end
 
 --------------------------------------------------

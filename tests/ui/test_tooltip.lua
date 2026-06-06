@@ -11,6 +11,7 @@ test.name = "Tooltip"
 
 function test.create(parent)
 	parent:removeAllChildren()
+	Tooltip.destroyAll()  -- 清理上次测试场景遗留的 Tooltip
 
 	parent:addChild(Text({
 		text = "Tooltip — hover over widgets to see tooltips",
@@ -21,7 +22,7 @@ function test.create(parent)
 		padding = {0, 0, 0},
 	}))
 
-	-- 一个带 tooltip 的按钮
+	-- 一个带 tooltip 的按钮（Tooltip 自动注册到 UiManager，无需 parent:addChild）
 	local btn = parent:addChild(Button({
 		anchor = {0, 0, 0, 0},
 		x = 20,
@@ -30,12 +31,12 @@ function test.create(parent)
 		h = 32,
 		normal = Utils.newButtonStateStyle("Hover me"),
 	}))
-	parent:addChild(Tooltip({
+	Tooltip({
 		target = btn,
 		text = "This is a button tooltip.\nHover for 0.5s to see it.",
-	}))
+	})
 
-	-- 一个 Panel 带 tooltip（长文本）
+	-- 一个 Panel 带 tooltip（长文本自动换行）
 	local info_panel = parent:addChild(Panel({
 		anchor = {0, 0, 0, 0},
 		x = 20,
@@ -53,11 +54,11 @@ function test.create(parent)
 		anchor = {0.5, 0.5, 0.5, 0.5},
 		pivot = {0.5, 0.5},
 	}))
-	parent:addChild(Tooltip({
+	Tooltip({
 		target = info_panel,
 		text = "This tooltip has a very long text that should wrap to multiple lines automatically.",
 		max_width = 200,
-	}))
+	})
 
 	-- 一个单行 TextInput 带 tooltip
 	local input = parent:addChild(TextInput({
@@ -71,14 +72,14 @@ function test.create(parent)
 		text = "Single line input",
 		text_padding = {6, 6, 5, 5},
 	}))
-	parent:addChild(Tooltip({
+	Tooltip({
 		target = input,
 		text = "Type something and press Enter to submit.",
-	}))
+	})
 
 	-- 说明文字
 	parent:addChild(Text({
-		text = "All tooltips appear after 0.5s hover.\nLong text auto-wraps at max_width.",
+		text = "Tooltips auto-register to UiManager.\nNo parent:addChild() needed.",
 		font_size = 12,
 		h = 32,
 		text_color = Utils.UI_COLORS.HINT,
