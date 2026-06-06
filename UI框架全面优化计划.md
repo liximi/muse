@@ -383,16 +383,16 @@
 └── 4-3 可见性裁剪
 
 第五阶段 (P3)
-├── 5-1 Measure 阶段      ← 依赖 3-3, 4-2
-├── 5-2 渲染层分离
-├── 5-3 Class 解耦
-└── 5-4 UI 上下文隔离
+├── 5-1 Measure 阶段      ← 暂缓
+├── 5-2 渲染层分离         ← ✅ 完成
+├── 5-3 Class 解耦         ← ✅ 完成
+└── 5-4 UI 上下文隔离      ← ❌ 移除
 
 第六阶段 (P3)
-├── 6-1 自动化测试
-├── 6-2 拼写修正
-├── 6-3 未使用变量清理
-└── 6-4 接口美化
+├── 6-1 自动化测试         ← ✅ 完成
+├── 6-2 拼写修正           ← ✅ 完成
+├── 6-3 未使用变量清理     ← ✅ 完成
+└── 6-4 接口美化           ← ❌ 取消
 ```
 
 ---
@@ -470,3 +470,39 @@
 - **测试场景重构**：从单体 main.lua 改为 Gallery 浏览器（`tests/gallery.lua` + `tests/ui/` 9 个独立测试脚本），左侧滚动列表 + 右侧展示画布
 - **瑞士现代主义默认主题**：高对比度灰阶 + 钢蓝强调色 + 4px 圆角 + 1px 描边
 - **CLAUDE.md 更新**：Widget 继承树、Transform 锚点模式陷阱、Gallery 测试模式、闭包前向引用
+
+### ✅ 第五阶段：架构演进（P3）— 已完成 / 暂缓
+
+- **5-1 Measure 阶段**：⏭ 暂缓。布局引擎 2.0 级别变更，当前系统工作正常，等实际需求驱动。
+- **5-2 渲染层分离**：✅ `Widget.render_layer` 整数字段 + `UiManager:_collectByLayer` 按层分组绘制 + `Utils.RENDER_LAYERS` 预定义常量（BASE=0/OVERLAY=50/DROPDOWN=80/TOOLTIP=100）
+  - **后续修复**：`_collectByLayer` 原本收集所有子孙导致双重绘制（Widget:draw 递归 + flat list 遍历），修复为只在层切换时收集，`Widget:draw` 跳过跨层子元素
+- **5-3 Class 全局解耦**：✅ 23 个 `ui/` 文件添加 `local Class = require "dependencies.classic"`
+- **5-4 UI 上下文隔离**：❌ 移除。LÖVE 单窗口引擎，无真实多 Manager 需求。焦点作用域、子树主题继承均可在单 Manager 内解决。
+
+### ✅ 第六阶段：质量基础设施（P3）— 已完成 / 取消
+
+- **6-1 自动化测试**：✅ Transform 单元测试（16/16 通过），`luaunit` 风格内嵌 runner，运行 `love tests/unit`
+- **6-2 拼写修正**：✅ `Cpllapsible` → `Collapsible`、`setBlockLengthtPercent` → `setBlockLengthPercent`（先前提交已处理）
+- **6-3 未使用变量清理**：✅ `main.lua` 中 `Scroll` 未使用导入（先前提交已处理）
+- **6-4 `newButtonStateStyle` 改传表**：❌ 取消。传表后函数退化为无操作 wrapper，保留位置参数。
+
+### 🔧 本轮发现并修复的额外 Bug
+
+| Bug | 根因 | 修复 |
+|-----|------|------|
+| `regionDetection` 旋转检测绕左上角而非 pivot | 逆旋转偏移从 `getGlobalBounds` 左上角算，非 pivot 点 | 改为从 `getGlobalPosition`（pivot）算偏移，逆旋转后加回 pivot 偏移 |
+| 渲染层分离导致内容双重绘制 | `_collectByLayer` 收集所有子孙 + `Widget:draw` 遍历递归，同内容画两次，第二次无 scissor | `_collectByLayer` 只在层切换/根节点收集；`Widget:draw` 跳过跨层子元素 |
+| Gallery 首个按钮宽度异常（200 vs 182） | `love.load` 中 `selectTest(1)` → `setSelected` → `applyButtonTransform` → `setPosition` 在布局未就绪时污染 padding | 移除 Gallery 默认选中 |
+| SliderBar 圆角椭圆形 | `onSizeChanged` 圆角取了主轴尺寸而非薄边（`w` 和 `h` 用反） | 交换：`a.size=="w" and h or w`（取垂直于滑动方向的薄边） |
+| SliderBar 构造时宽度 0 导致圆角算错 | ScrollContainer 用点锚点定位 SliderBar 但不传 `w`/`h`，宽度恒为 0 | ScrollContainer 构造 SliderBar 时传显式 `w = v_bar_w` / `h = h_bar_h` |
+| Checkbox 空白区域可点击 | Checkbox 拉伸到整行宽，但视觉只是 box + label | 覆写 `regionDetection`，限定有效宽度为 `box_size + 6 + label_width` |
+| disabled/hover 按钮与背景同色 | `BTN_DISABLED`/`BTN_HOVER` 与 Panel `SURFACE` 均为 RGB(50,50,50) | hover 改用 `dark_gray1`(70) + LINE 描边；disabled 加 LINE 描边 |
+| ScrollContainer 滚动条遮挡内容 | 滑块负 padding 叠在 scroll_root 上方 | scroll_root 预留 `right_pad = v_bar_w + bar_gap`；滑块负 padding 仅用于贴边定位 |
+| Gallery 按钮文字 "Button / ImageButton" 无空格无法换行溢出 | 连续长字符串无法 word-wrap | 缩短为 "Buttons" |
+
+### 📐 新增 / 改进
+
+- **ScrollContainer `scrollbar_gap`**：默认 2px 间距，可构造参数覆盖
+- **Chat History 场景**：18 条消息 + agent 气泡换色 + Panel 描边标注滚动范围
+- **Transform 可视化场景**：动态旋转/缩放脉冲/轨道运行/滑块交互控制
+- **测试场景优化**：按钮提示文字改用右侧锚点避免重叠；Checkbox 场景去 stretch 锚点
