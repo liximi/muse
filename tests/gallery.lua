@@ -40,10 +40,6 @@ local function Gallery(parent)
 	local sidebar_w = 200
 	local left_panel = parent:addChild(CollapsiblePanel({
 		w = sidebar_w,
-		bg_color = {0.09, 0.09, 0.12, 0.98},
-		outline_width = 1,
-		outline_color = UiUtils.UI_COLORS.LINE,
-		rounding_radius = 0,
 	}))
 
 	left_panel:addChild(Text({
@@ -118,6 +114,15 @@ local function Gallery(parent)
 		anchor = {0, 0, 1, 1},
 		padding = {12, 12, 38, 12}
 	}))
+
+	-- 侧边栏收起/展开时同步更新右侧面板左边距
+	local orig_toggle = left_panel.toggleOpen
+	left_panel.toggleOpen = function(self)
+		orig_toggle(self)
+		-- self.open 已在 orig_toggle 中翻转，据此立即更新右侧边距
+		local pad = self.open and (sidebar_w + 4) or 4
+		right_panel.transform:setPadding(pad, nil, nil, nil)
+	end
 
 	-- 切换测试模块
 	selectTest = function(index)
