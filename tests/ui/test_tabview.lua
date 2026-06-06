@@ -72,7 +72,6 @@ function test.create(parent)
 			{label = "Advanced", content = tab3},
 		},
 		on_tab_changed = function(idx)
-			print("TabView tab:", idx)
 		end,
 	}))
 end
