@@ -3,6 +3,7 @@ local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
 local Scroll = require "ui.widgets.containers.scroll_container"
+local CollapsiblePanel = require "ui.widgets.advanced.collapsible_h_screen_edge_panel"
 local UiUtils = require "ui.utils"
 
 -- 加载所有测试模块
@@ -21,7 +22,6 @@ local test_modules = {
 	require "tests.ui.test_dropdown",
 	require "tests.ui.test_image",
 	require "tests.ui.test_nineslice",
-	require "tests.ui.test_collapsible_panel",
 }
 
 --[[
@@ -35,13 +35,15 @@ local function Gallery(parent)
 	local selectTest -- 前置声明，供按钮闭包捕获
 
 	--------------------------------------------------
-	-- 左侧导航面板
+	-- 左侧导航面板（可收起）
 	--------------------------------------------------
 	local sidebar_w = 200
-	local left_panel = parent:addChild(Panel({
+	local left_panel = parent:addChild(CollapsiblePanel({
 		w = sidebar_w,
-		anchor = {0, 0, 0, 1},
-		padding = {0, nil, 0, 0}
+		bg_color = {0.09, 0.09, 0.12, 0.98},
+		outline_width = 1,
+		outline_color = UiUtils.UI_COLORS.LINE,
+		rounding_radius = 0,
 	}))
 
 	left_panel:addChild(Text({
@@ -51,7 +53,7 @@ local function Gallery(parent)
 		h = 28,
 		text_color = UiUtils.UI_COLORS.TITLE,
 		anchor = {0, 0, 1, 0},
-		padding = {16, 16, 12, 0}
+		padding = {16, 40, 12, 0}
 	}))
 
 	left_panel:addChild(Text({
@@ -60,7 +62,7 @@ local function Gallery(parent)
 		h = 16,
 		text_color = UiUtils.UI_COLORS.SECONDARY_TEXT,
 		anchor = {0, 0, 1, 0},
-		padding = {16, 16, 42, 0}
+		padding = {16, 40, 42, 0}
 	}))
 
 	-- 可滚动的导航按钮列表
@@ -69,7 +71,6 @@ local function Gallery(parent)
 		padding = {4, 4, 62, 4},
 		enable_scroll_h = false
 	}))
-
 
 	local btn_list = Widget({
 		anchor = {0, 0, 1, 0}
@@ -94,7 +95,7 @@ local function Gallery(parent)
 		gallery_btns[i] = btn
 	end
 	scroll:setItem(btn_list)
-		scroll:setScrollableH(total_h)
+	scroll:setScrollableH(total_h)
 
 	--------------------------------------------------
 	-- 右侧展示画布
