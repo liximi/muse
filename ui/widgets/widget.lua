@@ -64,7 +64,7 @@ local Widget = Class(function(self, name, datas, theme)
 	self.shown = true
 	self.focus = false
 	self.focusable = false
-		self.render_layer = 0
+	self.render_layer = 0
 	self.always_draw = false
 	self._clip_rect = nil
 end)
@@ -96,18 +96,24 @@ end
 
 ---检测一个屏幕坐标是否位于当前 UI 的包围框内（考虑了旋转，但是不考虑图像的透明部分）
 function Widget:regionDetection(px, py)
-	local x, y, w, h, r = self.transform:getGlobalBounds()
-	w, h = self:getGlobalScaledSize()
+	local pvx, pvy = self.transform:getGlobalPosition()
+	local sw, sh = self:getGlobalScaledSize()
+	local r = self.transform:getGlobalRotation()
+	local px_pivot = self.transform.pivot[1]
+	local py_pivot = self.transform.pivot[2]
 	if r == 0 or r == Utils.TWO_PI then
-		return px >= x and px <= x + w and py >= y and py <= y + h
+		local x = pvx - sw * px_pivot
+		local y = pvy - sh * py_pivot
+		return px >= x and px <= x + sw and py >= y and py <= y + sh
 	end
-	local dx = px - x
-	local dy = py - y
+	-- 绕 pivot 逆旋转，而非绕左上角
+	local dx = px - pvx
+	local dy = py - pvy
 	local cosr = math.cos(r)
 	local sinr = math.sin(r)
-	local localX = dx * cosr + dy * sinr
-	local localY = -dx * sinr + dy * cosr
-	return localX >= 0 and localX <= w and localY >= 0 and localY <= h
+	local localX = dx * cosr + dy * sinr + sw * px_pivot
+	local localY = -dx * sinr + dy * cosr + sh * py_pivot
+	return localX >= 0 and localX <= sw and localY >= 0 and localY <= sh
 end
 
 --------------------------------------------------

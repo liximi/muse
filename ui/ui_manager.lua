@@ -7,7 +7,6 @@ local Manager = Class(function(self)
 	self.current_focus = nil
 end)
 
-
 function Manager:addWidget(widget)
 	assert(widget.parent == nil, "Cannot use a Widget with a parent as the root")
 	for _, v in ipairs(self.hierarchy) do
@@ -18,7 +17,6 @@ function Manager:addWidget(widget)
 	table.insert(self.hierarchy, widget)
 	return widget
 end
-
 
 --------------------------------------------------
 -- Focus Management
@@ -51,7 +49,6 @@ function Manager:clearFocus()
 	self:setFocus(nil)
 end
 
-
 function Manager:moveToTop(widget)
 	for k, v in ipairs(self.hierarchy) do
 		if v == widget then
@@ -61,7 +58,6 @@ function Manager:moveToTop(widget)
 		end
 	end
 end
-
 
 function Manager:moveToBottom(widget)
 	for k, v in ipairs(self.hierarchy) do
@@ -73,17 +69,14 @@ function Manager:moveToBottom(widget)
 	end
 end
 
-
 function Manager:getDefaultTheme()
 	return self.default_theme
 end
-
 
 function Manager:setDefaultTheme(theme)
 	self.default_theme = theme
 	return theme
 end
-
 
 --------------------------------------------------
 -- Event Handlers
@@ -95,34 +88,36 @@ function Manager:update(dt)
 	end
 end
 
+function Manager:_collectByLayer(widget, layers)
+	if not widget:shouldDraw() then
+		return
+	end
+	local layer = widget.render_layer
+	if not layers[layer] then
+		layers[layer] = {}
+	end
+	table.insert(layers[layer], widget)
+	for _, child in ipairs(widget.children) do
+		self:_collectByLayer(child, layers)
+	end
+end
 
-	function Manager:_collectByLayer(widget, layers)
-		if not widget:shouldDraw() then return end
-		local layer = widget.render_layer
-		if not layers[layer] then layers[layer] = {} end
-		table.insert(layers[layer], widget)
-		for _, child in ipairs(widget.children) do
-			self:_collectByLayer(child, layers)
+function Manager:draw()
+	local layers = {}
+	for _, widget in ipairs(self.hierarchy) do
+		self:_collectByLayer(widget, layers)
+	end
+	local sorted = {}
+	for layer, _ in pairs(layers) do
+		table.insert(sorted, layer)
+	end
+	table.sort(sorted)
+	for _, layer in ipairs(sorted) do
+		for _, widget in ipairs(layers[layer]) do
+			widget:draw()
 		end
 	end
-
-	function Manager:draw()
-		local layers = {}
-		for _, widget in ipairs(self.hierarchy) do
-			self:_collectByLayer(widget, layers)
-		end
-		local sorted = {}
-		for layer, _ in pairs(layers) do
-			table.insert(sorted, layer)
-		end
-		table.sort(sorted)
-		for _, layer in ipairs(sorted) do
-			for _, widget in ipairs(layers[layer]) do
-				widget:draw()
-			end
-		end
-	end
-
+end
 
 function Manager:KeyPressed(key, isrepeat)
 	-- Tab 键焦点切换（在分发给 widget 之前拦截）
@@ -137,7 +132,6 @@ function Manager:KeyPressed(key, isrepeat)
 		end
 	end
 end
-
 
 function Manager:_collectFocusable(widget, list)
 	if not widget or not widget:isOperational() then
@@ -187,7 +181,6 @@ function Manager:KeyReleased(key)
 	end
 end
 
-
 function Manager:TextInput(text)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
@@ -197,7 +190,6 @@ function Manager:TextInput(text)
 	end
 end
 
-
 function Manager:MouseMoved(x, y, dx, dy)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
@@ -206,7 +198,6 @@ function Manager:MouseMoved(x, y, dx, dy)
 		end
 	end
 end
-
 
 function Manager:MousePressed(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
@@ -221,7 +212,6 @@ function Manager:MousePressed(x, y, button)
 	end
 end
 
-
 function Manager:MouseReleased(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
@@ -231,7 +221,6 @@ function Manager:MouseReleased(x, y, button)
 	end
 end
 
-
 function Manager:WheelMoved(x, y)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
@@ -240,7 +229,6 @@ function Manager:WheelMoved(x, y)
 		end
 	end
 end
-
 
 return {
 	__instance = nil,
