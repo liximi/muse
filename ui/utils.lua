@@ -65,7 +65,7 @@ Utils.UI_COLORS = {
 	HINT = grayscale_colors.light_gray2,
 
 	BTN_NORMAL = grayscale_colors.dark_gray3,
-	BTN_HOVER = grayscale_colors.dark_gray2,
+	BTN_HOVER = grayscale_colors.dark_gray1,
 	BTN_DISABLED = grayscale_colors.dark_gray2,
 	BTN_SELECTED = Utils.RGB(70, 110, 170, 0.30),
 	BTN_SELECTED_HOVER = Utils.RGB(70, 110, 170, 0.45),

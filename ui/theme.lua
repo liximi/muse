@@ -39,7 +39,7 @@ local Theme = Class(function(self)
 		pressed = Utils.newButtonStateStyle(nil, nil, nil, nil, nil, nil, {0, 2}),
 		selected = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED, 1,
 			Utils.UI_COLORS.ACCENT),
-		hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, nil, nil, {0, -1}),
+		hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.LINE, {0, -1}),
 		selected_hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1,
 			Utils.UI_COLORS.ACCENT_LIGHT),
 		disabled = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.SECONDARY_TEXT, nil, Utils.UI_COLORS.BTN_DISABLED, 1, Utils.UI_COLORS.LINE)
