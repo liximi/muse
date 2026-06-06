@@ -42,10 +42,14 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		end
 	end
 
-	self.scroll_root = self:addChild(Widget("ScrollRoot", {
-		anchor = {0, 0, self.enable_scroll_h and 0 or 1, self.enable_scroll_v and 0 or 1},
-		padding = {0, 0, 0, 0}
-	}))
+		local h_bar_h = datas and datas.h_slider_bar_height or 8
+		local v_bar_w = datas and datas.v_slider_bar_width or 8
+		local right_pad = self.enable_scroll_v and v_bar_w or 0
+		local bottom_pad = self.enable_scroll_h and h_bar_h or 0
+		self.scroll_root = self:addChild(Widget("ScrollRoot", {
+			anchor = {0, 0, 1, 1},
+			padding = {0, right_pad, 0, bottom_pad}
+		}))
 	function self.scroll_root.onDraw(_self)
 		local x, y, w, h, r = self.transform:getGlobalBounds()
 		love.graphics.push()
@@ -69,16 +73,14 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		self:setItem(datas.item)
 	end
 
-	local h_slider_bar_height = datas and datas.h_slider_bar_height or 8
-	local v_slider_bar_width = datas and datas.v_slider_bar_width or 8
 	if self.enable_scroll_h then
 		local percent = Utils.clamp(self.transform.w / self.scrollable_w, 0, 1)
-		local padding_right = self.enable_scroll_v and v_slider_bar_width or 0
+		local padding_right = self.enable_scroll_v and v_bar_w or 0
 		self.slider_bar_h = self:addChild(SliderBar({
 			orientation = "horizontal",
 			pivot = {0, 1},
 			anchor = {0, 1, 1, 1},
-			padding = {0, padding_right, -h_slider_bar_height, 0},
+			padding = {0, padding_right, 0, 0},
 			max_limit = math.max(self.scrollable_w - self.transform.w, 0),
 			block_length_percent = percent,
 			on_value_update = function(val, percent)
@@ -91,12 +93,12 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	end
 	if self.enable_scroll_v then
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
-		local padding_bottom = self.enable_scroll_h and h_slider_bar_height or 0
+		local padding_bottom = self.enable_scroll_h and h_bar_h or 0
 		self.slider_bar_v = self:addChild(SliderBar({
 			orientation = "vertical",
 			pivot = {1, 0},
 			anchor = {1, 0, 1, 1},
-			padding = {-v_slider_bar_width, 0, 0, padding_bottom},
+			padding = {0, 0, 0, padding_bottom},
 			max_limit = math.max(self.scrollable_h - self.transform.h, 0),
 			block_length_percent = percent,
 			on_value_update = function(val, percent)
