@@ -46,7 +46,10 @@ end
 
 function ButtonBase:onMousePressed(x, y, button)
 	if button == 1 and self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection()) then
-		if self.cur_state == BTN_STATES.NORMAL or self.cur_state == BTN_STATES.HOVER then
+		local state = self.cur_state
+		if state == BTN_STATES.NORMAL or state == BTN_STATES.HOVER
+			or state == BTN_STATES.SELECTED or state == BTN_STATES.SELECTED_HOVER then
+			self._was_selected = state == BTN_STATES.SELECTED or state == BTN_STATES.SELECTED_HOVER
 			self:setState(BTN_STATES.PRESSED)
 			if self.onPressed then
 				self:onPressed(x, y)
@@ -59,10 +62,19 @@ end
 function ButtonBase:onMouseReleased(x, y, button)
 	if button == 1 and self.cur_state == BTN_STATES.PRESSED then
 		if self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection()) then
-			self:setState(BTN_STATES.HOVER)
+			if self._was_selected then
+				self:setState(BTN_STATES.SELECTED_HOVER)
+			else
+				self:setState(BTN_STATES.HOVER)
+			end
 		else
-			self:setState(BTN_STATES.NORMAL)
+			if self._was_selected then
+				self:setState(BTN_STATES.SELECTED)
+			else
+				self:setState(BTN_STATES.NORMAL)
+			end
 		end
+		self._was_selected = nil
 		if self.onClick then
 			self:onClick()
 		end
