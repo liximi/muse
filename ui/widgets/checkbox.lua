@@ -1,6 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local ButtonBase = require "ui.widgets.button_base"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
 

@@ -1,6 +1,7 @@
 local UiManager = require "ui.ui_manager":GetInstance()
 local Utils = require "ui.utils"
 local Transform = require "ui.transform"
+local Class = require "dependencies.classic"
 
 
 --[[datas:

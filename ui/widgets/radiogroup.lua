@@ -1,5 +1,6 @@
 local Widget = require "ui.widgets.widget"
 local RadioButton = require "ui.widgets.radiobutton"
+local Class = require "dependencies.classic"
 
 
 -- 单选按钮组，管理一组 RadioButton 的互斥行为

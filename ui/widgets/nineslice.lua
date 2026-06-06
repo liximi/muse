@@ -1,5 +1,6 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段

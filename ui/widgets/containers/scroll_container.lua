@@ -3,6 +3,7 @@ local SliderBar = require "ui.widgets.sliderbar"
 local Fonts = require "ui.fonts"
 local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
+local Class = require "dependencies.classic"
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段

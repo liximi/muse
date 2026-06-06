@@ -4,6 +4,7 @@ local Image = require "ui.widgets.image"
 local Utils = require "ui.utils"
 local Components = require "ui.components"
 local Fonts = require "ui.fonts"
+local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
 

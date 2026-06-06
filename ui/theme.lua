@@ -1,4 +1,5 @@
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 --这是默认主题，展示了所有受支持的字段
 --要创建一个新的主题，你可以继承该主题类，然后变更其中的某些字段

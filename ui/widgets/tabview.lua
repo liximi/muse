@@ -2,6 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Button = require "ui.widgets.button"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 -- 标签页视图，顶部 Tab 栏 + 下方内容面板

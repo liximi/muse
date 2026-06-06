@@ -1,5 +1,6 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 -- 进度条组件，支持水平和垂直方向

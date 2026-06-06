@@ -3,6 +3,7 @@ local Text = require "ui.widgets.text"
 local utf8 = require "utf8"
 local Utils = require "ui.utils"
 local addHoverState = require "ui.components".addHoverState
+local Class = require "dependencies.classic"
 
 
 local cursor_blinking_duration, cursor_blinking_duration_half = 1, 0.5

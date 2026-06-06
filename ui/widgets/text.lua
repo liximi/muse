@@ -2,6 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
+local Class = require "dependencies.classic"
 
 
 --尝试使用自定义的自动换行方法，但是没有成功...

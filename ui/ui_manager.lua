@@ -1,4 +1,5 @@
 local Theme = require "ui.theme"
+local Class = require "dependencies.classic"
 
 local Manager = Class(function(self)
 	self.hierarchy = {}

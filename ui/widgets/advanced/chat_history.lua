@@ -3,6 +3,7 @@ local Text = require "ui.widgets.text"
 local Panel = require "ui.widgets.panel"
 local ListContainer = require "ui.widgets.containers.list_v_container"
 local ScrollContainer = require "ui.widgets.containers.scroll_container"
+local Class = require "dependencies.classic"
 
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段

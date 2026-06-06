@@ -1,6 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
+local Class = require "dependencies.classic"
 
 
 --覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。

@@ -1,5 +1,6 @@
 local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 --一个纯色的面板，可设置面板颜色和边框颜色

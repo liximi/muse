@@ -2,6 +2,7 @@ local ImageButton = require "ui.widgets.imagebutton"
 local Panel = require "ui.widgets.panel"
 local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
+local Class = require "dependencies.classic"
 
 --水平屏幕边缘停靠可收起面板
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段

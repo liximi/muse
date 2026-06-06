@@ -2,6 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Panel = require "ui.widgets.panel"
 local Button = require "ui.widgets.button"
+local Class = require "dependencies.classic"
 
 
 local AXIS = {

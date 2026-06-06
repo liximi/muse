@@ -1,6 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 -- 模态框，全屏半透明遮罩 + 居中内容

@@ -1,4 +1,5 @@
 local Widget = require "ui.widgets.widget"
+local Class = require "dependencies.classic"
 
 
 local AXIS = {

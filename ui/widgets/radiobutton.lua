@@ -1,5 +1,6 @@
 local Checkbox = require "ui.widgets.checkbox"
 local Utils = require "ui.utils"
+local Class = require "dependencies.classic"
 
 
 -- 单选按钮，继承 Checkbox，渲染圆形轮廓+实心圆点
