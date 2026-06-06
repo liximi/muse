@@ -4,6 +4,7 @@ local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local CollapsiblePanel = require "ui.widgets.advanced.collapsible_h_screen_edge_panel"
+local Tween = require "dependencies.tween"
 local UiUtils = require "ui.utils"
 
 -- 加载所有测试模块
@@ -120,12 +121,30 @@ local function Gallery(parent)
 	left_panel.close_x = -(sidebar_w - tab_visible)
 	left_panel.collapse_btn_x_close = left_panel.collapse_btn_x
 
-	-- 侧边栏收起/展开时同步更新右侧面板左边距
+	-- 右侧面板 tween（与侧边栏同步缓动）
+	local right_tween = nil
+
+	-- 侧边栏 toggle 时同步启动右侧面板动画
 	local orig_toggle = left_panel.toggleOpen
 	left_panel.toggleOpen = function(self)
 		orig_toggle(self)
-		local pad = self.open and (sidebar_w + 4) or (tab_visible + 4)
-		right_panel.transform:setPadding(pad, nil, nil, nil)
+		local target = self.open and (sidebar_w + 4) or (tab_visible + 4)
+		right_tween = Tween.newFunctionalTween(0.3, {
+			pad = {right_panel.transform.left, target, function(val)
+				right_panel.transform:setPadding(val, nil, nil, nil)
+			end}
+		}, "outQuint")
+	end
+
+	-- 在侧边栏 onUpdate 中驱动右侧 tween
+	local orig_update = left_panel.onUpdate
+	left_panel.onUpdate = function(self, dt)
+		orig_update(self, dt)
+		if right_tween then
+			if right_tween:update(dt) then
+				right_tween = nil
+			end
+		end
 	end
 
 	-- 切换测试模块
