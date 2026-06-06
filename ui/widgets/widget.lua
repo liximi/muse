@@ -231,10 +231,12 @@ function Widget:draw()
 	end
 	-- 将裁剪矩形传播给子元素
 	for _, child in ipairs(self.children) do
+		if child.render_layer == self.render_layer then
 		local prev_clip = child._clip_rect
 		child._clip_rect = self._clip_rect or child._clip_rect
 		child:draw()
 		child._clip_rect = prev_clip
+		end
 	end
 	if self.onPostDraw then
 		self:onPostDraw()

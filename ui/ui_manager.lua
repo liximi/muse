@@ -88,17 +88,20 @@ function Manager:update(dt)
 	end
 end
 
-function Manager:_collectByLayer(widget, layers)
+function Manager:_collectByLayer(widget, layers, parent_layer)
 	if not widget:shouldDraw() then
 		return
 	end
 	local layer = widget.render_layer
-	if not layers[layer] then
-		layers[layer] = {}
+	-- 只在层切换或根节点时加入绘制列表，同层子孙由 Widget:draw() 递归处理
+	if parent_layer == nil or layer ~= parent_layer then
+		if not layers[layer] then
+			layers[layer] = {}
+		end
+		table.insert(layers[layer], widget)
 	end
-	table.insert(layers[layer], widget)
 	for _, child in ipairs(widget.children) do
-		self:_collectByLayer(child, layers)
+		self:_collectByLayer(child, layers, layer)
 	end
 end
 

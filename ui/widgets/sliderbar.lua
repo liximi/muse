@@ -212,7 +212,7 @@ function SliderBar:onSizeChanged(w, h)
 	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * w) or nil,
 		a.pos == "y" and (self.block_length_percent * h) or nil)
 	-- 更新 block 圆角，保持半圆两端
-	local track_size = (a.size == "w" and h or w) - 2
+	local track_size = (a.size == "w" and h or w) + 2
 	local r = math.max(1, track_size / 2)
 	self.block.state_styles.normal.rounding_radius = r
 	self.block.state_styles.hover.rounding_radius = r
