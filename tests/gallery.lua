@@ -130,9 +130,20 @@ local function Gallery(parent)
 		end
 	end
 
-	-- 默认选中第一个
+	-- 延迟到第一帧选中首个（避免布局未就绪时 setSelected 污染 transform 宽度）
 	if #test_modules > 0 then
-		selectTest(1)
+		local framed = false
+		local orig = selectTest
+		selectTest = function(idx)
+			if not framed then
+				framed = true
+				display_area.onUpdate = function()
+					display_area.onUpdate = nil
+					orig(1)
+				end
+			end
+			orig(idx)
+		end
 	end
 
 	return {
