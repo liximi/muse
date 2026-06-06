@@ -52,6 +52,7 @@ end
 	orientation = "vertical" | "horizontal"
 	max_limit = number
 	block_length_percent = number
+	block_min_len = number       滑块最小长度（像素，默认 0 不限制）
 	sensitivity = number
 	on_value_update = function(value, percent)
 ]]
@@ -68,6 +69,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self.pressed_timer = 0
 	self.sensitivity = datas.sensitivity or self.theme.sliderbar.sensitivity
 	self.block_length_percent = datas.block_length_percent or self.theme.sliderbar.block_length_percent
+	self.block_min_len = datas.block_min_len or 0
 
 	self.max_limit = datas.max_limit or 1
 	self.value = 0
@@ -131,8 +133,12 @@ end
 function SliderBar:setBlockLengthPercent(percent)
 	local a = self._axis
 	self.block_length_percent = Utils.clamp(percent, 0, 1)
-	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * self.transform[a.size]) or nil,
-		a.pos == "y" and (self.block_length_percent * self.transform[a.size]) or nil)
+	local block_len = self.block_length_percent * self.transform[a.size]
+	if self.block_min_len and self.block_min_len > 0 then
+		block_len = math.max(self.block_min_len, block_len)
+	end
+	self.block.transform:setSize(a.pos == "x" and block_len or nil,
+		a.pos == "y" and block_len or nil)
 	self:_updateBlockRounding()
 end
 
@@ -215,8 +221,13 @@ end
 
 function SliderBar:onSizeChanged(w, h)
 	local a = self._axis
-	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * w) or nil,
-		a.pos == "y" and (self.block_length_percent * h) or nil)
+	local size = a.pos == "x" and w or h
+	local block_len = self.block_length_percent * size
+	if self.block_min_len and self.block_min_len > 0 then
+		block_len = math.max(self.block_min_len, block_len)
+	end
+	self.block.transform:setSize(a.pos == "x" and block_len or nil,
+		a.pos == "y" and block_len or nil)
 	self:_updateBlockRounding()
 	updateValueInternal(self, self.value, false, true)
 end

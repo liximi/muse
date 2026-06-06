@@ -28,6 +28,13 @@ local DEBUG_FONT_SIZE = 16        -- 调试文字字号
 	h_slider_bar_height = number 水平滚动条的高度 默认为8 (滑块会各自向上下超出1像素)
 	v_slider_bar_width = number 垂直滚动条的宽度(像素) 默认为8 (滑块会各自向左右超出1像素)
 	scrollbar_gap = number 滚动条与内容间距(像素) 默认为2
+	v_bar_pad_top = number    垂直滚动条顶部边距（像素，默认 0）
+	v_bar_pad_bottom = number 垂直滚动条底部边距（像素，默认 0）
+	h_bar_pad_left = number   水平滚动条左侧边距（像素，默认 0）
+	h_bar_pad_right = number  水平滚动条右侧边距（像素，默认 0）
+	v_bar_min_h = number      垂直滚动条最小高度（像素，默认 0 不限制），空间不足时缩减边距以确保最小高度
+	h_bar_min_w = number      水平滚动条最小宽度（像素，默认 0 不限制）
+	block_min_len = number    滑块最小长度（像素，默认 0 不限制）
 ]]
 local Scroll = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Scroll", datas, theme)
@@ -52,8 +59,19 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		end
 	end
 
+	-- 滚动条边距与最小尺寸
+	self._v_bar_pad_top = (datas and datas.v_bar_pad_top) or 0
+	self._v_bar_pad_bottom = (datas and datas.v_bar_pad_bottom) or 0
+	self._h_bar_pad_left = (datas and datas.h_bar_pad_left) or 0
+	self._h_bar_pad_right = (datas and datas.h_bar_pad_right) or 0
+	self._v_bar_min_h = (datas and datas.v_bar_min_h) or 0
+	self._h_bar_min_w = (datas and datas.h_bar_min_w) or 0
+	self._block_min_len = (datas and datas.block_min_len) or 0
+
 		local h_bar_h = datas and datas.h_slider_bar_height or DEFAULT_BAR_HEIGHT
 		local v_bar_w = datas and datas.v_slider_bar_width or DEFAULT_BAR_WIDTH
+		self._h_bar_h = h_bar_h
+		self._v_bar_w = v_bar_w
 		local bar_gap = (datas and datas.scrollbar_gap) or DEFAULT_SCROLLBAR_GAP
 		local right_pad = self.enable_scroll_v and (v_bar_w + bar_gap) or 0
 		local bottom_pad = self.enable_scroll_h and (h_bar_h + bar_gap) or 0
@@ -86,15 +104,16 @@ local Scroll = Class(Widget, function(self, datas, theme)
 
 	if self.enable_scroll_h then
 		local percent = Utils.clamp(self.transform.w / self.scrollable_w, 0, 1)
-		local padding_right = self.enable_scroll_v and v_bar_w or 0
+		local padding_right = (self.enable_scroll_v and v_bar_w or 0) + self._h_bar_pad_right
 		self.slider_bar_h = self:addChild(SliderBar({
 			orientation = "horizontal",
 			pivot = {0, 1},
 			anchor = {0, 1, 1, 1},
 			h = h_bar_h,
-			padding = {0, padding_right, -h_bar_h, 0},
+			padding = {self._h_bar_pad_left, padding_right, -h_bar_h, 0},
 			max_limit = math.max(self.scrollable_w - self.transform.w, 0),
 			block_length_percent = percent,
+			block_min_len = self._block_min_len,
 			on_value_update = function(val, percent)
 				self:setXOffset(val, false)
 			end
@@ -105,15 +124,16 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	end
 	if self.enable_scroll_v then
 		local percent = Utils.clamp(self.transform.h / self.scrollable_h, 0, 1)
-		local padding_bottom = self.enable_scroll_h and h_bar_h or 0
+		local padding_bottom = (self.enable_scroll_h and h_bar_h or 0) + self._v_bar_pad_bottom
 		self.slider_bar_v = self:addChild(SliderBar({
 			orientation = "vertical",
 			pivot = {1, 0},
 			anchor = {1, 0, 1, 1},
 			w = v_bar_w,
-			padding = {-v_bar_w, 0, 0, padding_bottom},
+			padding = {-v_bar_w, 0, self._v_bar_pad_top, padding_bottom},
 			max_limit = math.max(self.scrollable_h - self.transform.h, 0),
 			block_length_percent = percent,
+			block_min_len = self._block_min_len,
 			on_value_update = function(val, percent)
 				self:setYOffset(val, false)
 			end
@@ -269,6 +289,7 @@ function Scroll:onWheelMoved(x, y)
 end
 
 function Scroll:onSizeChanged(w, h)
+	self:_enforceBarMinSize(w, h)
 	self:updateHBlockLengthPercent()
 	self:updateVBlockLengthPercent()
 	if self.slider_bar_h then
@@ -276,6 +297,40 @@ function Scroll:onSizeChanged(w, h)
 	end
 	if self.slider_bar_v then
 		self.slider_bar_v:setMaxLimit(math.max(self.scrollable_h - self.transform.h, 0))
+	end
+end
+
+-- 确保滚动条 track 满足最小高度/宽度约束（空间不足时按比例缩减边距）
+function Scroll:_enforceBarMinSize(cont_w, cont_h)
+	if self.slider_bar_v and self._v_bar_min_h > 0 then
+		local t = self.slider_bar_v.transform
+		local desired_top = self._v_bar_pad_top
+		local desired_bot = self._v_bar_pad_bottom + ((self.enable_scroll_h and self._h_bar_h or 0) or 0)
+		local track_h = cont_h - desired_top - desired_bot
+		if track_h < self._v_bar_min_h then
+			local shortage = self._v_bar_min_h - track_h
+			local total_pad = desired_top + desired_bot
+			if total_pad > 0 then
+				desired_top = math.max(0, desired_top - desired_top / total_pad * shortage)
+				desired_bot = math.max(0, desired_bot - desired_bot / total_pad * shortage)
+			end
+		end
+		t:setPadding(t.left, t.right, desired_top, desired_bot)
+	end
+	if self.slider_bar_h and self._h_bar_min_w > 0 then
+		local t = self.slider_bar_h.transform
+		local desired_left = self._h_bar_pad_left
+		local desired_right = self._h_bar_pad_right + ((self.enable_scroll_v and self._v_bar_w or 0) or 0)
+		local track_w = cont_w - desired_left - desired_right
+		if track_w < self._h_bar_min_w then
+			local shortage = self._h_bar_min_w - track_w
+			local total_pad = desired_left + desired_right
+			if total_pad > 0 then
+				desired_left = math.max(0, desired_left - desired_left / total_pad * shortage)
+				desired_right = math.max(0, desired_right - desired_right / total_pad * shortage)
+			end
+		end
+		t:setPadding(desired_left, desired_right, t.top, t.bottom)
 	end
 end
 
