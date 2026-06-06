@@ -4,7 +4,7 @@ local Button = require "ui.widgets.button"
 local Utils = require "ui.utils"
 
 local test = {}
-test.name = "Button / ImageButton"
+test.name = "Buttons"
 
 function test.create(parent)
 	parent:removeAllChildren()
