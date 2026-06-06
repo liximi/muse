@@ -5,6 +5,15 @@ local Utils = require "ui.utils"
 local Tween = require "dependencies.tween"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local DEFAULT_BAR_HEIGHT = 8      -- 水平滚动条默认高度（像素）
+local DEFAULT_BAR_WIDTH = 8       -- 垂直滚动条默认宽度（像素）
+local DEFAULT_SCROLLBAR_GAP = 2   -- 滚动条与内容默认间距（像素）
+local DEFAULT_SENSITIVITY = 100   -- 鼠标滚轮默认灵敏度（像素）
+local TWEEN_DURATION_FACTOR = 0.1 -- 滚动动画时长系数
+local DEBUG_LINE_HEIGHT = 14      -- 调试文字行高（像素）
+local DEBUG_FONT_SIZE = 16        -- 调试文字字号
+
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	item = Widget,
 	enable_scroll_h = bool 默认为false
@@ -28,7 +37,7 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self.scrollable_w = datas and datas.scrollable_w or self.transform.w
 	self.scrollable_h = datas and datas.scrollable_h or self.transform.h
 
-	self.sensitivity = datas and datas.sensitivity or 100 -- 鼠标滚轮控制滚动的灵敏度(像素)
+	self.sensitivity = datas and datas.sensitivity or DEFAULT_SENSITIVITY -- 鼠标滚轮控制滚动的灵敏度(像素)
 
 	self.show_slider_bar = true
 	self.hide_slider_when_cannot_scroll = datas and datas.hide_slider_when_cannot_scroll or false
@@ -43,9 +52,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		end
 	end
 
-		local h_bar_h = datas and datas.h_slider_bar_height or 8
-		local v_bar_w = datas and datas.v_slider_bar_width or 8
-		local bar_gap = (datas and datas.scrollbar_gap) or 2
+		local h_bar_h = datas and datas.h_slider_bar_height or DEFAULT_BAR_HEIGHT
+		local v_bar_w = datas and datas.v_slider_bar_width or DEFAULT_BAR_WIDTH
+		local bar_gap = (datas and datas.scrollbar_gap) or DEFAULT_SCROLLBAR_GAP
 		local right_pad = self.enable_scroll_v and (v_bar_w + bar_gap) or 0
 		local bottom_pad = self.enable_scroll_h and (h_bar_h + bar_gap) or 0
 		self.scroll_root = self:addChild(Widget("ScrollRoot", {
@@ -142,7 +151,7 @@ function Scroll:setXOffset(offset, tween)
 		return
 	end
 
-	local duration = 0.1 * math.min(1, math.abs(new_offset - self.offset_x) / self.sensitivity)
+	local duration = TWEEN_DURATION_FACTOR * math.min(1, math.abs(new_offset - self.offset_x) / self.sensitivity)
 	if not self.tweenx then
 		self.tweenx = Tween.newFunctionalTween(duration, {
 			offset_x = {self.offset_x, new_offset, function(val)
@@ -174,7 +183,7 @@ function Scroll:setYOffset(offset, tween)
 		return
 	end
 
-	local duration = 0.1 * math.min(1, math.abs(new_offset - self.offset_y) / self.sensitivity)
+	local duration = TWEEN_DURATION_FACTOR * math.min(1, math.abs(new_offset - self.offset_y) / self.sensitivity)
 	if not self.tweeny then
 		self.tweeny = Tween.newFunctionalTween(duration, {
 			offset_y = {self.offset_y, new_offset, function(val)
@@ -295,11 +304,11 @@ function Scroll:onDebugDraw()
 		love.graphics.translate(-px, -py)
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-	local font = Fonts:getFont("default", 16)
+	local font = Fonts:getFont("default", DEBUG_FONT_SIZE)
 	love.graphics.printf(string.format("Height: %.1f | Scrollable H: %.1f", self.transform.h, self.scrollable_h), font,
 		x, y + h, w)
 	love.graphics.printf(string.format("Offset X: %.1f | Offset Y: %.1f", self.offset_x, self.offset_y), font, x,
-		y + h + 14, w)
+		y + h + DEBUG_LINE_HEIGHT, w)
 	love.graphics.pop()
 end
 

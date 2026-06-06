@@ -3,6 +3,13 @@ local Utils = require "ui.utils"
 local Transform = require "ui.transform"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local DEFAULT_RENDER_LAYER = 0  -- 默认渲染层
+local DEBUG_LINE_WIDTH = 1      -- 调试绘制线宽
+local DEBUG_PIVOT_RADIUS = 3    -- 调试 pivot 点半径
+local DEBUG_BOUND_INSET = 1     -- 调试包围盒视觉缩进
+local DEBUG_BOUND_EXPAND = 2    -- 调试包围盒视觉扩大（inset * 2）
+
 --[[datas:
 	pivot = {x, y}
 	anchor = {minx, miny, maxx, maxy}
@@ -63,7 +70,7 @@ local Widget = Class(function(self, name, datas, theme)
 	self.shown = true
 	self.focus = false
 	self.focusable = false
-	self.render_layer = 0
+	self.render_layer = DEFAULT_RENDER_LAYER
 	self.always_draw = false
 	self._clip_rect = nil
 end)
@@ -245,7 +252,7 @@ function Widget:draw()
 		if self.onDebugDraw then
 			self:onDebugDraw()
 		end
-		love.graphics.setLineWidth(1)
+		love.graphics.setLineWidth(DEBUG_LINE_WIDTH)
 		self:drawBound()
 		self:drawAABB()
 	end
@@ -258,19 +265,19 @@ function Widget:drawAABB()
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 	local x, y, w, h = self.transform:getGlobalAABB()
-	love.graphics.rectangle("line", x - 1, y - 1, w + 2, h + 2)
+	love.graphics.rectangle("line", x - DEBUG_BOUND_INSET, y - DEBUG_BOUND_INSET, w + DEBUG_BOUND_EXPAND, h + DEBUG_BOUND_EXPAND)
 end
 
 function Widget:drawBound()
 	love.graphics.setColor(unpack(Utils.UI_COLORS.YELLOW))
 	local px, py = self.transform:getGlobalPosition()
-	love.graphics.circle("line", px, py, 3)
+	love.graphics.circle("line", px, py, DEBUG_PIVOT_RADIUS)
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
 	love.graphics.translate(px, py)
 	love.graphics.rotate(r)
 	love.graphics.translate(-px, -py)
-	love.graphics.rectangle("line", x - 1, y - 1, w + 2, h + 2)
+	love.graphics.rectangle("line", x - DEBUG_BOUND_INSET, y - DEBUG_BOUND_INSET, w + DEBUG_BOUND_EXPAND, h + DEBUG_BOUND_EXPAND)
 	if w < 0 or h < 0 then
 		love.graphics.line(x, y, x + w, y + h)
 		love.graphics.line(x + w, y, x, y + h)

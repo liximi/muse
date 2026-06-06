@@ -1,6 +1,12 @@
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
+-- 伪常量：跨 widget 共享的默认设计令牌
+local DEFAULT_ROUNDING = 4      -- 通用圆角半径
+local DEFAULT_OUTLINE_WIDTH = 1 -- 通用描边宽度
+local DEFAULT_FONT_SIZE = 16    -- 通用字号
+local DEFAULT_BOX_SIZE = 20     -- Checkbox / RadioButton 控件尺寸
+
 -- 这是默认主题，展示了所有受支持的字段
 -- 要创建一个新的主题，你可以继承该主题类，然后变更其中的某些字段
 -- 如何使用主题：任何widget都应该支持theme参数作为构造函数的参数，这就是设置该widget的主题的方式
@@ -10,19 +16,19 @@ local Theme = Class(function(self)
 	self.panel = {
 		bg_color = Utils.UI_COLORS.SURFACE,
 		outline_color = Utils.UI_COLORS.LINE,
-		rounding_radius = 4,
+		rounding_radius = DEFAULT_ROUNDING,
 		outline_width = 1
 	}
 
 	self.text = {
 		font_key = "default",
-		font_size = 16,
+		font_size = DEFAULT_FONT_SIZE,
 		text_color = Utils.UI_COLORS.PRIMARY_TEXT
 	}
 
 	self.textinput = {
 		font_key = "default",
-		font_size = 16,
+		font_size = DEFAULT_FONT_SIZE,
 		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
 		text_padding = {8, 8, 8, 8},
 		hint_color = Utils.UI_COLORS.SECONDARY_TEXT
@@ -63,8 +69,8 @@ local Theme = Class(function(self)
 	self.checkbox = {
 		box_color = Utils.UI_COLORS.BTN_NORMAL,
 		check_color = Utils.UI_COLORS.ACCENT,
-		box_size = 20,
-		outline_width = 1,
+		box_size = DEFAULT_BOX_SIZE,
+		outline_width = DEFAULT_OUTLINE_WIDTH,
 		outline_color = Utils.UI_COLORS.LINE,
 		rounding_radius = 3,
 		label_color = Utils.UI_COLORS.PRIMARY_TEXT,
@@ -74,8 +80,8 @@ local Theme = Class(function(self)
 	self.radiobutton = {
 		circle_color = Utils.UI_COLORS.BTN_NORMAL,
 		dot_color = Utils.UI_COLORS.ACCENT,
-		circle_size = 20,
-		outline_width = 1,
+		circle_size = DEFAULT_BOX_SIZE,
+		outline_width = DEFAULT_OUTLINE_WIDTH,
 		outline_color = Utils.UI_COLORS.LINE,
 		label_color = Utils.UI_COLORS.PRIMARY_TEXT
 	}
@@ -93,7 +99,7 @@ local Theme = Class(function(self)
 		tab_font_size = 14,
 		tab_outline_color = Utils.UI_COLORS.LINE,
 		content_bg = Utils.UI_COLORS.SURFACE,
-		content_rounding_radius = 4
+		content_rounding_radius = DEFAULT_ROUNDING
 	}
 
 	self.imagebutton = {

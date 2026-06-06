@@ -4,6 +4,10 @@ local Button = require "ui.widgets.button"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local TAB_BUTTON_PADDING = 2  -- Tab 按钮内边距（像素）
+local DEFAULT_TAB_INDEX = 1   -- 默认选中的 Tab 索引
+
 -- 标签页视图，顶部 Tab 栏 + 下方内容面板
 --[[datas: 此处不包括基类所支持的字段
 	tabs = {{label = string, content = Widget}, ...}
@@ -61,7 +65,7 @@ function TabView:setTabs(tab_list, selected_index)
 
 		local btn = Button({
 			anchor = {(i - 1) / n, 0, i / n, 1},
-			padding = {2, 2, 2, 2},
+			padding = {TAB_BUTTON_PADDING, TAB_BUTTON_PADDING, TAB_BUTTON_PADDING, TAB_BUTTON_PADDING},
 			normal = Utils.newButtonStateStyle(tab.label, self.theme.tabview.tab_text_normal,
 				self.theme.tabview.tab_font_size, self.theme.tabview.tab_bg_normal, 1,
 				self.theme.tabview.tab_outline_color or Utils.UI_COLORS.LINE),
@@ -74,7 +78,7 @@ function TabView:setTabs(tab_list, selected_index)
 		self._tab_buttons[i] = self.tab_bar:addChild(btn)
 	end
 
-	local init_index = selected_index or 1
+	local init_index = selected_index or DEFAULT_TAB_INDEX
 	if self._tab_buttons[init_index] then
 		self:selectTab(init_index)
 	end

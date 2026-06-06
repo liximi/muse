@@ -3,6 +3,10 @@ local Utils = require "ui.utils"
 local Fonts = require "ui.fonts"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local DEBUG_INFO_FONT_SIZE = 14  -- 调试信息字号
+local DEBUG_INFO_MIN_WIDTH = 100 -- 调试信息最小显示宽度
+
 -- 覆盖了 Texture 对象的 WrapMode 为 clamp 时的行为，将通过拉伸来填满UI矩形范围。
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	texture = Texture
@@ -118,10 +122,10 @@ function Image:onDebugDraw()
 		local rw, rh = self:getTextureRowSize()
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
 		love.graphics.printf(string.format("Current Size: %dpx, %dpx\nRow Size: %dpx, %dpx", w, h, rw, rh),
-			Fonts:getFont("debug", 14), x, y + h, w)
+			Fonts:getFont("debug", DEBUG_INFO_FONT_SIZE), x, y + h, w)
 	else
 		love.graphics.setColor(unpack(Utils.UI_COLORS.PINK))
-		love.graphics.printf("No Texture", Fonts:getFont("debug", 14), x, y + 1, math.max(100, w))
+		love.graphics.printf("No Texture", Fonts:getFont("debug", DEBUG_INFO_FONT_SIZE), x, y + 1, math.max(DEBUG_INFO_MIN_WIDTH, w))
 	end
 
 	love.graphics.pop()

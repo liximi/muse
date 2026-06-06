@@ -5,7 +5,15 @@ local Utils = require "ui.utils"
 local addHoverState = require"ui.components".addHoverState
 local Class = require "dependencies.classic"
 
-local cursor_blinking_duration, cursor_blinking_duration_half = 1, 0.5
+-- 伪常量
+local CURSOR_BLINK_DURATION = 1       -- 光标闪烁周期（秒）
+local CURSOR_BLINK_DURATION_HALF = 0.5 -- 光标闪烁半周期（秒）
+local DEFAULT_MIN_HEIGHT = 75          -- 自适应高度时的最小高度（像素）
+local UNDO_STACK_MAX = 100             -- 撤销栈最大容量
+local UNDO_INACTIVITY_THRESHOLD = 0.3  -- 撤销操作组合并停顿阈值（秒）
+local SELECTION_COLOR = {0.2, 0.4, 0.8, 0.35} -- 文本选区高亮颜色
+local CURSOR_COLOR = {1, 1, 1, 1}     -- 光标颜色
+local SKIP_FIRST_CHAR = 2             -- splitText 跳过首字符的偏移
 
 ---使用utf8字符的下标来分割文本
 ---@param text string
@@ -72,7 +80,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "TextInput", datas, theme)
 
 	self.height_adaptive = datas.height_adaptive == true
-	self.min_height = datas.min_height or datas.h or 75
+	self.min_height = datas.min_height or datas.h or DEFAULT_MIN_HEIGHT
 
 	if datas.bg then
 		self.bg = self:addChild(datas.bg)
@@ -97,11 +105,11 @@ local TextInput = Class(Widget, function(self, datas, theme)
 
 	self._undo_stack = {}
 	self._redo_stack = {}
-	self._undo_stack_max = 100
+	self._undo_stack_max = UNDO_STACK_MAX
 	self._undo_group = nil -- 当前操作组的起点快照
 	self._undo_group_type = nil -- "input" | "backspace" | "delete" | nil
 	self._undo_inactivity_timer = 0
-	self._undo_inactivity_threshold = 0.3
+	self._undo_inactivity_threshold = UNDO_INACTIVITY_THRESHOLD
 
 	self.focusable = true
 
@@ -551,7 +559,7 @@ function TextInput:delete()
 		end
 		self:removeSection(old_section + 1)
 	else -- 删除本段落当前index的字符
-		second_text = splitText(second_text, 2, "second")
+		second_text = splitText(second_text, SKIP_FIRST_CHAR, "second")
 		self.sections[old_section] = first_text .. second_text
 	end
 
@@ -1058,10 +1066,10 @@ end
 function TextInput:onUpdate(dt)
 	-- 光标闪烁计时器
 	self.cursor_blinking_timer = self.cursor_blinking_timer + dt
-	if self.cursor_blinking_timer > cursor_blinking_duration then
-		self.cursor_blinking_timer = self.cursor_blinking_timer - cursor_blinking_duration
+	if self.cursor_blinking_timer > CURSOR_BLINK_DURATION then
+		self.cursor_blinking_timer = self.cursor_blinking_timer - CURSOR_BLINK_DURATION
 	end
-	if self.cursor_blinking_timer < cursor_blinking_duration_half then
+	if self.cursor_blinking_timer < CURSOR_BLINK_DURATION_HALF then
 		self.cursor_blinking = true
 	else
 		self.cursor_blinking = false
@@ -1136,7 +1144,7 @@ function TextInput:onPostDraw()
 								love.graphics.rotate(r)
 								love.graphics.translate(-px, -py)
 							end
-							love.graphics.setColor(0.2, 0.4, 0.8, 0.35)
+							love.graphics.setColor(unpack(SELECTION_COLOR))
 							love.graphics.rectangle("fill", org_x + x_off, y_pos, sel_w, line_height)
 							love.graphics.pop()
 						end
@@ -1162,7 +1170,7 @@ function TextInput:onPostDraw()
 			love.graphics.rotate(r)
 			love.graphics.translate(-px, -py)
 		end
-		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.setColor(unpack(CURSOR_COLOR))
 		love.graphics.setLineWidth(1)
 		love.graphics.line(top_x, top_y, top_x, bottom_y)
 		love.graphics.pop()

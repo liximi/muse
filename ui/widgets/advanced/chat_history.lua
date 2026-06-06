@@ -5,6 +5,10 @@ local ListContainer = require "ui.widgets.containers.list_v_container"
 local ScrollContainer = require "ui.widgets.containers.scroll_container"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local BUBBLE_MAX_WIDTH_RATIO = 0.8 -- 气泡最大宽度相对于容器宽度的默认比例
+local CHAT_LIST_RIGHT_PAD = 12     -- 聊天列表右侧内边距（为滚动条预留）（像素）
+
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	chatter_id = string
 
@@ -89,7 +93,7 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 	self.list = ListContainer({
 		space = datas and datas.space,
 		anchor = {0, 0, 1, 0},
-		padding = {0, 12, 0, 0}
+		padding = {0, CHAT_LIST_RIGHT_PAD, 0, 0}
 	})
 	self.scroll_container = self:addChild(ScrollContainer({
 		item = self.list,
@@ -168,7 +172,7 @@ function ChatHistory:createChatBubble(chatter_id, text)
 		text = text,
 		bg_color = bubble_style.bg_color,
 		rounding_radius = bubble_style.rounding_radius,
-		max_width = bubble_style.max_width or self.transform.w * 0.8,
+		max_width = bubble_style.max_width or self.transform.w * BUBBLE_MAX_WIDTH_RATIO,
 		alignment = bubble_style.alignment,
 		font_key = bubble_style.font_key,
 		font_size = bubble_style.font_size,

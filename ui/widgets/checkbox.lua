@@ -4,6 +4,15 @@ local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
+-- 伪常量
+local TOGGLE_WIDTH_RATIO = 1.8   -- 滑动开关轨道宽度与 box_size 的比例
+local LABEL_GAP = 6              -- checkbox 与标签文本之间的间距（像素）
+local KNOB_INSET = 2             -- 滑动开关滑块与轨道边缘的缩进（像素）
+local CHECK_LINE_WIDTH = 2       -- 对勾绘制线宽
+local CHECK_PAD_RATIO = 0.3      -- 对勾相对 box 的边距比例
+local CHECK_MID_X_RATIO = 0.15   -- 对勾中点水平偏移比例
+local CHECK_MID_Y_RATIO = 0.05   -- 对勾中点垂直偏移比例
+
 -- 复选框组件，支持方框+对勾或滑动开关两种样式
 --[[datas: 此处不包括基类所支持的字段
 	checked = boolean  -- 初始选中状态
@@ -47,7 +56,7 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 			text_color = datas.label_color or self.theme.checkbox.label_color,
 			font_size = datas.label_font_size,
 			anchor = {0, 0, 0, 1},
-			padding = {self.box_size + 6, 0, 0, 0}
+			padding = {self.box_size + LABEL_GAP, 0, 0, 0}
 		}))
 	end
 end)
@@ -77,9 +86,9 @@ end
 			return false
 		end
 		local lx = self.transform:screenToLocal(px, py)
-		local eff_w = self.style == "toggle" and (self.box_size * 1.8) or self.box_size
+		local eff_w = self.style == "toggle" and (self.box_size * TOGGLE_WIDTH_RATIO) or self.box_size
 		if self.label then
-			eff_w = eff_w + 6 + self.label:getDimensions()
+			eff_w = eff_w + LABEL_GAP + self.label:getDimensions()
 		end
 		return lx >= 0 and lx <= eff_w
 	end
@@ -144,11 +153,11 @@ function Checkbox:onDraw()
 
 	if self.style == "toggle" then
 		-- 滑动开关样式
-		local track_w = self.box_size * 1.8
+		local track_w = self.box_size * TOGGLE_WIDTH_RATIO
 		local track_h = self.box_size
 		local track_x = x
 		local track_y = box_cy - track_h / 2
-		local knob_r = track_h / 2 - 2
+		local knob_r = track_h / 2 - KNOB_INSET
 
 		-- 轨道背景
 		local track_color = is_checked and self.check_color or self.box_color
@@ -156,7 +165,7 @@ function Checkbox:onDraw()
 		love.graphics.rectangle("fill", track_x, track_y, track_w, track_h, track_h / 2)
 
 		-- 滑块
-		local knob_x = is_checked and (track_x + track_w - knob_r - 2) or (track_x + knob_r + 2)
+		local knob_x = is_checked and (track_x + track_w - knob_r - KNOB_INSET) or (track_x + knob_r + KNOB_INSET)
 		local knob_y = track_y + track_h / 2
 		love.graphics.setColor(unpack(self.theme.checkbox.knob_color))
 		love.graphics.circle("fill", knob_x, knob_y, knob_r)
@@ -179,11 +188,11 @@ function Checkbox:onDraw()
 
 		-- 对勾
 		if is_checked then
-			love.graphics.setLineWidth(2)
+			love.graphics.setLineWidth(CHECK_LINE_WIDTH)
 			love.graphics.setColor(unpack(self.check_color))
-			local pad = half * 0.3
-			local mid_x = box_cx - half * 0.15
-			local mid_y = box_cy + half * 0.05
+			local pad = half * CHECK_PAD_RATIO
+			local mid_x = box_cx - half * CHECK_MID_X_RATIO
+			local mid_y = box_cy + half * CHECK_MID_Y_RATIO
 			love.graphics.line(mid_x - half * 0.5, mid_y - half * 0.1, mid_x, mid_y + half * 0.45, mid_x + half * 0.8,
 				mid_y - half * 0.45)
 			love.graphics.setLineWidth(1)

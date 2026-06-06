@@ -6,6 +6,9 @@ local Fonts = require "ui.fonts"
 local Class = require "dependencies.classic"
 local BTN_STATES = Utils.BTN_STATES
 
+-- 伪常量
+local BUTTON_TEXT_PADDING = 2  -- 按钮文字内边距（像素）
+
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	font_key = string
 	normal = Utils.newButtonStateStyle
@@ -31,7 +34,7 @@ local Button = Class(ButtonBase, function(self, datas, theme)
 	self.text = self:addChild(Text({
 		pivot = {0.5, 0.5},
 		anchor = {0, 0, 1, 1},
-		padding = {2, 2, 2, 2},
+		padding = {BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING},
 		h_align = "center",
 		v_align = "center",
 		text = self.state_styles.normal and self.state_styles.normal.text or "Button",

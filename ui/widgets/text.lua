@@ -4,6 +4,10 @@ local Fonts = require "ui.fonts"
 local utf8 = require "utf8"
 local Class = require "dependencies.classic"
 
+-- 伪常量
+local CHAR_LF = 10          -- 换行符 \n 的 UTF-8 码点
+local ALIGN_CENTER = 0.5    -- 居中对齐的偏移系数
+
 -- 尝试使用自定义的自动换行方法，但是没有成功...
 local function _getWrap_char(font, str, limit)
 	-- 该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
@@ -13,7 +17,7 @@ local function _getWrap_char(font, str, limit)
 	local linew = 0
 	local line_ranges = {}
 	for pos, code in utf8.codes(str) do
-		if code == 10 then -- 遇到换行符，强制结束当前行（不包含换行符本身）
+		if code == CHAR_LF then -- 遇到换行符，强制结束当前行（不包含换行符本身）
 			max_width = math.max(max_width, linew)
 			if line_start <= pos - 1 then
 				table.insert(line_ranges, {line_start, pos - 1})
@@ -240,7 +244,7 @@ function Text:onDraw()
 	if self.vertical_align == "bottom" then
 		y = y + h - texth
 	elseif self.vertical_align == "center" then
-		y = y + (h - texth) * 0.5
+		y = y + (h - texth) * ALIGN_CENTER
 	end
 	love.graphics.draw(self.__text, x, y, nil, sx, sy)
 
@@ -262,7 +266,7 @@ function Text:onDebugDraw()
 	if self.horizontal_align == "right" then
 		x = x + w - textw
 	elseif self.horizontal_align == "center" then
-		x = x + (w - textw) * 0.5
+		x = x + (w - textw) * ALIGN_CENTER
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.WHITE))
 	if self.horizontal_align == "justify" then

@@ -27,6 +27,12 @@ local AXIS = {
 	}
 }
 
+-- 伪常量
+local BLOCK_OVERHANG = 1       -- 滑块超出轨道的像素数（单侧）
+local BLOCK_SIZE_ADJUST = 2    -- 滑块总尺寸调整（双侧超出之和）
+local MIN_ROUNDING = 1         -- 滑块圆角最小值（确保半圆两端不小于 1px）
+local LONG_PRESS_DELAY = 0.25  -- 长按重复触发间隔（秒）
+
 local function updateValueInternal(self, value, call_callback, update_block_pos)
 	local a = self._axis
 	local old_val = self.value
@@ -79,7 +85,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	}))
 
 	-- 滑块 block
-	local block_rounding = orientation == "vertical" and (self.transform.w + 2) / 2 or (self.transform.h + 2) / 2
+	local block_rounding = orientation == "vertical" and (self.transform.w + BLOCK_SIZE_ADJUST) / 2 or (self.transform.h + BLOCK_SIZE_ADJUST) / 2
 	local block_style = Utils.newButtonStateStyle("", nil, nil, self.theme.sliderbar.block_color, 1,
 		self.theme.sliderbar.outline_color, {0, 0}, {1, 1}, block_rounding)
 	local block_hover_style = Utils.newButtonStateStyle(nil, nil, nil, self.theme.sliderbar.block_hover_color, 1,
@@ -88,7 +94,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	-- 锚点和 padding 根据方向不同
 	local block_anchor = orientation == "vertical" and {0, 0, 1, 0} -- 水平方向拉伸
 	or {0, 0, 0, 1} -- 垂直方向拉伸
-	local block_padding = orientation == "vertical" and {-1, -1, 0, nil} or {0, nil, -1, -1}
+	local block_padding = orientation == "vertical" and {-BLOCK_OVERHANG, -BLOCK_OVERHANG, 0, nil} or {0, nil, -BLOCK_OVERHANG, -BLOCK_OVERHANG}
 	local block_init_size = {}
 	block_init_size[a.size] = self.block_length_percent * self.transform[a.size]
 
@@ -194,7 +200,7 @@ function SliderBar:onUpdate(dt)
 	end
 	local a = self._axis
 	self.pressed_timer = self.pressed_timer + dt
-	if self.pressed_timer > 0.25 then
+	if self.pressed_timer > LONG_PRESS_DELAY then
 		local mx, my = love.mouse:getPosition()
 		local local_pos = {self.transform:screenToLocal(mx, my)}
 		local lp = local_pos[a.pos == "x" and 1 or 2]
@@ -212,8 +218,8 @@ function SliderBar:onSizeChanged(w, h)
 	self.block.transform:setSize(a.pos == "x" and (self.block_length_percent * w) or nil,
 		a.pos == "y" and (self.block_length_percent * h) or nil)
 	-- 更新 block 圆角，保持半圆两端
-	local track_size = (a.size == "w" and h or w) + 2
-	local r = math.max(1, track_size / 2)
+	local track_size = (a.size == "w" and h or w) + BLOCK_SIZE_ADJUST
+	local r = math.max(MIN_ROUNDING, track_size / 2)
 	self.block.state_styles.normal.rounding_radius = r
 	self.block.state_styles.hover.rounding_radius = r
 	self.block.state_styles.pressed.rounding_radius = r
