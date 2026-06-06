@@ -63,6 +63,7 @@ function test.create(parent)
 		},
 		selected_index = 3,
 		max_visible_items = 5,
+			scrollbar_edge_pad = 6,
 		on_select = function(index, value)
 			print("Fruit:", value)
 		end,
