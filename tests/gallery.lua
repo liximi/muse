@@ -16,6 +16,7 @@ local test_modules = {
 	require "tests.ui.test_slider",
 	require "tests.ui.test_modal",
 	require "tests.ui.test_chat",
+	require "tests.ui.test_transform",
 }
 
 --[[

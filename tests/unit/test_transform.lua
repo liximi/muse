@@ -223,9 +223,9 @@ local function run()
 	print("")
 	print(string.format("=== %d passed, %d failed ===", passed, failed))
 	print("")
-	if love and love.event then
-		love.event.quit()
-	end
+	-- if love and love.event then
+	-- 	love.event.quit()
+	-- end
 end
 
 return { run = run, test = test }
