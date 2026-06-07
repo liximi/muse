@@ -16,10 +16,10 @@ Clone this repository into your LÖVE project directory, or add it as a submodul
 
 ```bash
 # Option 1: copy directly into your project
-git clone https://github.com/your-repo/muse.git lib/muse
+git clone https://github.com/liximi/muse.git lib/muse
 
 # Option 2: as a git submodule
-git submodule add https://github.com/your-repo/muse.git lib/muse
+git submodule add https://github.com/liximi/muse.git lib/muse
 ```
 
 Then load Muse in your `main.lua`:

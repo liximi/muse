@@ -16,10 +16,10 @@
 
 ```bash
 # 方式一：直接放入项目
-git clone https://github.com/your-repo/muse.git lib/muse
+git clone https://github.com/liximi/muse.git lib/muse
 
 # 方式二：作为 git submodule
-git submodule add https://github.com/your-repo/muse.git lib/muse
+git submodule add https://github.com/liximi/muse.git lib/muse
 ```
 
 然后在你的 `main.lua` 中加载 Muse：
