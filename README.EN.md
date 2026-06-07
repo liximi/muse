@@ -112,12 +112,12 @@ end
 
 ## Dependencies
 
-| Dependency | Path | Purpose |
-|------------|------|---------|
-| **classic** | `dependencies/classic.lua` | OOP class system, provides simplified class inheritance |
-| **tween** | `dependencies/tween.lua` | Tweening library, used by Scroll container and CollapsiblePanel for smooth animations |
-| **Lovebird** | `dependencies/lovebird/` | Remote debugging console (HTTP `:8000`), development use only |
-| **i18n** | `dependencies/i18n/` | Localization framework (currently zh-cn only), for multi-language UI text support |
+| Dependency | Path | Source | Purpose |
+|------------|------|--------|---------|
+| **classic** | `dependencies/classic.lua` | [rxi/classic](https://github.com/rxi/classic/) | OOP class system, provides simplified class inheritance (interface slightly modified) |
+| **tween** | `dependencies/tween.lua` | [kikito/tween.lua](https://github.com/kikito/tween.lua) | Tweening library, used by Scroll container and CollapsiblePanel for smooth animations |
+| **Lovebird** | `dependencies/lovebird/` | [rxi/lovebird](https://github.com/rxi/lovebird) | Remote debugging console (HTTP `:8000`), development use only |
+| **i18n** | `dependencies/i18n/` | [excessive/i18n](https://github.com/excessive/i18n) | Localization framework (currently zh-cn only), for multi-language UI text support |
 
 The only core dependencies are **classic** and **tween**. Lovebird and i18n are optional dev/auxiliary dependencies.
 

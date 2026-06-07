@@ -112,12 +112,12 @@ end
 
 ## 依赖
 
-| 依赖 | 路径 | 用途 |
-|------|------|------|
-| **classic** | `dependencies/classic.lua` | OOP 类系统，提供简化的类继承机制 |
-| **tween** | `dependencies/tween.lua` | 补间动画库，Scroll 容器和 CollapsiblePanel 用其实现平滑动画 |
-| **Lovebird** | `dependencies/lovebird/` | 远程调试控制台（HTTP `:8000`），仅开发环境使用 |
-| **i18n** | `dependencies/i18n/` | 本地化框架（当前仅 zh-cn），用于 UI 文本多语言支持 |
+| 依赖 | 路径 | 源代码 | 用途 |
+|------|------|--------|------|
+| **classic** | `dependencies/classic.lua` | [rxi/classic](https://github.com/rxi/classic/) | OOP 类系统，提供简化的类继承机制（接口略有调整） |
+| **tween** | `dependencies/tween.lua` | [kikito/tween.lua](https://github.com/kikito/tween.lua) | 补间动画库，Scroll 容器和 CollapsiblePanel 用其实现平滑动画 |
+| **Lovebird** | `dependencies/lovebird/` | [rxi/lovebird](https://github.com/rxi/lovebird) | 远程调试控制台（HTTP `:8000`），仅开发环境使用 |
+| **i18n** | `dependencies/i18n/` | [excessive/i18n](https://github.com/excessive/i18n) | 本地化框架（当前仅 zh-cn），用于 UI 文本多语言支持 |
 
 核心依赖只有 **classic** 和 **tween**。Lovebird 和 i18n 是可选的开发/辅助依赖。
 
