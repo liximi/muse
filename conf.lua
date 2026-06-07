@@ -1,5 +1,5 @@
 function love.conf(t)
-	t.window.title = "UI Test"
+	t.window.title = "Muse"
 	t.window.width = 1280
 	t.window.height = 720
 	t.window.resizable = true
