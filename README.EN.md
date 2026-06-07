@@ -1,5 +1,7 @@
 # Muse
 
+[中文](README.md) | [English](README.EN.md)
+
 **Muse** — a desktop-grade UI framework for the [LÖVE](https://love2d.org/) game engine, written in Lua. It implements a complete widget system including a layout engine, theme system, text input, scrollable lists, Flexbox layout, and more.
 
 > This library makes extensive use of LLM-generated code. Please evaluate the risks before using it in production.

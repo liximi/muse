@@ -1,5 +1,7 @@
 # Muse
 
+[中文](README.md) | [English](README.EN.md)
+
 **缪斯** 是基于 [LÖVE](https://love2d.org/) 游戏引擎的桌面级 UI 框架，使用 Lua 编写。实现了一套完整的 widget 系统，包括布局引擎、主题系统、文本输入、滚动列表、Flexbox 布局等功能。
 
 > 本库大量使用了 LLM 生成代码，请自行评估使用风险。
