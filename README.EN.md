@@ -261,6 +261,10 @@ The codebase follows these conventions (which should be followed when writing ne
 - **Widget file structure**: require → private functions → class definition → public methods → event handlers → return
 - **Widget file header** should include a structural comment describing the `datas` fields it accepts
 
+## Font
+
+This library uses the [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) font family, licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
+
 ## License
 
 [MIT](LICENSE)

@@ -261,6 +261,10 @@ datas 直接参数 > 自定义 theme > UiManager 默认 theme
 - **Widget 文件结构**：require → 私有函数 → 类定义 → 公有方法 → 事件处理器 → return
 - **Widget 文件头部**应有结构注释描述 `datas` 接受的字段
 
+## 字体
+
+本库使用 [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) 系列字体，基于 [SIL Open Font License 1.1](https://openfontlicense.org/) 授权。
+
 ## 许可证
 
 [MIT](LICENSE)
