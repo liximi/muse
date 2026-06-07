@@ -6,6 +6,8 @@
 
 > This library makes extensive use of LLM-generated code. Please evaluate the risks before using it in production.
 
+![runtime](assets/runtime_overview_1.gif)
+
 ## Installation
 
 ### Prerequisites

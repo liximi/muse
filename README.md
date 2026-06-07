@@ -6,6 +6,8 @@
 
 > 本库大量使用了 LLM 生成代码，请自行评估使用风险。
 
+![runtime](assets/runtime_overview_1.gif)
+
 ## 安装
 
 ### 前置条件
