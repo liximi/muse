@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个基于 LÖVE (Love2D) 游戏引擎的 UI 框架，使用 Lua 编写。它实现了一套完整的桌面级 UI widget 系统，包括布局引擎、主题系统、文本输入、滚动列表等功能。
+**Muse** — 基于 LÖVE (Love2D) 游戏引擎的 UI 框架，使用 Lua 编写。它实现了一套完整的桌面级 UI widget 系统，包括布局引擎、主题系统、文本输入、滚动列表等功能。
 
 ## 运行项目
 

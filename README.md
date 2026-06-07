@@ -1,6 +1,6 @@
-# Love2D UI Framework
+# Muse
 
-一个基于 [LÖVE](https://love2d.org/) 游戏引擎的桌面级 UI 框架，使用 Lua 编写。实现了一套完整的 widget 系统，包括布局引擎、主题系统、文本输入、滚动列表、Flexbox 布局等功能。
+**缪斯** 是基于 [LÖVE](https://love2d.org/) 游戏引擎的桌面级 UI 框架，使用 Lua 编写。实现了一套完整的 widget 系统，包括布局引擎、主题系统、文本输入、滚动列表、Flexbox 布局等功能。
 
 ## 安装
 
@@ -14,17 +14,17 @@
 
 ```bash
 # 方式一：直接放入项目
-git clone https://github.com/your-repo/love-test-ui.git lib/ui
+git clone https://github.com/your-repo/muse.git lib/muse
 
 # 方式二：作为 git submodule
-git submodule add https://github.com/your-repo/love-test-ui.git lib/ui
+git submodule add https://github.com/your-repo/muse.git lib/muse
 ```
 
-然后在你的 `main.lua` 中加载框架：
+然后在你的 `main.lua` 中加载 Muse：
 
 ```lua
-Class = require "lib.ui.dependencies.classic"
-local UiManager = require "lib.ui.ui_manager":GetInstance()
+Class = require "lib.muse.dependencies.classic"
+local UiManager = require "lib.muse.ui.ui_manager":GetInstance()
 -- ... 加载其他模块
 ```
 
@@ -37,6 +37,8 @@ love .
 按 `Escape` 退出。运行后在浏览器打开 `http://127.0.0.1:8000` 可查看 Lovebird 远程调试控制台。
 
 ## 快速开始
+
+> 以下代码假设你在 Muse 仓库根目录运行 `love .`。若已将 Muse 作为 `lib/muse` 引入项目，将 require 路径前缀改为 `lib.muse.`。
 
 ```lua
 -- 1. 导入依赖
