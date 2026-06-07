@@ -261,4 +261,4 @@ datas 直接参数 > 自定义 theme > UiManager 默认 theme
 
 ## 许可证
 
-待定。
+[MIT](LICENSE)

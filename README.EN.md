@@ -261,4 +261,4 @@ The codebase follows these conventions (which should be followed when writing ne
 
 ## License
 
-To be determined.
+[MIT](LICENSE)
