@@ -326,13 +326,13 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("亮度", 100, 80,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 亮度 →", val) end)
+		nil)
 	table.insert(gfx_items, row)
 	setting_widgets.brightness = { widget = slider, type = "slider", default = 80 }
 
 	row, slider, vlbl = makeSliderRow("视野 (FOV)", 120, 90,
-		function(val) return tostring(val) end,
-		function(val) print("[设置] 视野 →", val) end)
+		function(val) return string.format("%d", val) end,
+		nil)
 	table.insert(gfx_items, row)
 	setting_widgets.fov = { widget = slider, type = "slider", default = 90 }
 
@@ -374,31 +374,31 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("主音量", 100, 80,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 主音量 →", val) end)
+		nil)
 	table.insert(aud_items, row)
 	setting_widgets.master_volume = { widget = slider, type = "slider", default = 80 }
 
 	row, slider, vlbl = makeSliderRow("音乐音量", 100, 75,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 音乐音量 →", val) end)
+		nil)
 	table.insert(aud_items, row)
 	setting_widgets.music_volume = { widget = slider, type = "slider", default = 75 }
 
 	row, slider, vlbl = makeSliderRow("音效音量", 100, 90,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 音效音量 →", val) end)
+		nil)
 	table.insert(aud_items, row)
 	setting_widgets.sfx_volume = { widget = slider, type = "slider", default = 90 }
 
 	row, slider, vlbl = makeSliderRow("语音音量", 100, 85,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 语音音量 →", val) end)
+		nil)
 	table.insert(aud_items, row)
 	setting_widgets.voice_volume = { widget = slider, type = "slider", default = 85 }
 
 	row, slider, vlbl = makeSliderRow("环境音量", 100, 60,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 环境音量 →", val) end)
+		nil)
 	table.insert(aud_items, row)
 	setting_widgets.ambient_volume = { widget = slider, type = "slider", default = 60 }
 
@@ -455,7 +455,7 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("鼠标灵敏度", 100, 50,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] 鼠标灵敏度 →", val) end)
+		nil)
 	table.insert(gp_items, row)
 	setting_widgets.mouse_sensitivity = { widget = slider, type = "slider", default = 50 }
 
@@ -525,7 +525,7 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("UI 缩放", 150, 100,
 		function(val) return string.format("%d%%", val) end,
-		function(val) print("[设置] UI缩放 →", val) end)
+		nil)
 	table.insert(acc_items, row)
 	setting_widgets.ui_scale = { widget = slider, type = "slider", default = 100 }
 
