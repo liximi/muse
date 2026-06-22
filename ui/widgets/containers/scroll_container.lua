@@ -97,6 +97,22 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		love.graphics.pop()
 	end
 
+	-- 事件裁剪：鼠标事件仅当在 Scroll 可见区域内时才传播给内容子节点
+	-- 防止溢出容器边界的内容仍然响应鼠标事件
+	local _widget_handleEvent = Widget.handleEvent
+	function self.scroll_root.handleEvent(_self, event_type, ...)
+		if event_type == "MousePressed" or event_type == "MouseMoved"
+			or event_type == "MouseReleased" or event_type == "WheelMoved" then
+			local arg = {...}
+			if arg[1] and arg[2] then
+				if not self:regionDetection(arg[1], arg[2]) then
+					return false
+				end
+			end
+		end
+		return _widget_handleEvent(_self, event_type, ...)
+	end
+
 	self.item = nil
 	if datas and datas.item then
 		self:setItem(datas.item)
