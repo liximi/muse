@@ -156,7 +156,7 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
 | **TextInput** | Text input field with cursor control, selection, clipboard, and undo/redo | [docs/en/textinput.md](docs/en/textinput.md) |
-| **SliderBar** | Slider bar supporting horizontal/vertical orientation, drag, and long-press stepping | [docs/en/sliderbar.md](docs/en/sliderbar.md) |
+| **SliderBar** | Slider bar supporting horizontal/vertical orientation, drag, long-press stepping, and integer step mode | [docs/en/sliderbar.md](docs/en/sliderbar.md) |
 | **ProgressBar** | Progress bar supporting horizontal and vertical orientation | [docs/en/progressbar.md](docs/en/progressbar.md) |
 
 ### Container Components

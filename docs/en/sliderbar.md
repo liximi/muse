@@ -12,6 +12,7 @@ A slider component supporting horizontal and vertical orientation. Consists of a
     max_limit = number,           -- maximum value, default 1
     block_length_percent = number, -- thumb length as proportion of track 0~1, default 0.1
     block_min_len = number,       -- minimum thumb length (pixels), default 0
+    step = number,               -- step size, default 0 (continuous). >0 snaps value to step multiples
     sensitivity = number,         -- click track / scroll wheel sensitivity, default 0.8
     on_value_update = function(value, percent),  -- value change callback
 }
@@ -36,6 +37,19 @@ A slider component supporting horizontal and vertical orientation. Consists of a
 | Long-press track | Repeat step every 0.25 seconds |
 | Window resize | Thumb size and rounding auto-adapt |
 
+## Step Mode
+
+The `step` parameter controls value granularity:
+
+| step value | Mode | Example (max_limit=100) |
+|-----------|------|-------------------------|
+| 0 or nil | Continuous float | Can drag to 37.2, 81.5, etc. |
+| 1 | Integer step | Values only take 0, 1, 2, ..., 100 |
+| 5 | Multiple of 5 | Values only take 0, 5, 10, ..., 100 |
+| 0.5 | Half-integer | Values only take 0, 0.5, 1.0, ..., 100 |
+
+Step snapping applies to all interactions (drag, track click, long-press). `setValue`/`setPercent` also auto-snap.
+
 ## Thumb Rounding
 
 Both ends of the thumb are semi-circular. The corner radius is calculated from the thin-edge dimension (width for vertical sliders, height for horizontal sliders), and is kept in sync in `onSizeChanged` and `setBlockLengthPercent`.
@@ -55,6 +69,7 @@ local v = SliderBarV({w = 12, anchor = {0, 0, 0, 1}})
 ## Example
 
 ```lua
+-- Continuous mode (default)
 local slider = SliderBar({
     orientation = "horizontal",
     anchor = {0, 0, 1, 0},
@@ -66,4 +81,14 @@ local slider = SliderBar({
     end,
 })
 slider:setValue(50)
+
+-- Integer step mode
+local int_slider = SliderBar({
+    orientation = "horizontal",
+    max_limit = 120,
+    step = 1,
+    block_length_percent = 0.1,
+    block_min_len = 15,
+})
+int_slider:setValue(90)  -- value is always an integer
 ```
