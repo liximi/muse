@@ -290,7 +290,7 @@ function test.create(parent)
 	table.insert(gfx_items, makeSectionRow("显示"))
 
 	row, dd = makeDropdownRow("分辨率", res_strings, res_selected,
-		function(idx, val)
+		function(_self, idx, val)
 			res_selected = idx
 			applyWindowMode()
 		end)
@@ -299,7 +299,7 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("显示模式",
 		{"全屏", "无边框窗口", "窗口"}, display_mode_idx,
-		function(idx, val)
+		function(_self, idx, val)
 			display_mode_idx = idx
 			applyWindowMode()
 		end)
@@ -307,7 +307,7 @@ function test.create(parent)
 	setting_widgets.display_mode = { widget = dd, type = "dropdown", default_idx = display_mode_idx }
 
 	row, cb = makeToggleRow("垂直同步", cur_vsync,
-		function(checked)
+		function(_self, checked)
 			cur_vsync = checked
 			applyWindowMode()
 		end)
@@ -319,7 +319,7 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("画质预设",
 		{"极高", "高", "中", "低"}, 2,
-		function(idx, val) print("[设置] 画质预设 →", val) end)
+		function(_self, idx, val) print("[设置] 画质预设 →", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
@@ -336,7 +336,7 @@ function test.create(parent)
 	setting_widgets.fov = { widget = slider, type = "slider", default = 90 }
 
 	row, dd = makeDropdownRow("抗锯齿", msaa_options, msaa_idx,
-		function(idx, val)
+		function(_self, idx, val)
 			msaa_idx = idx
 			applyWindowMode()
 		end)
@@ -345,7 +345,7 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("纹理质量",
 		{"极高", "高", "中", "低"}, 2,
-		function(idx, val) print("[设置] 纹理质量 →", val) end)
+		function(_self, idx, val) print("[设置] 纹理质量 →", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.texture_quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
@@ -402,7 +402,7 @@ function test.create(parent)
 	setting_widgets.ambient_volume = { widget = slider, type = "slider", default = 60 }
 
 	row, cb = makeToggleRow("后台静音", false,
-		function(checked) print("[设置] 后台静音 →", checked) end)
+		function(_self, checked) print("[设置] 后台静音 →", checked) end)
 	table.insert(aud_items, row)
 	setting_widgets.mute_in_bg = { widget = cb, type = "toggle", default = false }
 
@@ -433,19 +433,19 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("游戏难度",
 		{"简单", "普通", "困难", "噩梦"}, 2,
-		function(idx, val) print("[设置] 游戏难度 →", val) end)
+		function(_self, idx, val) print("[设置] 游戏难度 →", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.difficulty = { widget = dd, type = "dropdown", default_idx = 2 }
 
 	row, dd = makeDropdownRow("语言",
 		{"简体中文", "English", "日本語", "한국어"}, 1,
-		function(idx, val) print("[设置] 语言 →", val) end)
+		function(_self, idx, val) print("[设置] 语言 →", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.language = { widget = dd, type = "dropdown", default_idx = 1 }
 
 	row, dd = makeDropdownRow("自动保存",
 		{"关闭", "每 5 分钟", "每 10 分钟", "每 30 分钟"}, 3,
-		function(idx, val) print("[设置] 自动保存 →", val) end)
+		function(_self, idx, val) print("[设置] 自动保存 →", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.autosave = { widget = dd, type = "dropdown", default_idx = 3 }
 
@@ -459,17 +459,17 @@ function test.create(parent)
 	setting_widgets.mouse_sensitivity = { widget = slider, type = "slider", default = 50 }
 
 	row, cb = makeToggleRow("Y 轴反转", false,
-		function(checked) print("[设置] Y轴反转 →", checked) end)
+		function(_self, checked) print("[设置] Y轴反转 →", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.invert_y = { widget = cb, type = "toggle", default = false }
 
 	row, cb = makeToggleRow("手柄震动", true,
-		function(checked) print("[设置] 手柄震动 →", checked) end)
+		function(_self, checked) print("[设置] 手柄震动 →", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.vibration = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("显示准星", true,
-		function(checked) print("[设置] 显示准星 →", checked) end)
+		function(_self, checked) print("[设置] 显示准星 →", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.crosshair = { widget = cb, type = "toggle", default = true }
 
@@ -497,28 +497,28 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("色盲模式",
 		{"关闭", "红色盲", "绿色盲", "蓝黄色盲"}, 1,
-		function(idx, val) print("[设置] 色盲模式 →", val) end)
+		function(_self, idx, val) print("[设置] 色盲模式 →", val) end)
 	table.insert(acc_items, row)
 	setting_widgets.colorblind = { widget = dd, type = "dropdown", default_idx = 1 }
 
 	row, dd = makeDropdownRow("字幕大小",
 		{"小", "中", "大", "特大"}, 2,
-		function(idx, val) print("[设置] 字幕大小 →", val) end)
+		function(_self, idx, val) print("[设置] 字幕大小 →", val) end)
 	table.insert(acc_items, row)
 	setting_widgets.subtitle_size = { widget = dd, type = "dropdown", default_idx = 2 }
 
 	row, cb = makeToggleRow("字幕背景", true,
-		function(checked) print("[设置] 字幕背景 →", checked) end)
+		function(_self, checked) print("[设置] 字幕背景 →", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.subtitle_bg = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("屏幕震动", true,
-		function(checked) print("[设置] 屏幕震动 →", checked) end)
+		function(_self, checked) print("[设置] 屏幕震动 →", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.screen_shake = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("减弱动效", false,
-		function(checked) print("[设置] 减弱动效 →", checked) end)
+		function(_self, checked) print("[设置] 减弱动效 →", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.reduce_motion = { widget = cb, type = "toggle", default = false }
 
