@@ -183,10 +183,13 @@ function test.create(parent)
 	local res_selected = 1
 	local seen_res = {}
 	for _, mode in ipairs(fullscreen_modes) do
-		local key = mode[1] .. "×" .. mode[2]
-		if not seen_res[key] then
-			seen_res[key] = true
-			table.insert(res_options, {w = mode[1], h = mode[2], label = key})
+		local mw, mh = mode.width or mode[1], mode.height or mode[2]
+		if mw and mh then
+			local key = mw .. "×" .. mh
+			if not seen_res[key] then
+				seen_res[key] = true
+				table.insert(res_options, {w = mw, h = mh, label = key})
+			end
 		end
 	end
 	table.sort(res_options, function(a, b)
@@ -228,7 +231,7 @@ function test.create(parent)
 		local r = res_options[res_selected]
 		local flags = {
 			fullscreen = (display_mode_idx == 1),
-			fullscreentype = "desktop",
+			fullscreentype = (display_mode_idx == 1) and "exclusive" or "desktop",
 			borderless = (display_mode_idx == 2),
 			vsync = cur_vsync,
 			msaa = msaa_values[msaa_idx],
