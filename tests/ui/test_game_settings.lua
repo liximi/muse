@@ -133,12 +133,12 @@ local function makeSliderRow(label_text, max_limit, value, format_fn, on_release
 
 	-- 鼠标松开时（仅当之前正在拖拽）触发回调
 	if on_release then
-		local orig_release = slider.onMouseReleased
-		slider.onMouseReleased = function(self, x, y, button)
-			if self.drag then
-				on_release(self.value, self.value / self.max_limit)
+		local orig_click = slider.block.onClick
+		slider.block.onClick = function(_self)
+			if slider.drag then
+				on_release(slider.value, slider.value / slider.max_limit)
 			end
-			if orig_release then orig_release(self, x, y, button) end
+			if orig_click then orig_click(_self) end
 		end
 	end
 
