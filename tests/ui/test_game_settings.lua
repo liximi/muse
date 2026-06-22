@@ -170,6 +170,82 @@ function test.create(parent)
 	Dropdown.destroyAll()
 
 	--------------------------------------------------
+	-- 读取当前 LÖVE 窗口设置
+	--------------------------------------------------
+	local cur_w, cur_h, cur_flags = love.window.getMode()
+	local cur_vsync = love.window.getVSync() > 0
+	local cur_msaa = cur_flags.msaa or 0
+
+	-- 分辨率选项：从系统支持的全屏模式列表中获取，去重排序
+	local fullscreen_modes = love.window.getFullscreenModes()
+	local res_options = {}  -- { {w, h, label}, ... }
+	local res_strings = {}  -- 扁平字符串列表，供 Dropdown 使用
+	local res_selected = 1
+	local seen_res = {}
+	for _, mode in ipairs(fullscreen_modes) do
+		local key = mode[1] .. "×" .. mode[2]
+		if not seen_res[key] then
+			seen_res[key] = true
+			table.insert(res_options, {w = mode[1], h = mode[2], label = key})
+		end
+	end
+	table.sort(res_options, function(a, b)
+		if a.w ~= b.w then return a.w > b.w end
+		return a.h > b.h
+	end)
+	local cur_key = cur_w .. "×" .. cur_h
+	for i, r in ipairs(res_options) do
+		table.insert(res_strings, r.label)
+		if r.label == cur_key then res_selected = i end
+	end
+	-- 如果当前分辨率不在系统列表中（窗口模式自定义尺寸），追加
+	if not seen_res[cur_key] then
+		table.insert(res_options, {w = cur_w, h = cur_h, label = cur_key})
+		table.insert(res_strings, cur_key)
+		res_selected = #res_strings
+	end
+
+	-- 显示模式：从当前 flags 推导选中索引
+	local display_mode_idx
+	if cur_flags.fullscreen then
+		display_mode_idx = 1
+	elseif cur_flags.borderless then
+		display_mode_idx = 2
+	else
+		display_mode_idx = 3
+	end
+
+	-- MSAA 选项（对应 love.window.setMode 的 msaa 参数）
+	local msaa_options = {"关闭", "2x MSAA", "4x MSAA", "8x MSAA"}
+	local msaa_values = {0, 2, 4, 8}
+	local msaa_idx = 1
+	for i, v in ipairs(msaa_values) do
+		if v == cur_msaa then msaa_idx = i; break end
+	end
+
+	-- 应用窗口模式：收集当前设置状态，调用 love.window.setMode
+	local function applyWindowMode()
+		local r = res_options[res_selected]
+		local flags = {
+			fullscreen = (display_mode_idx == 1),
+			fullscreentype = "desktop",
+			borderless = (display_mode_idx == 2),
+			vsync = cur_vsync,
+			msaa = msaa_values[msaa_idx],
+			resizable = true,
+			centered = true,
+		}
+		local ok = love.window.setMode(r.w, r.h, flags)
+		if ok then
+			print(string.format("[窗口] %dx%d fullscreen=%s borderless=%s vsync=%s msaa=%d",
+				r.w, r.h, tostring(flags.fullscreen), tostring(flags.borderless),
+				tostring(flags.vsync), flags.msaa))
+		else
+			print("[窗口] setMode 失败")
+		end
+	end
+
+	--------------------------------------------------
 	-- 存储所有设置控件的引用（用于 Apply / Reset）
 	--------------------------------------------------
 	local setting_widgets = {}
@@ -205,22 +281,30 @@ function test.create(parent)
 	-- 显示
 	table.insert(gfx_items, makeSectionRow("显示"))
 
-	row, dd = makeDropdownRow("分辨率",
-		{"3840×2160", "2560×1440", "1920×1080", "1600×900", "1280×720"}, 3,
-		function(idx, val) print("[设置] 分辨率 →", val) end)
+	row, dd = makeDropdownRow("分辨率", res_strings, res_selected,
+		function(idx, val)
+			res_selected = idx
+			applyWindowMode()
+		end)
 	table.insert(gfx_items, row)
-	setting_widgets.resolution = { widget = dd, type = "dropdown", default_idx = 3 }
+	setting_widgets.resolution = { widget = dd, type = "dropdown", default_idx = res_selected }
 
 	row, dd = makeDropdownRow("显示模式",
-		{"全屏", "无边框窗口", "窗口"}, 1,
-		function(idx, val) print("[设置] 显示模式 →", val) end)
+		{"全屏", "无边框窗口", "窗口"}, display_mode_idx,
+		function(idx, val)
+			display_mode_idx = idx
+			applyWindowMode()
+		end)
 	table.insert(gfx_items, row)
-	setting_widgets.display_mode = { widget = dd, type = "dropdown", default_idx = 1 }
+	setting_widgets.display_mode = { widget = dd, type = "dropdown", default_idx = display_mode_idx }
 
-	row, cb = makeToggleRow("垂直同步", true,
-		function(checked) print("[设置] 垂直同步 →", checked) end)
+	row, cb = makeToggleRow("垂直同步", cur_vsync,
+		function(checked)
+			cur_vsync = checked
+			applyWindowMode()
+		end)
 	table.insert(gfx_items, row)
-	setting_widgets.vsync = { widget = cb, type = "toggle", default = true }
+	setting_widgets.vsync = { widget = cb, type = "toggle", default = cur_vsync }
 
 	-- 画质
 	table.insert(gfx_items, makeSectionRow("画质"))
@@ -243,11 +327,13 @@ function test.create(parent)
 	table.insert(gfx_items, row)
 	setting_widgets.fov = { widget = slider, type = "slider", default = 90 }
 
-	row, dd = makeDropdownRow("抗锯齿",
-		{"TAA", "FXAA", "SMAA", "关闭"}, 1,
-		function(idx, val) print("[设置] 抗锯齿 →", val) end)
+	row, dd = makeDropdownRow("抗锯齿", msaa_options, msaa_idx,
+		function(idx, val)
+			msaa_idx = idx
+			applyWindowMode()
+		end)
 	table.insert(gfx_items, row)
-	setting_widgets.antialiasing = { widget = dd, type = "dropdown", default_idx = 1 }
+	setting_widgets.antialiasing = { widget = dd, type = "dropdown", default_idx = msaa_idx }
 
 	row, dd = makeDropdownRow("纹理质量",
 		{"极高", "高", "中", "低"}, 2,
