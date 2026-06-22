@@ -110,7 +110,8 @@ local function makeSliderRow(label_text, max_limit, value, format_fn, on_change)
 		padding = {CONTROL_X, 0, (ROW_H - 14) / 2, 0},
 		w = CONTROL_W,
 		h = 14,
-		block_length_percent = 0.06,
+		block_length_percent = 0.1,
+		block_min_len = 15,
 	}))
 	local value_label = row:addChild(Text({
 		text = value_str,

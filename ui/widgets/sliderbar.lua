@@ -96,8 +96,6 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	local block_anchor = orientation == "vertical" and {0, 0, 1, 0} -- 水平方向拉伸
 	or {0, 0, 0, 1} -- 垂直方向拉伸
 	local block_padding = orientation == "vertical" and {-BLOCK_OVERHANG, -BLOCK_OVERHANG, 0, nil} or {0, nil, -BLOCK_OVERHANG, -BLOCK_OVERHANG}
-	local block_init_size = {}
-	block_init_size[a.size] = self.block_length_percent * self.transform[a.size]
 
 	self.block = self:addChild(Button({
 		anchor = block_anchor,
@@ -111,11 +109,18 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		normal = block_style,
 		hover = block_hover_style,
 		pressed = block_hover_style,
-		datas = block_init_size
 	}))
 
+	-- 显式设置滑块初始尺寸（不再依赖 onSizeChanged 做初始化）
+	local block_len = self.block_length_percent * self.transform[a.size]
+	if self.block_min_len > 0 then
+		block_len = math.max(self.block_min_len, block_len)
+	end
+	self.block.transform:setSize(a.pos == "x" and block_len or nil,
+		a.pos == "y" and block_len or nil)
+
 	self:enableSizeChangedEvent(true)
-	self:onSizeChanged(self.transform.w, self.transform.h)
+	self:_updateBlockRounding()
 end)
 
 function SliderBar:setValue(val)
