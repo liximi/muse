@@ -85,7 +85,7 @@ local function makeDropdownRow(label_text, options, selected, on_select)
 end
 
 --- 创建滑块行，返回 { row, slider, value_label }
-local function makeSliderRow(label_text, max_limit, value, format_fn, on_change)
+local function makeSliderRow(label_text, max_limit, value, format_fn, on_release)
 	local value_str = format_fn and format_fn(value) or tostring(value)
 
 	local row = Widget({
@@ -125,12 +125,22 @@ local function makeSliderRow(label_text, max_limit, value, format_fn, on_change)
 		w = 52,
 	}))
 
-	-- 注册 on_value_update 回调（在 slider 创建后设置，避免闭包捕获顺序问题）
+	-- 拖动时只更新数值标签，不触发业务回调
 	slider:setOnValueUpdateFn(function(val, pct)
 		local display = format_fn and format_fn(val) or tostring(val)
 		value_label:setText(display)
-		if on_change then on_change(val, pct) end
 	end)
+
+	-- 鼠标松开时（仅当之前正在拖拽）触发回调
+	if on_release then
+		local orig_release = slider.onMouseReleased
+		slider.onMouseReleased = function(self, x, y, button)
+			if self.drag then
+				on_release(self.value, self.value / self.max_limit)
+			end
+			if orig_release then orig_release(self, x, y, button) end
+		end
+	end
 
 	return row, slider, value_label
 end
@@ -232,7 +242,7 @@ function test.create(parent)
 	local function applyWindowMode()
 		local r = res_options[res_selected]
 		if not r then
-			print(string.format("[窗口] 无效分辨率索引: %d (共 %d 项)", res_selected, #res_options))
+			print(string.format("[Window] Invalid resolution index: %d (total %d items)", res_selected, #res_options))
 			return
 		end
 		local flags = {
@@ -246,11 +256,11 @@ function test.create(parent)
 		}
 		local ok = love.window.setMode(r.w, r.h, flags)
 		if ok then
-			print(string.format("[窗口] %dx%d fullscreen=%s borderless=%s vsync=%s msaa=%d",
+			print(string.format("[Window] %dx%d fullscreen=%s borderless=%s vsync=%s msaa=%d",
 				r.w, r.h, tostring(flags.fullscreen), tostring(flags.borderless),
 				tostring(flags.vsync), flags.msaa))
 		else
-			print("[窗口] setMode 失败")
+			print("[Window] setMode failed")
 		end
 	end
 
@@ -320,19 +330,19 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("画质预设",
 		{"极高", "高", "中", "低"}, 2,
-		function(_self, idx, val) print("[设置] 画质预设 →", val) end)
+		function(_self, idx, val) print("[Settings] Quality preset ->", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
 	row, slider, vlbl = makeSliderRow("亮度", 100, 80,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Brightness ->", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.brightness = { widget = slider, type = "slider", default = 80 }
 
 	row, slider, vlbl = makeSliderRow("视野 (FOV)", 120, 90,
 		function(val) return string.format("%d", val) end,
-		nil)
+		function(val) print("[Settings] FOV ->", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.fov = { widget = slider, type = "slider", default = 90 }
 
@@ -346,7 +356,7 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("纹理质量",
 		{"极高", "高", "中", "低"}, 2,
-		function(_self, idx, val) print("[设置] 纹理质量 →", val) end)
+		function(_self, idx, val) print("[Settings] Texture quality ->", val) end)
 	table.insert(gfx_items, row)
 	setting_widgets.texture_quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
@@ -374,36 +384,36 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("主音量", 100, 80,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Master volume ->", val) end)
 	table.insert(aud_items, row)
 	setting_widgets.master_volume = { widget = slider, type = "slider", default = 80 }
 
 	row, slider, vlbl = makeSliderRow("音乐音量", 100, 75,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Music volume ->", val) end)
 	table.insert(aud_items, row)
 	setting_widgets.music_volume = { widget = slider, type = "slider", default = 75 }
 
 	row, slider, vlbl = makeSliderRow("音效音量", 100, 90,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] SFX volume ->", val) end)
 	table.insert(aud_items, row)
 	setting_widgets.sfx_volume = { widget = slider, type = "slider", default = 90 }
 
 	row, slider, vlbl = makeSliderRow("语音音量", 100, 85,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Voice volume ->", val) end)
 	table.insert(aud_items, row)
 	setting_widgets.voice_volume = { widget = slider, type = "slider", default = 85 }
 
 	row, slider, vlbl = makeSliderRow("环境音量", 100, 60,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Ambient volume ->", val) end)
 	table.insert(aud_items, row)
 	setting_widgets.ambient_volume = { widget = slider, type = "slider", default = 60 }
 
 	row, cb = makeToggleRow("后台静音", false,
-		function(_self, checked) print("[设置] 后台静音 →", checked) end)
+		function(_self, checked) print("[Settings] Mute in bg ->", checked) end)
 	table.insert(aud_items, row)
 	setting_widgets.mute_in_bg = { widget = cb, type = "toggle", default = false }
 
@@ -434,19 +444,19 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("游戏难度",
 		{"简单", "普通", "困难", "噩梦"}, 2,
-		function(_self, idx, val) print("[设置] 游戏难度 →", val) end)
+		function(_self, idx, val) print("[Settings] Difficulty ->", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.difficulty = { widget = dd, type = "dropdown", default_idx = 2 }
 
 	row, dd = makeDropdownRow("语言",
 		{"简体中文", "English", "日本語", "한국어"}, 1,
-		function(_self, idx, val) print("[设置] 语言 →", val) end)
+		function(_self, idx, val) print("[Settings] Language ->", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.language = { widget = dd, type = "dropdown", default_idx = 1 }
 
 	row, dd = makeDropdownRow("自动保存",
 		{"关闭", "每 5 分钟", "每 10 分钟", "每 30 分钟"}, 3,
-		function(_self, idx, val) print("[设置] 自动保存 →", val) end)
+		function(_self, idx, val) print("[Settings] Autosave ->", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.autosave = { widget = dd, type = "dropdown", default_idx = 3 }
 
@@ -455,22 +465,22 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("鼠标灵敏度", 100, 50,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] Mouse sensitivity ->", val) end)
 	table.insert(gp_items, row)
 	setting_widgets.mouse_sensitivity = { widget = slider, type = "slider", default = 50 }
 
 	row, cb = makeToggleRow("Y 轴反转", false,
-		function(_self, checked) print("[设置] Y轴反转 →", checked) end)
+		function(_self, checked) print("[Settings] Invert Y ->", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.invert_y = { widget = cb, type = "toggle", default = false }
 
 	row, cb = makeToggleRow("手柄震动", true,
-		function(_self, checked) print("[设置] 手柄震动 →", checked) end)
+		function(_self, checked) print("[Settings] Vibration ->", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.vibration = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("显示准星", true,
-		function(_self, checked) print("[设置] 显示准星 →", checked) end)
+		function(_self, checked) print("[Settings] Crosshair ->", checked) end)
 	table.insert(gp_items, row)
 	setting_widgets.crosshair = { widget = cb, type = "toggle", default = true }
 
@@ -498,34 +508,34 @@ function test.create(parent)
 
 	row, dd = makeDropdownRow("色盲模式",
 		{"关闭", "红色盲", "绿色盲", "蓝黄色盲"}, 1,
-		function(_self, idx, val) print("[设置] 色盲模式 →", val) end)
+		function(_self, idx, val) print("[Settings] Colorblind mode ->", val) end)
 	table.insert(acc_items, row)
 	setting_widgets.colorblind = { widget = dd, type = "dropdown", default_idx = 1 }
 
 	row, dd = makeDropdownRow("字幕大小",
 		{"小", "中", "大", "特大"}, 2,
-		function(_self, idx, val) print("[设置] 字幕大小 →", val) end)
+		function(_self, idx, val) print("[Settings] Subtitle size ->", val) end)
 	table.insert(acc_items, row)
 	setting_widgets.subtitle_size = { widget = dd, type = "dropdown", default_idx = 2 }
 
 	row, cb = makeToggleRow("字幕背景", true,
-		function(_self, checked) print("[设置] 字幕背景 →", checked) end)
+		function(_self, checked) print("[Settings] Subtitle bg ->", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.subtitle_bg = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("屏幕震动", true,
-		function(_self, checked) print("[设置] 屏幕震动 →", checked) end)
+		function(_self, checked) print("[Settings] Screen shake ->", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.screen_shake = { widget = cb, type = "toggle", default = true }
 
 	row, cb = makeToggleRow("减弱动效", false,
-		function(_self, checked) print("[设置] 减弱动效 →", checked) end)
+		function(_self, checked) print("[Settings] Reduce motion ->", checked) end)
 	table.insert(acc_items, row)
 	setting_widgets.reduce_motion = { widget = cb, type = "toggle", default = false }
 
 	row, slider, vlbl = makeSliderRow("UI 缩放", 150, 100,
 		function(val) return string.format("%d%%", val) end,
-		nil)
+		function(val) print("[Settings] UI scale ->", val) end)
 	table.insert(acc_items, row)
 	setting_widgets.ui_scale = { widget = slider, type = "slider", default = 100 }
 
@@ -550,7 +560,7 @@ function test.create(parent)
 			{label = "辅助功能", content = tab_accessibility},
 		},
 		on_tab_changed = function(idx)
-			print("[设置] 切换到 Tab:", idx)
+			print("[Settings] Tab switched to:", idx)
 		end,
 	}))
 
@@ -558,7 +568,7 @@ function test.create(parent)
 	-- 收集当前设置值并打印
 	--------------------------------------------------
 	local function collectSettings()
-		print("========== 当前游戏设置 ==========")
+		print("========== Current Game Settings ==========")
 		for key, entry in pairs(setting_widgets) do
 			local w = entry.widget
 			if entry.type == "dropdown" then
@@ -571,12 +581,12 @@ function test.create(parent)
 				print(string.format("  %s = %s", key, tostring(w:isChecked())))
 			end
 		end
-		print("====================================")
+		print("============================================")
 	end
 
 	--- 恢复所有设置为默认值
 	local function resetAll()
-		print("[设置] 恢复默认值")
+		print("[Settings] Reset to defaults")
 		for key, entry in pairs(setting_widgets) do
 			local w = entry.widget
 			if entry.type == "dropdown" then
@@ -631,7 +641,7 @@ function test.create(parent)
 		w = 72,
 		h = 28,
 		on_click = function()
-			print("[设置] 取消 — 当前值：")
+			print("[Settings] Cancel - current values:")
 			collectSettings()
 		end,
 	}))
@@ -649,7 +659,7 @@ function test.create(parent)
 		w = 72,
 		h = 28,
 		on_click = function()
-			print("[设置] 应用 — 保存设置：")
+			print("[Settings] Apply - saving settings:")
 			collectSettings()
 		end,
 	}))
