@@ -37,6 +37,11 @@ local function updateValueInternal(self, value, call_callback, update_block_pos)
 	local a = self._axis
 	local old_val = self.value
 	local new_val = Utils.clamp(value, 0, self.max_limit)
+	-- 整数步长模式：snap 到最近步长倍数
+	if self.step > 0 then
+		new_val = math.floor(new_val / self.step + 0.5) * self.step
+		new_val = Utils.clamp(new_val, 0, self.max_limit)
+	end
 	self.value = new_val
 	if old_val ~= new_val and call_callback and self.onValueUpdate then
 		self.onValueUpdate(self.value, self.value / self.max_limit)
@@ -53,6 +58,7 @@ end
 	max_limit = number
 	block_length_percent = number
 	block_min_len = number       滑块最小长度（像素，默认 0 不限制）
+	step = number                步长（默认 0 连续模式，>0 时值会 snap 到最近的步长倍数）
 	sensitivity = number
 	on_value_update = function(value, percent)
 ]]
@@ -72,6 +78,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self.block_min_len = datas.block_min_len or 0
 
 	self.max_limit = datas.max_limit or 1
+	self.step = datas.step or 0
 	self.value = 0
 
 	self.onValueUpdate = datas.on_value_update

@@ -12,6 +12,7 @@
     max_limit = number,           -- 最大值，默认 1
     block_length_percent = number, -- 滑块长度占轨道比例 0~1，默认 0.1
     block_min_len = number,       -- 滑块最小长度（像素），默认 0
+    step = number,               -- 步长，默认 0（连续模式）。>0 时值 snap 到步长倍数
     sensitivity = number,         -- 点击轨道/滚轮灵敏度，默认 0.8
     on_value_update = function(value, percent),  -- 值变化回调
 }
@@ -36,6 +37,19 @@
 | 长按轨道 | 每 0.25 秒重复步进 |
 | 窗口 resize | 滑块尺寸和圆角自动适配 |
 
+## 步长模式（step）
+
+`step` 参数控制值的粒度：
+
+| step 值 | 模式 | 示例（max_limit=100）|
+|---------|------|----------------------|
+| 0 或不传 | 连续浮点 | 可拖到 37.2、81.5 等任意值 |
+| 1 | 整数步长 | 值只取 0, 1, 2, ..., 100 |
+| 5 | 5 的倍数 | 值只取 0, 5, 10, ..., 100 |
+| 0.5 | 半整数 | 值只取 0, 0.5, 1.0, ..., 100 |
+
+步长 snap 在拖拽、点击轨道、长按等所有交互中均生效，`setValue`/`setPercent` 也会自动 snap。
+
 ## 滑块圆角
 
 滑块两端为半圆形，圆角半径由薄边尺寸计算（垂直滑块取宽度，水平滑块取高度），在 `onSizeChanged` 和 `setBlockLengthPercent` 时同步更新。
@@ -55,6 +69,7 @@ local v = SliderBarV({w = 12, anchor = {0, 0, 0, 1}})
 ## 示例
 
 ```lua
+-- 连续模式（默认）
 local slider = SliderBar({
     orientation = "horizontal",
     anchor = {0, 0, 1, 0},
@@ -66,4 +81,14 @@ local slider = SliderBar({
     end,
 })
 slider:setValue(50)
+
+-- 整数步长模式
+local int_slider = SliderBar({
+    orientation = "horizontal",
+    max_limit = 120,
+    step = 1,
+    block_length_percent = 0.1,
+    block_min_len = 15,
+})
+int_slider:setValue(90)  -- 值始终为整数
 ```

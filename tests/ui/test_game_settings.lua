@@ -85,7 +85,7 @@ local function makeDropdownRow(label_text, options, selected, on_select)
 end
 
 --- 创建滑块行，返回 { row, slider, value_label }
-local function makeSliderRow(label_text, max_limit, value, format_fn, on_release)
+local function makeSliderRow(label_text, max_limit, value, format_fn, on_release, step)
 	local value_str = format_fn and format_fn(value) or tostring(value)
 
 	local row = Widget({
@@ -110,6 +110,7 @@ local function makeSliderRow(label_text, max_limit, value, format_fn, on_release
 		padding = {CONTROL_X, 0, (ROW_H - 14) / 2, 0},
 		w = CONTROL_W,
 		h = 14,
+		step = step or 0,
 		block_length_percent = 0.1,
 		block_min_len = 15,
 	}))
@@ -342,7 +343,7 @@ function test.create(parent)
 
 	row, slider, vlbl = makeSliderRow("视野 (FOV)", 120, 90,
 		function(val) return string.format("%d", val) end,
-		function(val) print("[Settings] FOV ->", val) end)
+		function(val) print("[Settings] FOV ->", val) end, 1)
 	table.insert(gfx_items, row)
 	setting_widgets.fov = { widget = slider, type = "slider", default = 90 }
 

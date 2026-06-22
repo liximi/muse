@@ -156,7 +156,7 @@ end
 | 组件 | 简介 | 文档 |
 |------|------|------|
 | **TextInput** | 文本输入框，光标控制、选区、剪贴板、撤销/重做 | [docs/textinput.md](docs/textinput.md) |
-| **SliderBar** | 滑块，支持水平/垂直方向、拖拽和长按步进 | [docs/sliderbar.md](docs/sliderbar.md) |
+| **SliderBar** | 滑块，支持水平/垂直方向、拖拽、长按步进、整数步长模式 | [docs/sliderbar.md](docs/sliderbar.md) |
 | **ProgressBar** | 进度条，支持水平和垂直方向 | [docs/progressbar.md](docs/progressbar.md) |
 
 ### 容器组件
