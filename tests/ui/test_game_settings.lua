@@ -178,12 +178,13 @@ function test.create(parent)
 
 	-- 分辨率选项：从系统支持的全屏模式列表中获取，去重排序
 	local fullscreen_modes = love.window.getFullscreenModes()
+	-- 返回格式: {{width=2560, height=1440}, ...}（已验证）
 	local res_options = {}  -- { {w, h, label}, ... }
 	local res_strings = {}  -- 扁平字符串列表，供 Dropdown 使用
 	local res_selected = 1
 	local seen_res = {}
 	for _, mode in ipairs(fullscreen_modes) do
-		local mw, mh = mode.width or mode[1], mode.height or mode[2]
+		local mw, mh = mode.width, mode.height
 		if mw and mh then
 			local key = mw .. "×" .. mh
 			if not seen_res[key] then
@@ -229,6 +230,10 @@ function test.create(parent)
 	-- 应用窗口模式：收集当前设置状态，调用 love.window.setMode
 	local function applyWindowMode()
 		local r = res_options[res_selected]
+		if not r then
+			print(string.format("[窗口] 无效分辨率索引: %d (共 %d 项)", res_selected, #res_options))
+			return
+		end
 		local flags = {
 			fullscreen = (display_mode_idx == 1),
 			fullscreentype = (display_mode_idx == 1) and "exclusive" or "desktop",
