@@ -115,6 +115,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	}))
 
 	self:enableSizeChangedEvent(true)
+	self:onSizeChanged(self.transform.w, self.transform.h)
 end)
 
 function SliderBar:setValue(val)
