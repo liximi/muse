@@ -397,9 +397,13 @@ function Widget:handleEvent(event_type, ...)
 		return
 	end
 
-	for i = #self.children, 1, -1 do
-		if self.children[i]:handleEvent(event_type, ...) then
-			return true -- 事件被拦截
+	-- SizeChanged 是自身尺寸变化事件，不应传播给子节点
+	-- 否则祖先的尺寸变化会带着祖先的 w/h 值传给子孙，造成误判
+	if event_type ~= "SizeChanged" then
+		for i = #self.children, 1, -1 do
+			if self.children[i]:handleEvent(event_type, ...) then
+				return true -- 事件被拦截
+			end
 		end
 	end
 
