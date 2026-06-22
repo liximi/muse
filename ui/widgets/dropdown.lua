@@ -93,6 +93,13 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 		return true
 	end
 
+	-- 拦截 WheelMoved，防止穿透到背后的 Scroll 容器造成意外滚动
+	-- 注意：popup 内部的滚动列表（如果有）会在子节点阶段优先处理，
+	-- 只有当内部 Scroll 滚到边界或无内部 Scroll 时才会走到这里拦截
+	function self.popup.onWheelMoved(_self, x, y)
+		return true
+	end
+
 	self:_buildItems()
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self.popup:hide()
