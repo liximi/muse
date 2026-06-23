@@ -2,6 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Utils = require "ui.utils"
 local Panel = require "ui.widgets.panel"
 local Button = require "ui.widgets.button"
+local Tween = require "dependencies.tween"
 local Class = require "dependencies.classic"
 
 local AXIS = {
@@ -32,6 +33,7 @@ local BLOCK_OVERHANG = 1       -- 滑块超出轨道的像素数（单侧）
 local BLOCK_SIZE_ADJUST = 2    -- 滑块总尺寸调整（双侧超出之和）
 local MIN_ROUNDING = 1         -- 滑块圆角最小值（确保半圆两端不小于 1px）
 local LONG_PRESS_DELAY = 0.25  -- 长按重复触发间隔（秒）
+local SNAP_TWEEN_DURATION = 0.15 -- 吸附缓动时长（秒）
 
 local function updateValueInternal(self, value, call_callback, update_block_pos)
 	local a = self._axis
@@ -81,6 +83,11 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self.step = datas.step or 0
 	self.value = 0
 
+	-- 步长吸附相关状态
+	self._snap_tween = nil        -- 缓动动画对象
+	self._snap_target = 0         -- 当前吸附目标值
+	self._drag_raw_position = nil -- 拖动时的原始位置（未经吸附）
+
 	self.onValueUpdate = datas.on_value_update
 
 	-- 背景 track
@@ -109,6 +116,11 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		padding = block_padding,
 		on_pressed = function(_self, x, y)
 			self.drag = true
+			if self.step > 0 then
+				self._drag_raw_position = self.block.transform[a.pos]
+				self._snap_target = self.value
+				self._snap_tween = nil
+			end
 		end,
 		on_click = function(_self)
 			self.drag = false
@@ -159,16 +171,31 @@ function SliderBar:setOnValueUpdateFn(callback_fn)
 	self.onValueUpdate = callback_fn
 end
 
-local function moveBlock(self, dir)
+-- 带缓动动画的轨道/长按移动
+local function animateBlockMove(self, dir)
 	local a = self._axis
 	local cur_pos = self.block.transform[a.pos]
 	local track_len = self.transform[a.size] - self.block.transform[a.size]
 	local delta = self.block.transform[a.size] * self.sensitivity
 	local new_pos = Utils.clamp(cur_pos + (dir == a.neg_dir and -delta or delta), 0, track_len)
-	if new_pos ~= cur_pos then
-		self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
-		updateValueInternal(self, self.max_limit * new_pos / track_len, true)
+	if new_pos == cur_pos then
+		return
 	end
+	-- 计算目标值（含步长吸附）
+	local target_val = self.max_limit * new_pos / track_len
+	if self.step > 0 then
+		target_val = math.floor(target_val / self.step + 0.5) * self.step
+		target_val = Utils.clamp(target_val, 0, self.max_limit)
+		new_pos = track_len * target_val / self.max_limit
+	end
+	-- 启动缓动动画
+	self._snap_tween = Tween.newFunctionalTween(SNAP_TWEEN_DURATION, {
+		pos = {cur_pos, new_pos, function(val)
+			self.block:setPosition(a.pos == "x" and val or nil, a.pos == "y" and val or nil)
+		end}
+	}, "outQuad")
+	-- 值立即更新，位置由 tween 驱动
+	updateValueInternal(self, target_val, true, false)
 end
 
 function SliderBar:onMousePressed(x, y, button)
@@ -183,9 +210,9 @@ function SliderBar:onMousePressed(x, y, button)
 		local local_pos = {self.transform:screenToLocal(x, y)}
 		local lp = local_pos[a.pos == "x" and 1 or 2]
 		if lp <= self.block.transform[a.pos] then
-			moveBlock(self, a.neg_dir)
+			animateBlockMove(self, a.neg_dir)
 		elseif lp >= self.block.transform[a.pos] + self.block.transform[a.size] then
-			moveBlock(self, a.pos_dir)
+			animateBlockMove(self, a.pos_dir)
 		end
 		return true
 	end
@@ -203,36 +230,76 @@ function SliderBar:onMouseMoved(x, y, dx, dy)
 		return
 	end
 	local a = self._axis
-	local cur_pos = self.block.transform[a.pos]
 	local sx, sy = self:getGlobalScale()
 	local gs_axis = a.pos == "x" and sx or sy
 	local mouse_delta = a.pos == "x" and dx or dy
 	local track_len = self.transform[a.size] - self.block.transform[a.size]
-	local new_pos = Utils.clamp(cur_pos + mouse_delta / gs_axis, 0, track_len)
-	self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
-	updateValueInternal(self, self.max_limit * new_pos / track_len, true)
+
+	if self.step > 0 then
+		-- 步长模式：累计原始拖动位置，越过吸附边界时用缓动动画 snap
+		self._drag_raw_position = Utils.clamp(
+			self._drag_raw_position + mouse_delta / gs_axis, 0, track_len)
+		local raw_val = self.max_limit * self._drag_raw_position / track_len
+		local nearest = math.floor(raw_val / self.step + 0.5) * self.step
+		nearest = Utils.clamp(nearest, 0, self.max_limit)
+		if nearest ~= self._snap_target then
+			self._snap_target = nearest
+			local cur_block_pos = self.block.transform[a.pos]
+			local target_pos = track_len * nearest / self.max_limit
+			-- 复用 tween 对象：从当前视觉位置 start → 新目标，避免每帧重建导致停滞
+			if self._snap_tween then
+				self._snap_tween:setInitialValue("pos", cur_block_pos)
+				self._snap_tween:setTargetValue("pos", target_pos)
+				self._snap_tween:reset()
+			else
+				self._snap_tween = Tween.newFunctionalTween(SNAP_TWEEN_DURATION, {
+					pos = {cur_block_pos, target_pos, function(val)
+						self.block:setPosition(a.pos == "x" and val or nil, a.pos == "y" and val or nil)
+					end}
+				}, "outQuad")
+			end
+		end
+		-- 值立即更新（回调取最终值），位置由 tween 驱动
+		updateValueInternal(self, self._snap_target, true, false)
+	else
+		-- 连续模式（现有行为）
+		local cur_pos = self.block.transform[a.pos]
+		local new_pos = Utils.clamp(cur_pos + mouse_delta / gs_axis, 0, track_len)
+		self.block:setPosition(a.pos == "x" and new_pos or nil, a.pos == "y" and new_pos or nil)
+		updateValueInternal(self, self.max_limit * new_pos / track_len, true)
+	end
 end
 
 function SliderBar:onUpdate(dt)
+	-- 驱动步长吸附缓动动画
+	if self._snap_tween then
+		if self._snap_tween:update(dt) then
+			self._snap_tween = nil
+		end
+	end
+
 	if not self.pressed then
 		return
 	end
 	local a = self._axis
 	self.pressed_timer = self.pressed_timer + dt
 	if self.pressed_timer > LONG_PRESS_DELAY then
+		-- 长按与轨道点击统一使用缓动动画
 		local mx, my = love.mouse:getPosition()
 		local local_pos = {self.transform:screenToLocal(mx, my)}
 		local lp = local_pos[a.pos == "x" and 1 or 2]
 		if lp <= self.block.transform[a.pos] then
-			moveBlock(self, a.neg_dir)
+			animateBlockMove(self, a.neg_dir)
 		elseif lp >= self.block.transform[a.pos] + self.block.transform[a.size] then
-			moveBlock(self, a.pos_dir)
+			animateBlockMove(self, a.pos_dir)
 		end
 		self.pressed_timer = 0
 	end
 end
 
 function SliderBar:onSizeChanged(w, h)
+	-- 尺寸变化后缓动目标坐标失效，取消动画
+	self._snap_tween = nil
 	local a = self._axis
 	local size = a.pos == "x" and w or h
 	local block_len = self.block_length_percent * size
