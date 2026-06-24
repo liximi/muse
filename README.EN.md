@@ -128,6 +128,7 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 | **Widget (base class)** | [docs/en/widget.md](docs/en/widget.md) | Base class for all UI elements; provides tree structure, Transform layout, event dispatch, and lifecycle |
 | **Transform** | [docs/en/transform.md](docs/en/transform.md) | Anchor-based layout engine; supports anchors, pivots, rotation, scaling, and recursive global coordinate calculation |
 | **Theme** | [docs/en/theme.md](docs/en/theme.md) | Theme/style system; supports per-widget-type default styles and custom theme overrides |
+| **Fonts** | [docs/en/fonts.md](docs/en/fonts.md) | Font manager providing unified font registration, lazy-loading cache, and lookup |
 | **UiManager** | [docs/en/ui-manager.md](docs/en/ui-manager.md) | Global singleton; manages root widget hierarchy, focus, themes, and event dispatch |
 
 ## Component List
@@ -268,6 +269,8 @@ The codebase follows these conventions (which should be followed when writing ne
 ## Font
 
 This library uses the [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) font family, licensed under the [SIL Open Font License 1.1](https://openfontlicense.org/).
+
+Muse includes a built-in **Font Manager (Fonts)** with per-key + per-size lazy loading, caching, and custom font registration. See the [Fonts documentation](docs/en/fonts.md) for details.
 
 ## License
 

@@ -128,6 +128,7 @@ end
 | **Widget（基类）** | [docs/widget.md](docs/widget.md) | 所有 UI 元素的基类，提供树结构、Transform 布局、事件分发和生命周期 |
 | **Transform** | [docs/transform.md](docs/transform.md) | Anchor-based 布局引擎，支持锚点、支点、旋转、缩放，递归全局坐标计算 |
 | **Theme** | [docs/theme.md](docs/theme.md) | 主题样式系统，支持按 widget 类型的默认样式和自定义主题覆盖 |
+| **Fonts** | [docs/fonts.md](docs/fonts.md) | 字体管理器，提供统一的字体注册、懒加载缓存和查询机制 |
 | **UiManager** | [docs/ui-manager.md](docs/ui-manager.md) | 全局单例，管理根 widget 层级、焦点、主题和事件分发 |
 
 ## 组件列表
@@ -268,6 +269,8 @@ datas 直接参数 > 自定义 theme > UiManager 默认 theme
 ## 字体
 
 本库使用 [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) 系列字体，基于 [SIL Open Font License 1.1](https://openfontlicense.org/) 授权。
+
+Muse 内置了**字体管理器（Fonts）**，提供按 key + size 的懒加载与缓存机制，支持注册自定义字体。详见 [Fonts 文档](docs/fonts.md)。
 
 ## 许可证
 
