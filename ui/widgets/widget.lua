@@ -450,6 +450,7 @@ end
 
 function Widget:enableDebug(enable)
 	self._debug = enable == true
+	return self
 end
 
 return Widget
