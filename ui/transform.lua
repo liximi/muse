@@ -1,41 +1,17 @@
-local function _updateLeftRight(transform)
-	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	local left = transform.x - transform.w * transform.pivot[1]
-	transform.left = left
-	transform.right = parent_w * (transform.anchor_max[1] - transform.anchor_min[1]) - left - transform.w
-end
+-- 统一布局计算：padding（left/right/top/bottom）是唯一的真相源，
+-- x/y/w/h 是从 padding + anchor + pivot 推导出的缓存值。
+-- 点锚点（anchor_min == anchor_max → anchor_w == 0）和拉伸锚点的区别
+-- 仅体现在 anchor_w/h 的值上，公式完全相同，不再需要分支。
+local function _recalcLayout(transform)
+	local pw = transform.parent and transform.parent.w or love.graphics.getWidth()
+	local ph = transform.parent and transform.parent.h or love.graphics.getHeight()
+	local aw = pw * (transform.anchor_max[1] - transform.anchor_min[1])
+	local ah = ph * (transform.anchor_max[2] - transform.anchor_min[2])
 
-local function _updateTopBottom(transform)
-	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	local top = transform.y - transform.h * transform.pivot[2]
-	transform.top = top
-	transform.bottom = parent_h * (transform.anchor_max[2] - transform.anchor_min[2]) - top - transform.h
-end
-
-local function _updateWidthAndX(transform)
-	local parent_w = transform.parent and transform.parent.w or love.graphics.getWidth()
-	local anchor_w = parent_w * (transform.anchor_max[1] - transform.anchor_min[1])
-	if anchor_w > 0 then
-		local w = anchor_w - transform.left - transform.right
-		transform.w = w
-		transform.x = transform.left + w * transform.pivot[1]
-	else
-		-- 点锚点：w 由 setSize 决定，仅从 padding 更新 x 位置
-		transform.x = transform.left + transform.w * transform.pivot[1]
-	end
-end
-
-local function _updateHeightAndY(transform)
-	local parent_h = transform.parent and transform.parent.h or love.graphics.getHeight()
-	local anchor_h = parent_h * (transform.anchor_max[2] - transform.anchor_min[2])
-	if anchor_h > 0 then
-		local h = anchor_h - transform.top - transform.bottom
-		transform.h = h
-		transform.y = transform.top + h * transform.pivot[2]
-	else
-		-- 点锚点：h 由 setSize 决定，仅从 padding 更新 y 位置
-		transform.y = transform.top + transform.h * transform.pivot[2]
-	end
+	transform.w = aw - transform.left - transform.right
+	transform.h = ah - transform.top - transform.bottom
+	transform.x = transform.left + transform.w * transform.pivot[1]
+	transform.y = transform.top + transform.h * transform.pivot[2]
 end
 
 local twoPi = 2 * math.pi
@@ -90,33 +66,41 @@ end
 
 --------------------------------------------------
 -- Public Setter
+-- 所有 setter 直接写入 padding 真相源，然后调用 _recalcLayout 同步缓存
 --------------------------------------------------
 
---- 会额外影响Padding
+--- 设置 pivot 在锚点范围内的偏移（像素）。传入 nil 表示不修改该维度。
 local function setPosition(self, x, y)
 	if x then
-		self.x = x
-		_updateLeftRight(self)
+		self.left = x - self.w * self.pivot[1]
 	end
 	if y then
-		self.y = y
-		_updateTopBottom(self)
+		self.top = y - self.h * self.pivot[2]
+	end
+	if x or y then
+		_recalcLayout(self)
 	end
 end
 
---- 会额外影响Padding
+--- 设置控件的尺寸（像素）。传入 nil 表示不修改该维度。
+--- 内部通过调整 right/bottom 来满足目标 w/h，left/top 保持不变。
 local function setSize(self, w, h)
+	local pw = self.parent and self.parent.w or love.graphics.getWidth()
+	local ph = self.parent and self.parent.h or love.graphics.getHeight()
 	if w then
-		self.w = w
-		_updateLeftRight(self)
+		local aw = pw * (self.anchor_max[1] - self.anchor_min[1])
+		self.right = aw - self.left - w
 	end
 	if h then
-		self.h = h
-		_updateTopBottom(self)
+		local ah = ph * (self.anchor_max[2] - self.anchor_min[2])
+		self.bottom = ah - self.top - h
+	end
+	if w or h then
+		_recalcLayout(self)
 	end
 end
 
---- 会额外影响坐标和尺寸
+--- 设置锚点边距（像素）。传入 nil 表示不修改该维度。
 local function setPadding(self, left, right, top, bottom)
 	if left then
 		self.left = left
@@ -130,11 +114,8 @@ local function setPadding(self, left, right, top, bottom)
 	if bottom then
 		self.bottom = bottom
 	end
-	if left or right then
-		_updateWidthAndX(self)
-	end
-	if top or bottom then
-		_updateHeightAndY(self)
+	if left or right or top or bottom then
+		_recalcLayout(self)
 	end
 end
 
@@ -147,21 +128,22 @@ local function setScale(self, sx, sy)
 	end
 end
 
---- 会额外影响坐标
+--- 设置支点（自身尺寸百分比 0~1）。保持控件视觉位置不变。
 local function setPivot(self, px, py)
-	local x, y
 	if px then
-		x = self.x + (px - self.pivot[1]) * self.w
+		self.left = self.x - self.w * px
 		self.pivot[1] = px
 	end
 	if py then
-		y = self.y + (py - self.pivot[2]) * self.h
+		self.top = self.y - self.h * py
 		self.pivot[2] = py
 	end
-	setPosition(self, x, y)
+	if px or py then
+		_recalcLayout(self)
+	end
 end
 
---- 会额外影响Padding
+--- 设置锚点范围（父容器百分比 0~1）。传入 nil 表示不修改该维度。
 local function setAnchor(self, minx, miny, maxx, maxy)
 	if minx then
 		self.anchor_min[1] = minx
@@ -175,19 +157,8 @@ local function setAnchor(self, minx, miny, maxx, maxy)
 	if maxy then
 		self.anchor_max[2] = maxy
 	end
-	if minx or maxx then
-		if self.anchor_min[1] == self.anchor_max[1] then
-			_updateLeftRight(self)
-		else
-			_updateWidthAndX(self)
-		end
-	end
-	if miny or maxy then
-		if self.anchor_min[2] == self.anchor_max[2] then
-			_updateTopBottom(self)
-		else
-			_updateHeightAndY(self)
-		end
+	if minx or maxx or miny or maxy then
+		_recalcLayout(self)
 	end
 end
 
@@ -196,7 +167,7 @@ local function setRotation(self, rot)
 end
 
 --------------------------------------------------
--- Public Getter
+-- Public Getter（全部读缓存字段，不受重构影响）
 --------------------------------------------------
 
 local function getPosition(self)
@@ -350,26 +321,27 @@ end
 local function Transform()
 	return {
 		-- parent = Transform(),
-		x = 0, -- pivot相对锚点范围左边缘的偏移量（像素）
-		y = 0, -- pivot相对锚点范围上边缘的偏移量（像素）
 
-		w = 0,
-		h = 0,
+		-- ── 缓存字段（只读，由 _recalcLayout 维护）──
+		x = 0, -- pivot 在锚点范围内的水平偏移（像素）
+		y = 0, -- pivot 在锚点范围内的垂直偏移（像素）
+		w = 0, -- 控件宽度（像素）
+		h = 0, -- 控件高度（像素）
 
-		rotation = 0, -- 单位：弧度
-
+		rotation = 0, -- 弧度
 		scale_x = 1,
 		scale_y = 1,
-		-- 锚点，决定了元素在父容器中的定位基准，虽然说是点，但其实是一个范围
-		anchor_min = {0, 0}, -- 锚点的左上角坐标（百分比）
-		anchor_max = {0, 0}, -- 锚点的右下角坐标（百分比）
-		-- 支点，决定了元素自身坐标的原点，同时也是旋转、缩放等变换的中心（百分比）。
-		pivot = {0, 0},
 
-		left = 0, -- 元素的左边缘到锚点左侧的距离（像素）
-		right = 0, -- 元素的右边缘到锚点右侧的距离（像素）
-		top = 0, -- 元素的上边缘到锚点顶部的距离（像素）
-		bottom = 0, -- 元素的下边缘到锚点底部的距离（像素）
+		-- ── 配置字段（锚点模式由此决定）──
+		anchor_min = {0, 0}, -- 锚点范围左上角（父容器百分比 0~1）
+		anchor_max = {0, 0}, -- 锚点范围右下角（父容器百分比 0~1）
+		pivot = {0, 0},      -- 支点（自身尺寸百分比 0~1），旋转和缩放的中心
+
+		-- ── 真相源（唯一的主数据，所有 setter 最终写入这里）──
+		left = 0,   -- 控件左边缘到锚点左边缘的距离（像素）
+		right = 0,  -- 锚点右边缘到控件右边缘的距离（像素）
+		top = 0,    -- 控件上边缘到锚点上边缘的距离（像素）
+		bottom = 0, -- 锚点下边缘到控件下边缘的距离（像素）
 
 		setParent = function(self, parent_transform)
 			self.parent = parent_transform
@@ -403,47 +375,29 @@ local function Transform()
 
 		screenToLocal = screenToLocal,
 
+		-- 每帧调用一次，检测真相源（padding/anchors/pivot/parent_size）是否变化，
+		-- 变化时重算缓存字段 x/y/w/h
 		onUpdate = function(self, force)
-			local parent_w = self.parent and self.parent.w or love.graphics.getWidth()
-			local parent_h = self.parent and self.parent.h or love.graphics.getHeight()
+			local pw = self.parent and self.parent.w or love.graphics.getWidth()
+			local ph = self.parent and self.parent.h or love.graphics.getHeight()
 			if not force and self._cache then
-				if self._cache.amin1 == self.anchor_min[1] and self._cache.amax1 == self.anchor_max[1] and
+				if self._cache.l == self.left and self._cache.r == self.right and
+					self._cache.t == self.top and self._cache.b == self.bottom and
+					self._cache.amin1 == self.anchor_min[1] and self._cache.amax1 == self.anchor_max[1] and
 					self._cache.amin2 == self.anchor_min[2] and self._cache.amax2 == self.anchor_max[2] and
-					self._cache.p1 == self.pivot[1] and self._cache.p2 == self.pivot[2] and self._cache.l == self.left and
-					self._cache.r == self.right and self._cache.t == self.top and self._cache.b == self.bottom and
-					self._cache.x == self.x and self._cache.y == self.y and self._cache.w == self.w and self._cache.h ==
-					self.h and self._cache.pw == parent_w and self._cache.ph == parent_h then
+					self._cache.p1 == self.pivot[1] and self._cache.p2 == self.pivot[2] and
+					self._cache.pw == pw and self._cache.ph == ph then
 					return
 				end
 			end
 			self._cache = {
-				amin1 = self.anchor_min[1],
-				amax1 = self.anchor_max[1],
-				amin2 = self.anchor_min[2],
-				amax2 = self.anchor_max[2],
-				p1 = self.pivot[1],
-				p2 = self.pivot[2],
-				l = self.left,
-				r = self.right,
-				t = self.top,
-				b = self.bottom,
-				x = self.x,
-				y = self.y,
-				w = self.w,
-				h = self.h,
-				pw = parent_w,
-				ph = parent_h
+				l = self.left, r = self.right, t = self.top, b = self.bottom,
+				amin1 = self.anchor_min[1], amax1 = self.anchor_max[1],
+				amin2 = self.anchor_min[2], amax2 = self.anchor_max[2],
+				p1 = self.pivot[1], p2 = self.pivot[2],
+				pw = pw, ph = ph,
 			}
-			if self.anchor_min[1] == self.anchor_max[1] then
-				_updateLeftRight(self)
-			else
-				_updateWidthAndX(self)
-			end
-			if self.anchor_min[2] == self.anchor_max[2] then
-				_updateTopBottom(self)
-			else
-				_updateHeightAndY(self)
-			end
+			_recalcLayout(self)
 		end,
 
 		__tostring = function(self)
@@ -452,7 +406,7 @@ local function Transform()
 				self.x, self.y, self.w, self.h, self.rotation, self.scale_x, self.scale_y, self.anchor_min[1],
 				self.anchor_min[2], self.anchor_max[1], self.anchor_max[2], self.pivot[1], self.pivot[2], self.left,
 				self.right, self.top, self.bottom)
-		end
+		end,
 	}
 end
 
