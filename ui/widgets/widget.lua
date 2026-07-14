@@ -235,6 +235,12 @@ function Widget:update(dt, parent_should_update)
 	end
 end
 
+--- 供可见性裁剪使用的包围盒。子类可覆写以提供比 transform 更精确的尺寸（如 Text 的内部纹理尺寸）
+---@return number ax, number ay, number aw, number ah 轴对齐包围盒（屏幕坐标）
+function Widget:getCullAABB()
+	return self.transform:getGlobalAABB()
+end
+
 function Widget:draw()
 	if not self:shouldDraw() then
 		return
@@ -243,7 +249,7 @@ function Widget:draw()
 	-- 判断条件：元素的 AABB 与裁剪区域的交集面积为 0（考虑了坐标偏移和自身尺寸）
 	-- 使用 CULL_EPSILON 容差避免浮点精度导致边界重合的元素被误裁
 	if not self.always_draw and self._clip_rect then
-		local ax, ay, aw, ah = self.transform:getGlobalAABB()
+		local ax, ay, aw, ah = self:getCullAABB()
 		local cx, cy, cw, ch = unpack(self._clip_rect)
 		-- 完全在左侧：元素右边缘 + 容差 < 裁剪左边缘
 		-- 完全在右侧：元素左边缘 - 容差 > 裁剪右边缘

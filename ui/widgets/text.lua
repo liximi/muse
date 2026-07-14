@@ -203,6 +203,21 @@ function Text:getGlobalScaledSize()
 	return self:getGlobalScaledDimensions()
 end
 
+--- 覆写 Widget 的裁剪 AABB，使用文本实际尺寸而非 transform.w/h（后者默认为 0）
+--- 避免 Text 在 Scroll 容器中被过早裁剪
+function Text:getCullAABB()
+	local x, y = self.transform:getGlobalPosition()
+	local w, h = self:getGlobalScaledSize()
+	local px, py = self.transform:getPivot()
+	local r = self.transform:getGlobalRotation()
+
+	if r == 0 or r == Utils.TWO_PI then
+		return x - w * px, y - h * py, w, h
+	end
+	-- 旋转情况回退到 Transform 计算（少见场景）
+	return self.transform:getGlobalAABB()
+end
+
 --- 查询文本的自然尺寸：给定宽度约束，返回换行后的 {w, h}
 ---@param max_w number|nil 可用宽度（nil = 不换行，取最长行宽）
 ---@param max_h number|nil 可用高度（当前未用于文本测量）
@@ -237,15 +252,6 @@ function Text:updateTextLayout()
 		self.__text:setf(self.text, width, self.horizontal_align)
 	else
 		self.__text:setf(self.text, self.transform.w, self.horizontal_align)
-		-- local font = self.__text:getFont()
-		-- local lineh = font:getHeight() * font:getLineHeight()
-		-- if type(self.text) == "string" then
-		-- 	local w, wrappedtext = _getWrap_char(font, self.text, self.transform.w)
-		-- 	local newt = table.concat(wrappedtext, "\n")
-		-- 	self.__text:setf(newt, self.transform.w, self.horizontal_align)
-		-- else
-		-- 	self.__text:setf(self.text, self.transform.w, self.horizontal_align)
-		-- end
 	end
 end
 
