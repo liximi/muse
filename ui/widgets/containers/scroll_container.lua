@@ -13,6 +13,7 @@ local DEFAULT_SENSITIVITY = 100   -- 鼠标滚轮默认灵敏度（像素）
 local TWEEN_DURATION_FACTOR = 0.1 -- 滚动动画时长系数
 local DEBUG_LINE_HEIGHT = 14      -- 调试文字行高（像素）
 local DEBUG_FONT_SIZE = 16        -- 调试文字字号
+local CLIP_RECT_EPSILON = 1       -- 裁剪矩形容差（像素），防止 GPU scissor 与 CPU 裁剪范围不一致导致边缘元素误裁
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	item = Widget,
@@ -89,7 +90,14 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			love.graphics.translate(-px, -py)
 		end
 		love.graphics.setScissor(x, y, w, h)
-		_self._clip_rect = {x, y, w, h}
+		-- _clip_rect 向四周各扩展 CLIP_RECT_EPSILON 像素，确保 CPU 端裁剪
+		-- 不会比 GPU scissor 更激进，避免部分可见的元素被整棵子树跳过
+		_self._clip_rect = {
+			x - CLIP_RECT_EPSILON,
+			y - CLIP_RECT_EPSILON,
+			w + CLIP_RECT_EPSILON * 2,
+			h + CLIP_RECT_EPSILON * 2
+		}
 	end
 	function self.scroll_root.onPostDraw(_self)
 		love.graphics.setScissor()

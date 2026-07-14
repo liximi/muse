@@ -9,6 +9,7 @@ local DEBUG_LINE_WIDTH = 1      -- 调试绘制线宽
 local DEBUG_PIVOT_RADIUS = 3    -- 调试 pivot 点半径
 local DEBUG_BOUND_INSET = 1     -- 调试包围盒视觉缩进
 local DEBUG_BOUND_EXPAND = 2    -- 调试包围盒视觉扩大（inset * 2）
+local CULL_EPSILON = 1          -- AABB 裁剪容差（像素），防止浮点精度导致边缘元素被误判为完全不可见
 
 --[[datas:
 	pivot = {x, y}
@@ -238,11 +239,18 @@ function Widget:draw()
 	if not self:shouldDraw() then
 		return
 	end
-	-- 可见性裁剪：如果完全在裁剪区域外，跳过自身及子树的绘制
+	-- 可见性裁剪：仅在元素完全不可见时跳过该子树
+	-- 判断条件：元素的 AABB 与裁剪区域的交集面积为 0（考虑了坐标偏移和自身尺寸）
+	-- 使用 CULL_EPSILON 容差避免浮点精度导致边界重合的元素被误裁
 	if not self.always_draw and self._clip_rect then
 		local ax, ay, aw, ah = self.transform:getGlobalAABB()
 		local cx, cy, cw, ch = unpack(self._clip_rect)
-		if ax + aw < cx or ax > cx + cw or ay + ah < cy or ay > cy + ch then
+		-- 完全在左侧：元素右边缘 + 容差 < 裁剪左边缘
+		-- 完全在右侧：元素左边缘 - 容差 > 裁剪右边缘
+		-- 完全在上方：元素下边缘 + 容差 < 裁剪上边缘
+		-- 完全在下方：元素上边缘 - 容差 > 裁剪下边缘
+		if ax + aw + CULL_EPSILON < cx or ax - CULL_EPSILON > cx + cw
+			or ay + ah + CULL_EPSILON < cy or ay - CULL_EPSILON > cy + ch then
 			return
 		end
 	end
