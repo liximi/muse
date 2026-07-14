@@ -1,3 +1,4 @@
+local muse = require("init")
 local ImageButton = require "ui.widgets.imagebutton"
 local Panel = require "ui.widgets.panel"
 local Utils = require "ui.utils"
@@ -21,8 +22,8 @@ local CollapsiblePanel = Class(Panel, function(self, datas, theme)
 	self.close_x = 0
 	self.collapse_btn_x = 0
 
-	self.left_arrow = love.graphics.newImage("assets/ui/TablerLayoutSidebarLeftCollapseFilled.png")
-	self.right_arrow = love.graphics.newImage("assets/ui/TablerLayoutSidebarRightCollapseFilled.png")
+	self.left_arrow = love.graphics.newImage(muse.resolve("assets/ui/TablerLayoutSidebarLeftCollapseFilled.png"))
+	self.right_arrow = love.graphics.newImage(muse.resolve("assets/ui/TablerLayoutSidebarRightCollapseFilled.png"))
 	self.collapse_btn_icon = {
 		open = self.left_arrow,
 		close = self.right_arrow
