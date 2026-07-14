@@ -103,6 +103,9 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.bg = self:addChild(datas.bg)
 		self.bg.transform:setAnchor(0, 0, 1, 1)
 		self.bg.transform:setPadding(0, 0, 0, 0)
+		-- 保存原始边框样式，用于焦点切换时恢复
+		self._bg_orig_outline_w = self.bg.outline_width
+		self._bg_orig_outline_c = self.bg.outline_color
 	end
 
 	self.sections = {""} -- array<string> 由用户主动换行产生的段落，该信息主要用于计算光标位置
@@ -141,6 +144,10 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	}))
 	if self.single_line then
 		self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)
+		-- 保存原始 padding，滚动时在此基础上叠加偏移，失焦时用此值复位
+		local pad = self.text.transform:getPadding()
+		self._text_pad_left = pad.left
+		self._text_pad_right = pad.right
 	end
 	if datas.hint then
 		self.hint = self:addChild(Text({
@@ -1086,12 +1093,23 @@ function TextInput:onRemoveFocus()
 	self:showCursor(false)
 	self:_clearSelection()
 	if self.bg then
-		self.bg.outline_width = 0
+		self.bg.outline_width = self._bg_orig_outline_w or 0
+		self.bg.outline_color = self._bg_orig_outline_c
 	end
 	if self.single_line then
 		self._scroll_x = 0
-		self.text:setPosition(0, nil)
+		self:_applyScroll()
 	end
+end
+
+--- 将滚动偏移叠加到 Text 的原始 padding 上
+function TextInput:_applyScroll()
+	if not self.single_line then return end
+	self.text.transform:setPadding(
+		(self._text_pad_left or 0) - self._scroll_x,
+		(self._text_pad_right or 0) + self._scroll_x,
+		nil, nil
+	)
 end
 
 function TextInput:onMousePressed(x, y, button)
@@ -1183,20 +1201,17 @@ function TextInput:_updateScroll()
 	local text_w = self.text:getFont():getWidth(text)
 	local cursor_x = self.cursor._local_pos_cache[1]
 
-	-- 光标在可见区左侧：向右滚
 	if cursor_x < self._scroll_x then
 		self._scroll_x = cursor_x
 	end
-	-- 光标在可见区右侧：向左滚
 	if cursor_x > self._scroll_x + visible_w then
 		self._scroll_x = cursor_x - visible_w
 	end
 
-	-- 边界约束
 	self._scroll_x = math.max(0, self._scroll_x)
 	self._scroll_x = math.min(math.max(0, text_w - visible_w), self._scroll_x)
 
-	self.text:setPosition(-self._scroll_x, nil)
+	self:_applyScroll()
 end
 
 --- 裁剪 TextInput 内容区域，防止单行模式下文字溢出边框
