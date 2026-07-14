@@ -268,19 +268,12 @@ end
 ---@param max_h number|nil 可用高度
 ---@return table {w = number, h = number}
 function TextInput:measure(max_w, max_h)
-	-- 使用内部 Text 的实际渲染宽度（扣了 text_padding），确保换行测量与渲染一致
-	local mw = max_w
-	if not mw or mw <= 0 then
-		mw = self.text.transform.w
-	end
-	if not mw or mw <= 0 then
-		mw = nil -- 首帧宽度未就绪时回退到不换行测量
-	end
-	local m = self.text:measure(mw, max_h)
+	-- 直接取内部 Text 的实际渲染尺寸，与 refreshHeight 同源，保证和视觉边框一致
+	local tw, th = self.text:getScaledSize()
 	local pad = self.text.transform:getPadding()
 	return {
-		w = m.w + pad.left + pad.right,
-		h = math.max(self.min_height, m.h + pad.top + pad.bottom),
+		w = tw + pad.left + pad.right,
+		h = math.max(self.min_height, th + pad.top + pad.bottom),
 	}
 end
 
