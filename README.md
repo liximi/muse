@@ -14,15 +14,9 @@
 
 - [LÖVE](https://love2d.org/) 11.5（使用 LuaJIT，基于 Lua 5.1 + 扩展）
 
-### 使用方式
-
-将本仓库克隆到你的 LÖVE 项目目录中，或作为子模块引入：
+### 作为子模块引入（推荐）
 
 ```bash
-# 方式一：直接放入项目
-git clone https://github.com/liximi/muse.git lib/muse
-
-# 方式二：作为 git submodule
 git submodule add https://github.com/liximi/muse.git lib/muse
 ```
 
@@ -31,10 +25,37 @@ git submodule add https://github.com/liximi/muse.git lib/muse
 ```lua
 Class = require "lib.muse.dependencies.classic"
 local UiManager = require "lib.muse.ui.ui_manager":GetInstance()
--- ... 加载其他模块
 ```
 
-如果直接以此仓库为项目根目录运行：
+### 复制到项目中使用
+
+将以下目录和文件复制到你的项目（如 `lib/muse/`）：
+
+**必须复制**：
+```
+ui/                      # UI 框架全部源码
+dependencies/classic.lua  # OOP 类系统（必须）
+dependencies/tween.lua    # 补间动画（Scroll 等需要，必须）
+```
+
+**可选复制**：
+```
+dependencies/lovebird/    # 远程调试控制台（开发用，可省略）
+dependencies/i18n/        # 本地化框架 + localization/ 目录（多语言用，可省略）
+assets/                   # 字体文件和图片（如使用内置字体则复制）
+```
+
+**不需要复制**：
+```
+tests/            # 测试场景
+docs/             # 文档
+main.lua          # 示例程序入口
+conf.lua          # 示例 LÖVE 配置
+CLAUDE.md         # AI 辅助提示
+muse-feedback.md  # 反馈记录
+```
+
+### 直接以此仓库运行
 
 ```bash
 love .

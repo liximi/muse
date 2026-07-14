@@ -14,15 +14,9 @@
 
 - [LÖVE](https://love2d.org/) 11.5 (uses LuaJIT, based on Lua 5.1 + extensions)
 
-### Usage
-
-Clone this repository into your LÖVE project directory, or add it as a submodule:
+### As a Git Submodule (Recommended)
 
 ```bash
-# Option 1: copy directly into your project
-git clone https://github.com/liximi/muse.git lib/muse
-
-# Option 2: as a git submodule
 git submodule add https://github.com/liximi/muse.git lib/muse
 ```
 
@@ -31,10 +25,37 @@ Then load Muse in your `main.lua`:
 ```lua
 Class = require "lib.muse.dependencies.classic"
 local UiManager = require "lib.muse.ui.ui_manager":GetInstance()
--- ... load other modules
 ```
 
-To run using this repository directly as the project root:
+### Copy Into Your Project
+
+Copy the following directories and files into your project (e.g. `lib/muse/`):
+
+**Required**:
+```
+ui/                      # All UI framework source code
+dependencies/classic.lua  # OOP class system (required)
+dependencies/tween.lua    # Tween animation library (required by Scroll, etc.)
+```
+
+**Optional**:
+```
+dependencies/lovebird/    # Remote debug console (development only)
+dependencies/i18n/        # Localization framework + localization/ directory (for i18n support)
+assets/                   # Font files and images (copy if using the built-in fonts)
+```
+
+**Not needed**:
+```
+tests/            # Test scenes
+docs/             # Documentation
+main.lua          # Demo app entry point
+conf.lua          # Demo LÖVE config
+CLAUDE.md         # AI assistant prompts
+muse-feedback.md  # Feedback notes
+```
+
+### Run the Demo
 
 ```bash
 love .
