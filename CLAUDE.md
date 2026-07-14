@@ -280,3 +280,35 @@ return MyClass
 - 使用 Lua 标准库：`table.insert`, `table.remove`, `table.concat`, `string.format`, `string.sub`, `math.*`, `assert`, `unpack`
 - UTF-8 字符处理使用 `utf8` 库（`utf8.len`, `utf8.offset`, `utf8.codes`, `utf8.char`）
 
+## 常见陷阱与潜规则
+
+### Transform / 布局
+
+- **`setSize` 对拉伸锚点不会保持 x 不变**：拉伸锚点下 x 由 `left + w * px` 推导，改 `w` 会连带移动 pivot。需要位置不变时用 `setPosition` 配合 `setSize`
+- **构造期 `parent_w == 0`**：Widget 构造时父控件尺寸未就绪，`setPadding` 不会算出有效尺寸（`_recalcLayout` 有 `aw > 0` 守卫），依赖 `measure()` 返回正确值的布局应放在首帧 `onUpdate` 中
+- **`pivot` 非零时 `getGlobalBounds()` 返回的是左上角坐标**，不是 pivot 坐标。`regionDetection` 已正确处理这一点，但手写碰撞检测需要注意
+- **Text 的 `transform.w/h` 默认为 0**：Text 把尺寸存在 `love.graphics.Text` 对象里，不写入 transform。`getGlobalAABB()` 走 Transform 本地函数读 `self.w/h`（＝0），Text 通过覆写 `Widget:getCullAABB()` 规避了裁剪问题，但 debug 框（`drawBound`）对 Text 仍会画出零面积框
+
+### List / 动态列表
+
+- **不要每帧调 `setItems`**：`setItems` 内部 `removeAllChildren + addChild`，每帧重建会销毁旧控件。按钮的 `pressed` 状态、TextInput 的焦点/光标/选区都会丢失。应使用 `updateItems(data, keyFn, createFn, updateFn)` 做 diff 复用
+- **`measure(nil, nil)` 不代表"无约束"**：List 和 Box 的 layout 都传 `nil` 给 `measure()`，但实际子控件往往受父容器宽度约束（拉伸锚点）。需要自身宽度的 widget（TextInput、带换行的 Text）应在 `measure` 内部 fallback 到 `self.transform.w`
+
+### TextInput
+
+- **`single_line` 只管 Enter 和粘贴，不管换行模式**：需显式调 `self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)` 才能真正阻止文字折行
+- **`height_adaptive` 的 `min_height` 应用顺序**：`max(min_height, text_h) + padding`，不是 `max(min_height, text_h + padding)`。`measure()` 必须和 `refreshHeight()` 用同一公式，否则 ListV 布局和实际渲染高度不一致
+- **失焦不会自动清选区**：`onRemoveFocus` 里需手动调 `_clearSelection()`，否则失焦后蓝色高亮残留
+- **`enableDebug(true)` 不支持方法链**：要链式调用的地方需要先取引用再调，或套一层包装
+
+### Scroll
+
+- **内容必须通过 `setItem()` 设置**：直接 `addChild` 到 Scroll 本体不会进 `scroll_root`，裁剪和滚动都失效
+- **`_clip_rect` 比 scissor 略大（1px 容差）**：防止浮点精度导致边缘元素被整棵子树跳过
+
+### 通用
+
+- **`Widget:enableDebug()` 之前没有 `return self`**，`Widget({...}):enableDebug(true)` 返回 `nil`。需要链式调用时注意
+- **事件传播是"子节点优先，兄弟间从后往前"**：后 `addChild` 的先收到事件。`handleEvent` 返回 `true` 才拦截，返回 `nil` 会继续传播
+- **`regionDetection` 对 Text 使用 `Widget:getGlobalScaledSize()`（虚方法）**：Text 覆写返回文本实际尺寸，所以鼠标碰撞检测正常。但 Transform 本地的 `getGlobalBounds()` 对 Text 仍然返回 `w=0`，不要在用 debug 框判断 Text 尺寸时被误导
+
