@@ -44,7 +44,25 @@ A text input field supporting cursor control, text selection, clipboard, undo/re
 | `getFontSize()` | Get font size |
 | `setHAlign(align)` | Set horizontal alignment |
 | `setVAlign(align)` | Set vertical alignment |
-| `measure(max_w, max_h)` | Query natural size (includes padding and min_height) |
+| `measure(max_w, max_h)` | Query natural size (includes padding and min_height). Uses same formula as `refreshHeight` |
+
+> **Measurement matches rendering**: `measure` and `refreshHeight` use the same formula
+> `max(min_height, text_h) + padding`, ensuring ListV layout doesn't overlap rendered content.
+
+## Single-Line Mode Notes
+
+- `single_line = true` only controls Enter behavior and paste filtering — **it does NOT prevent text wrapping**.
+  The internal Text widget's `wrap_mode` must be explicitly set to `Utils.TEXT_WRAP_MODE.OFF` for true single-line display
+- In single-line mode, text auto-scrolls horizontally when exceeding the input width.
+  Tracks cursor when focused; resets to beginning when focus is lost
+- On focus loss, `_clearSelection()` is called to remove the selection highlight
+
+## Height Adaptive
+
+- When `height_adaptive = true`, TextInput height is determined by text content
+- `min_height` application order: `max(min_height, text_h) + padding_top + padding_bottom`
+  (NOT `max(min_height, text_h + padding)` — the two differ by padding sum when min_height kicks in)
+- Default `min_height = 75` or `datas.h`, overridable via `datas.min_height`
 
 ### Cursor Operations
 

@@ -53,6 +53,14 @@
 - 鼠标滚轮灵敏度：100px（可通过 `sensitivity` 自定义）
 - 拖拽滚动条滑块可快速定位
 
+## 边界行为
+
+- **内容必须通过 `setItem()` 设置**：直接 `addChild` 到 Scroll 本体不会进入内部的 `scroll_root`，
+  滚动和裁剪都失效。正确用法是 `scroll:setItem(content)`，content 会成为 `scroll_root` 的子节点
+- **部分可见元素不会被整棵子树裁剪**：`_clip_rect` 向四周各扩展 1px 容差，
+  AABB 裁剪仅在元素与裁剪区**完全无交集**时才跳过，浮点精度导致的边缘误裁不再发生
+- 滚动条滑块有 `block_min_len` 约束，空间不足时按比例缩减两端边距（见 `_enforceBarMinSize`）
+
 ## 示例
 
 ```lua

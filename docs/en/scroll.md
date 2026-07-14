@@ -53,6 +53,14 @@ When `v_bar_min_h > 0` or `h_bar_min_w > 0`, if the track space is insufficient,
 - Mouse wheel sensitivity: 100px (customizable via `sensitivity`)
 - Dragging the scrollbar thumb enables fast positioning
 
+## Edge Cases
+
+- **Content MUST be set via `setItem()`**: Direct `addChild` to Scroll does NOT enter the internal `scroll_root`,
+  so scrolling and clipping will not work. Correct usage: `scroll:setItem(content)`
+- **Partially visible elements are not culled**: `_clip_rect` is expanded by 1px on each side.
+  AABB culling only skips subtrees that have **zero overlap** with the clip region
+- Scrollbar thumbs have `block_min_len` constraints; insufficient track space scales edge padding proportionally
+
 ## Example
 
 ```lua

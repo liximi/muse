@@ -18,11 +18,28 @@
 
 | 方法 | 说明 |
 |------|------|
-| `setItems(items)` | 设置子元素列表（替换所有） |
+| `setItems(items)` | 设置子元素列表（**会销毁旧控件**，状态如按钮 pressed、焦点/选区会丢失） |
+| `updateItems(data, keyFn, createFn, updateFn)` | **推荐**：diff 复用已有控件，保持旧控件状态。见下方 |
 | `insert(item, pos)` | 在指定位置插入元素（pos 可选，默认末尾） |
 | `remove(item)` | 移除指定元素 |
 | `removeAtPos(pos)` | 移除指定位置元素并返回 |
 | `layout()` | 手动触发布局计算 |
+
+### updateItems —— 推荐的内容更新方式
+
+```lua
+list:updateItems(
+    newData,                          -- 新的数据列表
+    function(item) return item.id end,  -- keyFn：从数据提取唯一键（可选，默认按引用）
+    function(item) return Button({ text = item.label }) end,  -- createFn：创建新控件
+    function(widget, item) widget:setText(item.label) end     -- updateFn：更新已有控件（可选）
+)
+```
+
+流程：通过 key 匹配已有控件 → 复用并调 `updateFn` 原地更新 → 无匹配的调 `createFn` 创建 → 多余的旧控件移除。不销毁复用控件，按钮状态/焦点/选区保留。
+
+> **不要每帧调用 `setItems`**：每帧 `removeAllChildren + addChild` 会重建所有控件，
+> 按钮 `pressed` 状态、TextInput 焦点/光标/选区都会丢失。数据变化时用 `updateItems` 替代。
 
 ## 自动布局
 

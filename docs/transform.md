@@ -94,28 +94,53 @@ Transform 是本 UI 框架的核心布局引擎，每个 widget 持有一个 Tra
 | `screenToLocal(screen_x, screen_y)` | 屏幕坐标转本地坐标（考虑全局旋转和缩放） |
 | `onUpdate(force)` | 更新布局计算（内部缓存，参数不变时跳过） |
 
-## 锚点模式与 setter 陷阱
+## 锚点模式与真相源
 
-### 点锚点 vs 拉伸锚点的行为差异
+Transform 的布局系统基于 **padding 作为唯一真相源**（类似 Unity UGUI 的 offsetMin/offsetMax）：
 
-| 锚点模式 | 主数据 | 派生数据 |
-|----------|--------|----------|
-| 点锚点 (`min == max`) | `x`/`y`, `w`/`h` | `left/right/top/bottom` |
-| 拉伸锚点 (`min < max`) | `left/right/top/bottom` | `x`/`y`, `w`/`h` |
+```
+字段分层：
+  配置层：anchor_min, anchor_max（锚点范围，0~1 父容器百分比）
+         pivot（支点，0~1 自身百分比）
+  真相源：left, right, top, bottom（像素偏移，所有 setter 最终写入这里）
+  缓存层：x, y, w, h（由 _recalcLayout 从真相源派生，只读）
+```
 
-### 正确处理
+核心公式（点锚点和拉伸锚点共用，不再分支）：
+```lua
+w = parent_w * (anchor_max_x - anchor_min_x) - left - right
+h = parent_h * (anchor_max_y - anchor_min_y) - top - bottom
+x = left + w * pivot_x
+y = top  + h * pivot_y
+```
 
-`_updateWidthAndX` / `_updateHeightAndY` 内部检查 `anchor_w > 0`：
-- 拉伸锚点时从 padding 推算尺寸+位置
-- 点锚点时只更新 `x = left + w * pivot_x`，尺寸不变
+点锚点（`min == max`）时 `anchor_w == 0`，公式自然退化为 `w = -left - right`。
+`_recalcLayout` 仅在 `anchor_w > 0` 时才重算尺寸，否则保留 `setSize` 设定的值。
+
+### setter 不变量
+
+每个 setter 对同一轴同时更新两端 padding，保持"改 A 时 B 不变"：
+- `setPosition(x)` → 同时更新 `left` 和 `right`，保持 `w` 不变
+- `setSize(w)`    → 同时更新 `left` 和 `right`，保持 `x` 不变
+- `setPivot(px)`  → 同时更新 `left` 和 `right`，保持 `x` 和 `w` 都不变
+- `setPadding(...)` → 直接写真相源
+- `setAnchor(...)` → 写配置层，触发重算
+
+### 构造期 `parent_w == 0` 的保护
+
+Widget 构造时父控件尺寸未就绪，`setPadding` 触发 `_recalcLayout` 但 `aw == 0`，
+守卫跳过尺寸计算，不会产生负尺寸。依赖 `measure()` 的布局逻辑应放在首帧 `onUpdate` 中。
 
 ### Widget 构造中的 datas 处理顺序
 
 ```
-anchor → position → size → padding
+pivot → anchor → position → padding → size
 ```
 
-`setPadding` 最后调用，在点锚点下不会覆盖 `setSize` 设好的尺寸值。
+后调用的 setter 覆盖前者的 padding 值，符合"position 定位 + size 定尺寸"的直觉。
+
+> **注意**：Text 的 `transform.w/h` 默认为 0（尺寸存在 `love.graphics.Text` 对象里而非 transform）。
+> Text 覆写了 `Widget:getCullAABB()` 保证裁剪正确，但 debug 框（`drawBound`）对 Text 仍显示零面积框。
 
 ## 使用示例
 

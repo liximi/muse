@@ -44,7 +44,24 @@
 | `getFontSize()` | 获取字号 |
 | `setHAlign(align)` | 设置水平对齐 |
 | `setVAlign(align)` | 设置垂直对齐 |
-| `measure(max_w, max_h)` | 查询自然尺寸（含 padding 和 min_height） |
+| `measure(max_w, max_h)` | 查询自然尺寸（含 padding 和 min_height），与 refreshHeight 同公式 |
+
+> **测量与渲染一致**：`measure` 和 `refreshHeight` 使用同一公式 `max(min_height, text_h) + padding`，
+> 确保 ListV 等容器按测量值布局后不会与实际渲染尺寸重叠。
+
+## 单行模式注意事项
+
+- `single_line = true` 只控制 Enter 行为和粘贴过滤，**不会自动阻止文字换行**。
+  内部 Text 的 `wrap_mode` 需显式设为 `Utils.TEXT_WRAP_MODE.OFF` 才能真正单行显示
+- 单行模式下文字超出输入框宽度时会自动水平滚动，获焦时跟踪光标位置，失焦时复位到文本开头
+- 失焦时调用 `_clearSelection()` 清除选区高亮，不会残留蓝色标记
+
+## 高度自适应
+
+- `height_adaptive = true` 时，TextInput 高度由文本内容决定
+- `min_height` 的应用顺序：`max(min_height, text_h) + padding_top + padding_bottom`
+  （不是 `max(min_height, text_h + padding)`，两者在 min_height 生效时差 padding 总和）
+- 默认 `min_height = 75` 或 `datas.h`，可通过 `datas.min_height` 覆盖
 
 ### 光标操作
 

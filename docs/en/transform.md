@@ -94,22 +94,53 @@ Anchors define an element's positioning reference within its parent container, e
 | `screenToLocal(screen_x, screen_y)` | Convert screen coordinates to local coordinates (accounts for global rotation and scale) |
 | `onUpdate(force)` | Update layout calculation (internally cached; skipped when parameters are unchanged) |
 
-## Anchor Modes and Setter Pitfalls
+## Anchor Modes and the Unified Truth Source
 
-### Behavioral Differences: Point Anchor vs. Stretch Anchor
+Transform's layout system is based on **padding as the single source of truth** (similar to Unity UGUI's offsetMin/offsetMax):
 
-| Anchor Mode | Primary Data | Derived Data |
-|-------------|-------------|--------------|
-| Point anchor (`min == max`) | `x`/`y`, `w`/`h` | `left/right/top/bottom` |
-| Stretch anchor (`min < max`) | `left/right/top/bottom` | `x`/`y`, `w`/`h` |
+```
+Field layers:
+  Config:  anchor_min, anchor_max (anchor range, 0~1 parent percentage)
+           pivot (pivot point, 0~1 self percentage)
+  Truth:   left, right, top, bottom (pixel offsets — all setters ultimately write here)
+  Cache:   x, y, w, h (derived from truth by _recalcLayout, read-only)
+```
 
-### Correct Handling
+Core formula (shared by both point and stretch anchors, no branching):
+```lua
+w = parent_w * (anchor_max_x - anchor_min_x) - left - right
+h = parent_h * (anchor_max_y - anchor_min_y) - top - bottom
+x = left + w * pivot_x
+y = top  + h * pivot_y
+```
 
-`_updateWidthAndX` / `_updateHeightAndY` internally check `anchor_w > 0`:
-- In stretch anchor mode: derive size + position from padding
-- In point anchor mode: only update `x = left + w * pivot_x`, size unchanged
+For point anchors (`min == max`), `anchor_w == 0` and the formula naturally degrades to `w = -left - right`.
+`_recalcLayout` only recalculates size when `anchor_w > 0`; otherwise it preserves the value set by `setSize`.
+
+### Setter Invariants
+
+Each setter updates both padding values on the same axis to preserve "when changing A, keep B unchanged":
+- `setPosition(x)` → updates both `left` and `right`, preserving `w`
+- `setSize(w)`    → updates both `left` and `right`, preserving `x`
+- `setPivot(px)`  → updates both `left` and `right`, preserving both `x` and `w`
+- `setPadding(...)` → writes directly to truth source
+- `setAnchor(...)` → writes config layer, triggers recalculation
+
+### Protection During Construction (`parent_w == 0`)
+
+During widget construction the parent size is not yet available. `setPadding` triggers `_recalcLayout` but `aw == 0`,
+so the guard skips size calculation, preventing negative sizes. Layout logic that depends on `measure()` should be deferred to the first frame's `onUpdate`.
 
 ### Datas Processing Order in Widget Construction
+
+```
+pivot → anchor → position → padding → size
+```
+
+Later setters override earlier padding values, matching the intuition of "position for placement, size for dimensions".
+
+> **Note**: Text's `transform.w/h` defaults to 0 (dimensions stored in `love.graphics.Text`, not transform).
+> Text overrides `Widget:getCullAABB()` for correct culling, but debug boxes (`drawBound`) still show zero-area for Text.
 
 ```
 anchor → position → size → padding

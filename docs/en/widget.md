@@ -124,7 +124,19 @@ Subclasses override the following methods to respond to events (naming rule: `on
 
 | Method | Description |
 |--------|-------------|
-| `enableDebug(enable)` | Toggle debug drawing (bounding boxes + AABB + pivot point) |
+| `enableDebug(enable)` | Toggle debug drawing (bounding boxes + AABB + pivot point). **Since 2026-07-14, supports method chaining** (returns self) |
+
+> **Note**: Text's `transform.w/h = 0`; debug boxes may show zero-area for Text.
+> This is normal — Text dimensions are in `love.graphics.Text`, not transform. Hit detection and culling work correctly.
+
+## Visibility Culling
+
+| Method | Description |
+|--------|-------------|
+| `getCullAABB()` | Returns AABB for visibility culling. Subclasses may override for more accurate bounds than transform |
+
+Text overrides this method using `getGlobalScaledSize()` (actual text dimensions) to avoid premature culling in Scroll.
+Culling uses a 1px tolerance; subtrees are skipped only when they have **zero overlap** with the clip region.
 
 ## Properties
 

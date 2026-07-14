@@ -124,7 +124,19 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 
 | 方法 | 说明 |
 |------|------|
-| `enableDebug(enable)` | 开启/关闭调试绘制（包围盒 + AABB + pivot 点） |
+| `enableDebug(enable)` | 开启/关闭调试绘制（包围盒 + AABB + pivot 点）。**自 2026-07-14 起支持方法链**（返回 self） |
+
+> **注意**：Text 的 `transform.w/h = 0`，debug 框对 Text 可能显示零面积框。
+> 这是正常的——Text 的尺寸存在 `love.graphics.Text` 对象里，不影响碰撞检测和裁剪。
+
+## 可见性裁剪
+
+| 方法 | 说明 |
+|------|------|
+| `getCullAABB()` | 供可见性裁剪使用的包围盒。子类可覆写以提供比 transform 更精确的尺寸 |
+
+Text 覆写了此方法使用 `getGlobalScaledSize()`（文本实际尺寸），避免在 Scroll 中被过早裁剪。
+裁剪使用 1px 容差，仅当元素与裁剪区**完全无交集**时才跳过整棵子树。
 
 ## 属性
 

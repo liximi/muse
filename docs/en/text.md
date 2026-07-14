@@ -48,6 +48,18 @@ A text rendering component with support for coloredtext, automatic word wrap, an
 | Default wrap | `Utils.TEXT_WRAP_MODE.DEFAULT` | Auto-wraps using `transform.w` as the width |
 | No wrap | `Utils.TEXT_WRAP_MODE.OFF` | No wrapping; renders at the text's actual width |
 
+> **Note**: When wrapping is OFF, `measure()` may still use a different width constraint.
+> In single-line inputs, both `wrap_mode=OFF` and correct width constraint in `measure()` are needed.
+
+## Important Edge Cases
+
+- **`transform.w/h` defaults to 0**: Text stores dimensions in `love.graphics.Text`, not in transform.
+  `getGlobalAABB()` reads `self.w/h` (=0), but Text overrides `Widget:getCullAABB()` using
+  `getGlobalScaledSize()` (virtual, returns actual text size), so culling and hit detection work correctly.
+  However, debug boxes (`drawBound`) still show zero-area for Text
+- **Right-alignment with `pivot`+`anchor` requires manual width**: `transform.w=0` breaks `pivot={1,0}` etc.
+  Use `font:getWidth(text)` to measure first, then set `x` offset
+
 ## Examples
 
 ```lua

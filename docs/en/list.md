@@ -18,11 +18,28 @@ A linear list container whose children are arranged sequentially along the main 
 
 | Method | Description |
 |--------|-------------|
-| `setItems(items)` | Set child element list (replaces all) |
+| `setItems(items)` | Set child element list (**destroys old widgets** — state like button pressed, focus/selection is lost) |
+| `updateItems(data, keyFn, createFn, updateFn)` | **Recommended**: diff & reuse existing widgets. See below |
 | `insert(item, pos)` | Insert an element at the given position (pos optional, defaults to end) |
 | `remove(item)` | Remove the specified element |
 | `removeAtPos(pos)` | Remove the element at the given position and return it |
 | `layout()` | Manually trigger layout calculation |
+
+### updateItems — Recommended Update Method
+
+```lua
+list:updateItems(
+    newData,                          -- new data array
+    function(item) return item.id end,  -- keyFn: extract unique key (optional, defaults to reference identity)
+    function(item) return Button({ text = item.label }) end,  -- createFn: create new widget
+    function(widget, item) widget:setText(item.label) end     -- updateFn: update existing widget (optional)
+)
+```
+
+Flow: match existing widgets by key → reuse & call `updateFn` in-place → create new via `createFn` for unmatched → remove surplus. Reused widgets preserve state (button pressed, focus, selection).
+
+> **Do NOT call `setItems` every frame**: it rebuilds all children each frame, destroying button state,
+> TextInput focus/cursor/selection. Use `updateItems` instead when data changes.
 
 ## Auto Layout
 

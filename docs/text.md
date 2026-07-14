@@ -45,8 +45,19 @@
 
 | 模式 | 常量 | 行为 |
 |------|------|------|
-| 默认换行 | `Utils.TEXT_WRAP_MODE.DEFAULT` | 以 transform.w 为宽度自动换行 |
+| 默认换行 | `Utils.TEXT_WRAP_MODE.DEFAULT` | 以 `transform.w` 为宽度自动换行 |
 | 关闭换行 | `Utils.TEXT_WRAP_MODE.OFF` | 不换行，以文本实际宽度渲染 |
+
+> **注意**：关闭换行时 `measure()` 仍使用 `transform.w` 或传参宽度，两者可能不同。
+> 在单行输入框等场景需同步设置 `wrap_mode=OFF` 和用正确的宽度约束调 `measure()`。
+
+## 重要边界
+
+- **`transform.w/h` 默认为 0**：Text 把尺寸存在 `love.graphics.Text` 对象里，不写入 transform。
+  `getGlobalAABB()` 走 Transform 本地函数读 `self.w/h`（＝0），但 Text 覆写了 `Widget:getCullAABB()`
+  使用 `getGlobalScaledSize()`（虚方法，返回文本实际尺寸），裁剪和碰撞检测因此正常工作。
+  但 debug 框（`drawBound`）对 Text 仍画出零面积框
+- **`pivot` + `anchor` 右对齐需手动测宽**：`transform.w = 0` 导致 `pivot={1,0}` 等配置无效，需先用 `font:getWidth(text)` 算出宽度再设 `x` 偏移
 
 ## 示例
 
