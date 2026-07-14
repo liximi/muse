@@ -52,7 +52,6 @@ docs/             # 文档
 main.lua          # 示例程序入口
 conf.lua          # 示例 LÖVE 配置
 CLAUDE.md         # AI 辅助提示
-muse-feedback.md  # 反馈记录
 ```
 
 ### 直接以此仓库运行

@@ -52,7 +52,6 @@ docs/             # Documentation
 main.lua          # Demo app entry point
 conf.lua          # Demo LÖVE config
 CLAUDE.md         # AI assistant prompts
-muse-feedback.md  # Feedback notes
 ```
 
 ### Run the Demo
