@@ -268,7 +268,15 @@ end
 ---@param max_h number|nil 可用高度
 ---@return table {w = number, h = number}
 function TextInput:measure(max_w, max_h)
-	local m = self.text:measure(max_w, max_h)
+	-- 无外部宽度约束时使用自身宽度，确保换行文本的测量高度与实际渲染一致
+	local mw = max_w
+	if not mw or mw <= 0 then
+		mw = self.transform.w
+	end
+	if not mw or mw <= 0 then
+		mw = nil -- 首帧宽度未就绪时回退到不换行测量
+	end
+	local m = self.text:measure(mw, max_h)
 	local pad = self.text.transform:getPadding()
 	return {
 		w = m.w + pad.left + pad.right,
