@@ -96,6 +96,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.height_adaptive = datas.height_adaptive == true
 	self.min_height = datas.min_height or datas.h or DEFAULT_MIN_HEIGHT
 	self.single_line = datas.single_line == true
+	self._scroll_x = 0 -- 单行模式水平滚动偏移（像素）
 	self.onSubmit = datas.on_submit
 
 	if datas.bg then
@@ -1071,10 +1072,20 @@ end
 
 function TextInput:onFocus()
 	self:showCursor(true)
+	-- 获得焦点时将视图滚动到光标可见位置
+	if self.single_line then
+		self._scroll_x = 0
+		self:_updateScroll()
+	end
 end
 
 function TextInput:onRemoveFocus()
 	self:showCursor(false)
+	-- 失去焦点时复位滚动，显示文本开头
+	if self.single_line then
+		self._scroll_x = 0
+		self.text:setPosition(0, nil)
+	end
 end
 
 function TextInput:onMousePressed(x, y, button)
@@ -1149,6 +1160,50 @@ function TextInput:onUpdate(dt)
 	if self.height_adaptive then
 		self:refreshHeight()
 	end
+	-- 单行模式：保持光标在可见区域内
+	if self.single_line then
+		self:_updateScroll()
+	end
+end
+
+--- 调整水平滚动偏移，确保光标位于可见区域内
+function TextInput:_updateScroll()
+	if not self.single_line then return end
+
+	local visible_w = self.text.transform.w
+	if visible_w <= 0 then return end
+
+	local text = table.concat(self.sections, "\n")
+	local text_w = self.text:getFont():getWidth(text)
+	local cursor_x = self.cursor._local_pos_cache[1]
+
+	-- 光标在可见区左侧：向右滚
+	if cursor_x < self._scroll_x then
+		self._scroll_x = cursor_x
+	end
+	-- 光标在可见区右侧：向左滚
+	if cursor_x > self._scroll_x + visible_w then
+		self._scroll_x = cursor_x - visible_w
+	end
+
+	-- 边界约束
+	self._scroll_x = math.max(0, self._scroll_x)
+	self._scroll_x = math.min(math.max(0, text_w - visible_w), self._scroll_x)
+
+	self.text:setPosition(-self._scroll_x, nil)
+end
+
+--- 裁剪 TextInput 内容区域，防止单行模式下文字溢出边框
+function TextInput:onDraw()
+	local x, y, w, h, r = self.transform:getGlobalBounds()
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+	love.graphics.setScissor(x, y, w, h)
 end
 
 function TextInput:onPostDraw()
@@ -1239,6 +1294,8 @@ function TextInput:onPostDraw()
 		love.graphics.line(top_x, top_y, top_x, bottom_y)
 		love.graphics.pop()
 	end
+	love.graphics.setScissor()
+	love.graphics.pop()
 end
 
 return TextInput
