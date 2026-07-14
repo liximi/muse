@@ -138,6 +138,9 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		h_align = datas.h_align,
 		v_align = datas.v_align
 	}))
+	if self.single_line then
+		self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)
+	end
 	if datas.hint then
 		self.hint = self:addChild(Text({
 			text = datas.hint,
