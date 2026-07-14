@@ -98,18 +98,20 @@ local function setPosition(self, x, y)
 end
 
 --- 设置控件的尺寸（像素）。传入 nil 表示不修改该维度。
---- 同时调整 left/right（或 top/bottom）以保持当前 pivot 位置不变。
+--- 直接写入 self.w/h 保证点锚点可用；同时调整 left/right 保持 pivot 位置不变。
 local function setSize(self, w, h)
 	local pw = self.parent and self.parent.w or love.graphics.getWidth()
 	local ph = self.parent and self.parent.h or love.graphics.getHeight()
 	local changed = false
 	if w then
+		self.w = w
 		local aw = pw * (self.anchor_max[1] - self.anchor_min[1])
 		self.left = self.x - w * self.pivot[1]
 		self.right = aw - self.left - w
 		changed = true
 	end
 	if h then
+		self.h = h
 		local ah = ph * (self.anchor_max[2] - self.anchor_min[2])
 		self.top = self.y - h * self.pivot[2]
 		self.bottom = ah - self.top - h
