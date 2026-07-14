@@ -1072,7 +1072,10 @@ end
 
 function TextInput:onFocus()
 	self:showCursor(true)
-	-- 获得焦点时将视图滚动到光标可见位置
+	if self.bg then
+		self.bg.outline_width = 2
+		self.bg.outline_color = {0.3, 0.6, 1, 1} -- 蓝色焦点边框
+	end
 	if self.single_line then
 		self._scroll_x = 0
 		self:_updateScroll()
@@ -1081,7 +1084,10 @@ end
 
 function TextInput:onRemoveFocus()
 	self:showCursor(false)
-	-- 失去焦点时复位滚动，显示文本开头
+	self:_clearSelection()
+	if self.bg then
+		self.bg.outline_width = 0
+	end
 	if self.single_line then
 		self._scroll_x = 0
 		self.text:setPosition(0, nil)
