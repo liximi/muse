@@ -70,32 +70,47 @@ end
 --------------------------------------------------
 
 --- 设置 pivot 在锚点范围内的偏移（像素）。传入 nil 表示不修改该维度。
+--- 同时调整 left/right（或 top/bottom）以保持当前尺寸不变。
 local function setPosition(self, x, y)
+	local pw = self.parent and self.parent.w or love.graphics.getWidth()
+	local ph = self.parent and self.parent.h or love.graphics.getHeight()
+	local changed = false
 	if x then
+		local aw = pw * (self.anchor_max[1] - self.anchor_min[1])
 		self.left = x - self.w * self.pivot[1]
+		self.right = aw - self.left - self.w
+		changed = true
 	end
 	if y then
+		local ah = ph * (self.anchor_max[2] - self.anchor_min[2])
 		self.top = y - self.h * self.pivot[2]
+		self.bottom = ah - self.top - self.h
+		changed = true
 	end
-	if x or y then
+	if changed then
 		_recalcLayout(self)
 	end
 end
 
 --- 设置控件的尺寸（像素）。传入 nil 表示不修改该维度。
---- 内部通过调整 right/bottom 来满足目标 w/h，left/top 保持不变。
+--- 同时调整 left/right（或 top/bottom）以保持当前 pivot 位置不变。
 local function setSize(self, w, h)
 	local pw = self.parent and self.parent.w or love.graphics.getWidth()
 	local ph = self.parent and self.parent.h or love.graphics.getHeight()
+	local changed = false
 	if w then
 		local aw = pw * (self.anchor_max[1] - self.anchor_min[1])
+		self.left = self.x - w * self.pivot[1]
 		self.right = aw - self.left - w
+		changed = true
 	end
 	if h then
 		local ah = ph * (self.anchor_max[2] - self.anchor_min[2])
+		self.top = self.y - h * self.pivot[2]
 		self.bottom = ah - self.top - h
+		changed = true
 	end
-	if w or h then
+	if changed then
 		_recalcLayout(self)
 	end
 end
@@ -128,17 +143,26 @@ local function setScale(self, sx, sy)
 	end
 end
 
---- 设置支点（自身尺寸百分比 0~1）。保持控件视觉位置不变。
+--- 设置支点（自身尺寸百分比 0~1）。保持控件视觉位置和尺寸不变。
 local function setPivot(self, px, py)
+	local pw = self.parent and self.parent.w or love.graphics.getWidth()
+	local ph = self.parent and self.parent.h or love.graphics.getHeight()
+	local changed = false
 	if px then
-		self.left = self.x - self.w * px
+		local aw = pw * (self.anchor_max[1] - self.anchor_min[1])
 		self.pivot[1] = px
+		self.left = self.x - self.w * px
+		self.right = aw - self.left - self.w
+		changed = true
 	end
 	if py then
-		self.top = self.y - self.h * py
+		local ah = ph * (self.anchor_max[2] - self.anchor_min[2])
 		self.pivot[2] = py
+		self.top = self.y - self.h * py
+		self.bottom = ah - self.top - self.h
+		changed = true
 	end
-	if px or py then
+	if changed then
 		_recalcLayout(self)
 	end
 end
