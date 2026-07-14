@@ -1137,10 +1137,12 @@ end
 
 function TextInput:onMouseMoved(x, y, dx, dy)
 	if self._is_dragging then
-		if self:regionDetection(x, y) then
-			self:setCursorPosByScreenPos(x, y)
-			self.cursor._sel_end = {self.cursor.section, self.cursor.index}
-		end
+		-- 将鼠标坐标钳制在 TextInput 包围盒内，拖出框外时光标仍能跟到边界
+		local gx, gy, gw, gh = self.transform:getGlobalAABB()
+		local cx = math.max(gx, math.min(gx + gw, x))
+		local cy = math.max(gy, math.min(gy + gh, y))
+		self:setCursorPosByScreenPos(cx, cy)
+		self.cursor._sel_end = {self.cursor.section, self.cursor.index}
 	end
 end
 
@@ -1185,7 +1187,7 @@ function TextInput:onUpdate(dt)
 		self:refreshHeight()
 	end
 	-- 单行模式：保持光标在可见区域内
-	if self.single_line then
+	if self.single_line and self:isFocus() then
 		self:_updateScroll()
 	end
 end
@@ -1200,12 +1202,13 @@ function TextInput:_updateScroll()
 	local text = table.concat(self.sections, "\n")
 	local text_w = self.text:getFont():getWidth(text)
 	local cursor_x = self.cursor._local_pos_cache[1]
+	local MARGIN = 2 -- 防止光标贴边界时帧间来回跳
 
-	if cursor_x < self._scroll_x then
-		self._scroll_x = cursor_x
+	if cursor_x < self._scroll_x + MARGIN then
+		self._scroll_x = cursor_x - MARGIN
 	end
-	if cursor_x > self._scroll_x + visible_w then
-		self._scroll_x = cursor_x - visible_w
+	if cursor_x > self._scroll_x + visible_w - MARGIN then
+		self._scroll_x = cursor_x - visible_w + MARGIN
 	end
 
 	self._scroll_x = math.max(0, self._scroll_x)
