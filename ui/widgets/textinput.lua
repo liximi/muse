@@ -270,10 +270,11 @@ end
 function TextInput:measure(max_w, max_h)
 	-- 直接取内部 Text 的实际渲染尺寸，与 refreshHeight 同源，保证和视觉边框一致
 	local tw, th = self.text:getScaledSize()
+	th = math.max(self.min_height, th) -- min_height 作用于文本高度，然后加 padding
 	local pad = self.text.transform:getPadding()
 	return {
 		w = tw + pad.left + pad.right,
-		h = math.max(self.min_height, th + pad.top + pad.bottom),
+		h = th + pad.top + pad.bottom,
 	}
 end
 
