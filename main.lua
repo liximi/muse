@@ -104,32 +104,34 @@ function love.draw()
 end
 
 function love.keypressed(key, scancode, isrepeat)
-	UiManager:KeyPressed(key, isrepeat)
+	local ui_handled = UiManager:KeyPressed(key, isrepeat)
+	-- 外部系统可通过 ui_handled 判断是否需要自行处理该按键
 end
 
 function love.textinput(text)
-	UiManager:TextInput(text)
+	local ui_handled = UiManager:TextInput(text)
 end
 
 function love.keyreleased(key, scancode)
-	UiManager:KeyReleased(key)
-	if key == "escape" then
+	local ui_handled = UiManager:KeyReleased(key)
+	if not ui_handled and key == "escape" then
 		love.event.quit()
 	end
 end
 
 function love.wheelmoved(x, y)
-	UiManager:WheelMoved(x, y)
+	local ui_handled = UiManager:WheelMoved(x, y)
 end
 
 function love.mousepressed(x, y, button)
-	UiManager:MousePressed(x, y, button)
+	local ui_handled = UiManager:MousePressed(x, y, button)
+	-- 外部系统可通过 ui_handled 判断点击是否落在 UI 区域
 end
 
 function love.mousereleased(x, y, button)
-	UiManager:MouseReleased(x, y, button)
+	local ui_handled = UiManager:MouseReleased(x, y, button)
 end
 
 function love.mousemoved(x, y, dx, dy)
-	UiManager:MouseMoved(x, y, dx, dy)
+	local ui_handled = UiManager:MouseMoved(x, y, dx, dy)
 end

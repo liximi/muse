@@ -126,14 +126,15 @@ function Manager:KeyPressed(key, isrepeat)
 	-- Tab 键焦点切换（在分发给 widget 之前拦截）
 	if key == "tab" then
 		self:_handleTabFocus(key, isrepeat)
-		return
+		return true
 	end
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("KeyPressed", key, isrepeat) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 function Manager:_collectFocusable(widget, list)
@@ -179,33 +180,38 @@ function Manager:KeyReleased(key)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("KeyReleased", key) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 function Manager:TextInput(text)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("TextInput", text) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 function Manager:MouseMoved(x, y, dx, dy)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("MouseMoved", x, y, dx, dy) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 function Manager:MousePressed(x, y, button)
+	local handled = false
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("MousePressed", x, y, button) then
+			handled = true
 			break
 		end
 	end
@@ -213,24 +219,27 @@ function Manager:MousePressed(x, y, button)
 	if self.current_focus and not self.current_focus:regionDetection(x, y) then
 		self:clearFocus()
 	end
+	return handled
 end
 
 function Manager:MouseReleased(x, y, button)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("MouseReleased", x, y, button) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 function Manager:WheelMoved(x, y)
 	for i = #self.hierarchy, 1, -1 do
 		local widget = self.hierarchy[i]
 		if widget:handleEvent("WheelMoved", x, y) then
-			break
+			return true
 		end
 	end
+	return false
 end
 
 return {
