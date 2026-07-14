@@ -31,14 +31,14 @@ function test.create(parent)
 				bg = Panel(),
 				text_padding = {10, 10, 10, 10},
 				text = "Type here...\nCtrl+Z/Y to undo/redo\nCtrl+C/V to copy/paste\nShift+Arrow to select",
-			}),
+			}):enableDebug(true),
 			Text({
 				text = "Single-line TextInput",
 				font_size = 14,
 				h = 16,
 				text_color = Utils.UI_COLORS.SECONDARY_TEXT,
 				anchor = {0, 0, 1, 0},
-			}),
+			}):enableDebug(true),
 			TextInput({
 				anchor = {0, 0, 1, 0},
 				h = 32,
