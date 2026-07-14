@@ -1,15 +1,20 @@
 -- 统一布局计算：padding（left/right/top/bottom）是唯一的真相源，
 -- x/y/w/h 是从 padding + anchor + pivot 推导出的缓存值。
--- 点锚点（anchor_min == anchor_max → anchor_w == 0）和拉伸锚点的区别
--- 仅体现在 anchor_w/h 的值上，公式完全相同，不再需要分支。
+-- 点锚点（anchor_w == 0）和拉伸锚点在 parent_w == 0 时都跳过尺寸计算，
+-- w/h 保留 setSize 设定的值（默认 0），避免构造期算出负尺寸。
 local function _recalcLayout(transform)
 	local pw = transform.parent and transform.parent.w or love.graphics.getWidth()
 	local ph = transform.parent and transform.parent.h or love.graphics.getHeight()
 	local aw = pw * (transform.anchor_max[1] - transform.anchor_min[1])
 	local ah = ph * (transform.anchor_max[2] - transform.anchor_min[2])
 
-	transform.w = aw - transform.left - transform.right
-	transform.h = ah - transform.top - transform.bottom
+	-- 仅当锚点范围提供有效尺寸信息时才重算 w/h
+	if aw > 0 then
+		transform.w = aw - transform.left - transform.right
+	end
+	if ah > 0 then
+		transform.h = ah - transform.top - transform.bottom
+	end
 	transform.x = transform.left + transform.w * transform.pivot[1]
 	transform.y = transform.top + transform.h * transform.pivot[2]
 end

@@ -57,16 +57,15 @@ local obj = MyClass(arg1, arg2)
 - `regionDetection(px, py)` — 检测屏幕坐标是否在 widget 包围盒内（考虑旋转，不考虑透明区域）
 - `enableDebug(true)` — 绘制包围盒（含 AABB 和旋转后的 bound）
 
-**Transform** (`ui/transform.lua`) — 每个 widget 持有一个 Transform 实例，实现类似 Unity 的 anchor-based 布局：
+**Transform** (`ui/transform.lua`) — 每个 widget 持有一个 Transform 实例，实现类似 Unity UGUI 的 anchor-based 布局：
 - `anchor = {minx, miny, maxx, maxy}` — 锚点范围，0~1 百分比的父容器坐标
-  - 如果 min == max，尺寸固定（由 `w`/`h` + `padding` 决定位置偏移）
-  - 如果 min != max，尺寸自适应（由锚点范围减去 `padding` 决定尺寸）
 - `pivot = {x, y}` — 支点，0~1 百分比的自尺寸坐标，旋转/缩放中心
-- `padding = {left, right, top, bottom}` — 像素偏移
-- `x`, `y` — pivot 相对锚点范围左上角的偏移（像素）
-- `setPosition`/`setSize` 会反向影响 padding 值
-- `setPadding`/`setAnchor` 会反向影响 x/y 或 w/h
+- `padding = {left, right, top, bottom}` — **唯一的真相源**（像素偏移），所有 setter 最终写入这里
+- `x`, `y`, `w`, `h` — 缓存字段，由 `_recalcLayout()` 从 padding + anchor + pivot 派生
+- 所有 setter（`setPosition`/`setSize`/`setPadding`/`setPivot`/`setAnchor`）立即调用 `_recalcLayout` 同步缓存
+- `onUpdate` 检查 10 个真相字段（padding × 4 + anchor × 4 + pivot × 2 + parent_w/h），dirty 时重算
 - 全局坐标链：`getGlobalPosition()` → `getGlobalScale()` → `getGlobalScaledSize()` → `getGlobalBounds()` 递归通过父级计算
+- `Widget:getCullAABB()` — 供可见性裁剪使用的虚方法，子类（如 Text）可覆写以提供精确包围盒
 
 **Theme** (`ui/theme.lua`) — 默认主题定义，包含 panel、text、textinput、image、button、imagebutton 的默认样式。widget 构造函数接受 `theme` 参数覆盖默认主题；`datas` 中的字段优先级高于 theme。
 
@@ -98,20 +97,38 @@ Widget (基类)
     └── Box — Flexbox 式布局容器（BoxContainer），flex_grow/shrink 分配
 ```
 
-### Transform 锚点模式与 setter 陷阱
+### Transform 锚点模式与真相源
 
-Transform 有两个布局模式：
+Transform 的布局系统基于 **padding 作为唯一真相源**（类似于 Unity UGUI 的 offsetMin/offsetMax）：
 
-| 锚点模式 | 条件 | 主数据 | 派生数据 | 使用的函数 |
-|----------|------|--------|----------|-----------|
-| 点锚点 | `min == max` | `x`/`y`, `w`/`h` | `left/right/top/bottom` | `_updateLeftRight` / `_updateTopBottom` |
-| 拉伸锚点 | `min < max` | `left/right/top/bottom` | `x`/`y`, `w`/`h` | `_updateWidthAndX` / `_updateHeightAndY` |
+```
+字段分层：
+  配置层：anchor_min, anchor_max（锚点范围，0~1 父容器百分比）
+         pivot（支点，0~1 自身百分比）
+  真相源：left, right, top, bottom（像素偏移，所有 setter 最终写入这里）
+  缓存层：x, y, w, h（由 _recalcLayout 从真相源派生，只读）
+```
 
-`onUpdate` 已根据锚点模式正确选择函数。但 `setPadding` 无条件调用 `_updateWidthAndX` / `_updateHeightAndY`，这两个函数原本假设 `anchor_w > 0`（拉伸锚点），对点锚点（`anchor_w == 0`）会算出 `w = 0 - left - right = -left - right`，将 `setSize` 设好的尺寸覆盖为 0 或负值。
+核心公式（点锚点和拉伸锚点共用，不再分支）：
+```lua
+w = parent_w * (anchor_max_x - anchor_min_x) - left - right
+h = parent_h * (anchor_max_y - anchor_min_y) - top - bottom
+x = left + w * pivot_x
+y = top  + h * pivot_y
+```
 
-**修复方式**：在 `_updateWidthAndX` / `_updateHeightAndY` 内部检查 `anchor_w > 0`（或 `anchor_h > 0`）。拉伸锚点时走原逻辑（从 padding 推算尺寸+位置）；点锚点时只更新 `x = left + w * pivot_x`，尺寸不变。这样所有调用方（`setPadding`、未来的其他 setter）都自动安全。
+点锚点（min == max）时 `anchor_w == 0`，公式自然退化为 `w = -left - right`，
+`_recalcLayout` 仅在 `anchor_w > 0` 时才重算尺寸，否则保留 `setSize` 设定的值。
 
-**Widget 构造中 datas 的处理顺序很重要**：`anchor → position → size → padding`。`setPadding` 最后调用，如果它错误覆盖了 `setSize` 设好的尺寸值，且 `onUpdate` 对点锚点是从尺寸推算 padding（而非反向），则尺寸丢失不可恢复。
+setter 规则：每个 setter 对同一轴同时更新两端 padding，保持"改 A 时 B 不变"：
+- `setPosition(x)` → 同时更新 left 和 right，保持 w 不变
+- `setSize(w)`    → 同时更新 left 和 right，保持 x 不变
+- `setPivot(px)`  → 同时更新 left 和 right，保持 x 和 w 都不变
+- `setPadding(l,r,t,b)` → 直接写真相源
+- `setAnchor(...)` → 写配置层，触发重算
+
+Widget 构造中 datas 的处理顺序：`pivot → anchor → position → padding → size`，
+后调用的 setter 覆盖前者的 padding 值，符合"position 定位 + size 定尺寸"的直觉。
 
 ### 测试场景组织
 
@@ -213,6 +230,15 @@ return MyClass
 ```
 
 ## 变更记录
+
+### 2026-07-14 — Transform 重构 + 列表机制
+- **refactor** (`866af28`, `9b54f42`): Transform 统一真相源为 padding，消灭双模式分支
+  - 4 个 `_update*` 函数 → 1 个 `_recalcLayout`，点锚点和拉伸锚点共用一个公式
+  - `setPosition`/`setSize`/`setPivot` 对同轴同时更新两端 padding，保持不变量
+  - `_recalcLayout` 仅在 `anchor_w > 0` 时重算尺寸，构造期 parent_w=0 时产生负尺寸的 bug 已消除
+- **feat** (`10cf024`): List 新增 `updateItems(newData, keyFn, createFn, updateFn)` — diff 复用机制
+- **fix** (`7d9ee8f`): Text 新增 `getCullAABB()` 虚方法覆写，使用文本实际尺寸做 Scroll 裁剪
+- **fix** (`d901504`): Scroll AABB 裁剪加入容差，仅完全不可见元素才跳过子树
 
 ### 2026-06-06 — 回合 1
 - **refactor** (`b7dcfd2`): 提取算法中的魔术数字为 `UPPER_CASE` 伪常量，涵盖 checkbox/sliderbar/scroll_container/widget/theme/textinput/text/button/tabview/image/chat_history 共 11 个文件
