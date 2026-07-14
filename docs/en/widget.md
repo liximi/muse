@@ -124,7 +124,7 @@ Subclasses override the following methods to respond to events (naming rule: `on
 
 | Method | Description |
 |--------|-------------|
-| `enableDebug(enable)` | Toggle debug drawing (bounding boxes + AABB + pivot point). **Since 2026-07-14, supports method chaining** (returns self) |
+| `enableDebug(enable)` | Toggle debug drawing (bounding boxes + AABB + pivot point). Returns self, supports chaining |
 
 > **Note**: Text's `transform.w/h = 0`; debug boxes may show zero-area for Text.
 > This is normal — Text dimensions are in `love.graphics.Text`, not transform. Hit detection and culling work correctly.
