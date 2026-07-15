@@ -162,12 +162,15 @@ function Dropdown:_open()
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self._is_open = true
 
-	-- 计算面板位置（触发按钮底部）
+	-- 计算面板位置（触发按钮底部），同步宽度（构造期 transform.w 可能为 0）
 	local tx, ty = self.trigger.transform:getGlobalPosition()
 	local _, th = self.trigger.transform:getGlobalScaledSize()
 	local tw = self.transform.w
 	local panel_w = tw
 	local panel_h = self:_calcPanelHeight()
+
+	-- 同步面板宽度（容器可能在构造后重新分配了 Dropdown 的尺寸）
+	self.panel.transform:setSize(panel_w, nil)
 	local sw = love.graphics.getWidth()
 	local sh = love.graphics.getHeight()
 
