@@ -62,6 +62,13 @@ local ImageButton = Class(ButtonBase, function(self, datas, theme)
 	end
 end)
 
+--- 设置按钮文字（no_text 模式下静默忽略）
+function ImageButton:setText(t)
+	if self.text then
+		self.text:setText(t)
+	end
+end
+
 --- 设置按钮在某个状态下的样式
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 ---@param style Utils.newImageButtonStateStyle 配置信息表 
