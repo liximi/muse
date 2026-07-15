@@ -152,6 +152,7 @@ function Dropdown:_open()
 	if not self.trigger or not self.popup then
 		return
 	end
+	print(string.format("[Dropdown] open: %d options, panel_h=%d", #self.options, self:_calcPanelHeight()))
 	-- 确保 popup 整棵子树都是 DROPDOWN 渲染层（_buildItems 可能新增了节点）
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self._is_open = true
