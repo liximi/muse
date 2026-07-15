@@ -116,12 +116,18 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	local _widget_handleEvent = Widget.handleEvent
 	function self.scroll_root.handleEvent(_self, event_type, ...)
 		if event_type == "MousePressed" or event_type == "MouseMoved"
-			or event_type == "MouseReleased" or event_type == "WheelMoved" then
+			or event_type == "MouseReleased" then
 			local arg = {...}
 			if arg[1] and arg[2] then
 				if not self:regionDetection(arg[1], arg[2]) then
 					return false
 				end
+			end
+		elseif event_type == "WheelMoved" then
+			-- WheelMoved 的 arg 是 (dx, dy)，不是坐标，用鼠标位置做判断
+			local mx, my = love.mouse.getPosition()
+			if not self:regionDetection(mx, my) then
+				return false
 			end
 		end
 		return _widget_handleEvent(_self, event_type, ...)
