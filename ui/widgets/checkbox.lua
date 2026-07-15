@@ -31,7 +31,8 @@ local CHECK_MID_Y_RATIO = 0.05   -- 对勾中点垂直偏移比例
 local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 	ButtonBase.new(self, widget_name or "Checkbox", datas, theme)
 
-	self.style = datas and datas.style or "checkbox"
+	self.style = Utils.validateEnum(
+		datas and datas.style, Utils.CHECKBOX_STYLE, Utils.CHECKBOX_STYLE.CHECKBOX, "Checkbox.style")
 	self.box_size = datas and datas.box_size or self.theme.checkbox.box_size
 	self.box_color = datas and datas.box_color or self.theme.checkbox.box_color
 	self.check_color = datas and datas.check_color or self.theme.checkbox.check_color

@@ -31,7 +31,32 @@ local Utils = {
 		SELECTED = "selected",
 		HOVER = "hover",
 		SELECTED_HOVER = "selected_hover"
-	}
+	},
+	ORIENTATION = {
+		VERTICAL = "vertical",
+		HORIZONTAL = "horizontal",
+	},
+	H_ALIGN = {
+		LEFT = "left",
+		CENTER = "center",
+		RIGHT = "right",
+		JUSTIFY = "justify",
+	},
+	V_ALIGN = {
+		TOP = "top",
+		CENTER = "center",
+		BOTTOM = "bottom",
+	},
+	CROSS_ALIGN = {
+		STRETCH = "stretch",
+		START = "start",
+		CENTER = "center",
+		END = "end",
+	},
+	CHECKBOX_STYLE = {
+		CHECKBOX = "checkbox",
+		TOGGLE = "toggle",
+	},
 }
 
 --- 构造颜色对象
@@ -129,6 +154,21 @@ end
 
 function Utils.clamp(val, min, max)
 	return math.max(min, math.min(val, max))
+end
+
+--- 校验枚举值，非法时使用默认值并打印警告
+---@param value any 待校验的值
+---@param enum table 枚举常量表（如 Utils.ORIENTATION）
+---@param default any 非法时的回退值
+---@param label string 调用方名称（用于警告信息）
+function Utils.validateEnum(value, enum, default, label)
+	for _, v in pairs(enum) do
+		if v == value then
+			return value
+		end
+	end
+	print(string.format("%s: invalid value '%s', using default '%s'", label, tostring(value), tostring(default)))
+	return default
 end
 
 return Utils

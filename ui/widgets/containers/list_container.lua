@@ -1,4 +1,5 @@
 local Widget = require "ui.widgets.widget"
+local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
 local AXIS = {
@@ -27,7 +28,8 @@ local AXIS = {
 ]]
 local List = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
-	local orientation = datas.orientation == "horizontal" and "horizontal" or "vertical"
+	local orientation = Utils.validateEnum(
+		datas.orientation, Utils.ORIENTATION, Utils.ORIENTATION.VERTICAL, "List.orientation")
 	self._axis = AXIS[orientation]
 
 	Widget.new(self, orientation == "vertical" and "ListVContainer" or "ListHContainer", datas, theme)

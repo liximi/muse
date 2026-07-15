@@ -66,7 +66,8 @@ end
 ]]
 local SliderBar = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
-	local orientation = datas.orientation == "horizontal" and "horizontal" or "vertical"
+	local orientation = Utils.validateEnum(
+		datas.orientation, Utils.ORIENTATION, Utils.ORIENTATION.VERTICAL, "SliderBar.orientation")
 	self._axis = AXIS[orientation]
 	local a = self._axis
 

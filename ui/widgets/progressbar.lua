@@ -30,7 +30,8 @@ local ProgressBar = Class(Widget, function(self, datas, theme)
 	self.fill_color = datas and datas.fill_color or self.theme.progressbar.fill_color
 	self.bg_color = datas and datas.bg_color or self.theme.progressbar.bg_color
 	self.rounding_radius = datas and datas.rounding_radius or self.theme.progressbar.rounding_radius
-	self.orientation = datas and datas.orientation or "horizontal"
+	self.orientation = Utils.validateEnum(
+		datas and datas.orientation, Utils.ORIENTATION, Utils.ORIENTATION.HORIZONTAL, "ProgressBar.orientation")
 
 	-- 交互模式
 	self.interactive = datas and datas.interactive == true

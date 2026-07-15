@@ -30,8 +30,10 @@ local Text = Class(Widget, function(self, datas, theme)
 	self.wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
 	self.overflow_mode = Utils.TEXT_OVERFLOW_MODE.NONE
 	self.overflow_ellipsis_char = "…"
-	self.horizontal_align = datas and datas.h_align or "left" -- "left"|"right"|"center"|"justify"
-	self.vertical_align = datas and datas.v_align or "top" -- "top"|"bottom"|"center"
+	self.horizontal_align = Utils.validateEnum(
+		datas and datas.h_align, Utils.H_ALIGN, Utils.H_ALIGN.LEFT, "Text.h_align")
+	self.vertical_align = Utils.validateEnum(
+		datas and datas.v_align, Utils.V_ALIGN, Utils.V_ALIGN.TOP, "Text.v_align")
 
 	self.__text = love.graphics.newText(Fonts:getFont(self.font_key, self.font_size))
 	self:updateTextLayout()

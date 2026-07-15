@@ -1,4 +1,5 @@
 local Widget = require "ui.widgets.widget"
+local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
 local AXIS = {
@@ -25,13 +26,15 @@ local AXIS = {
 ]]
 local Box = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
-	local orientation = datas.orientation == "horizontal" and "horizontal" or "vertical"
+	local orientation = Utils.validateEnum(
+		datas.orientation, Utils.ORIENTATION, Utils.ORIENTATION.VERTICAL, "Box.orientation")
 	self._axis = AXIS[orientation]
 
 	Widget.new(self, orientation == "vertical" and "BoxVContainer" or "BoxHContainer", datas, theme)
 
 	self.space = datas.space or 0
-	self.cross_align = datas.cross_align or "stretch"
+	self.cross_align = Utils.validateEnum(
+		datas.cross_align, Utils.CROSS_ALIGN, Utils.CROSS_ALIGN.STRETCH, "Box.cross_align")
 	self._layout_dirty = true
 	self._in_layout = false
 
