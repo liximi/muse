@@ -204,7 +204,7 @@ function test.create(parent)
 		anchor = {0, 0, 0, 0}, padding = {0, 0, slider_y, 0},
 	}))
 
-	demo5:addChild(SliderBar({
+	local rot_slider = demo5:addChild(SliderBar({
 		orientation = "horizontal",
 		anchor = {0, 0, 0.8, 0}, padding = {0, 0, slider_y + 16, 0}, h = 16,
 		max_limit = 360,
@@ -212,6 +212,7 @@ function test.create(parent)
 			target.transform:setRotation(val * math.pi / 180)
 		end,
 	}))
+	rot_slider:setValue(0)  -- 初始旋转 0°
 
 	-- 缩放滑块
 	slider_y = slider_y + 40
@@ -221,7 +222,7 @@ function test.create(parent)
 		anchor = {0, 0, 0, 0}, padding = {0, 0, slider_y, 0},
 	}))
 
-	demo5:addChild(SliderBar({
+	local scale_slider = demo5:addChild(SliderBar({
 		orientation = "horizontal",
 		anchor = {0, 0, 0.8, 0}, padding = {0, 0, slider_y + 16, 0}, h = 16,
 		max_limit = 170, block_length_percent = 0.05,
@@ -230,6 +231,7 @@ function test.create(parent)
 			target.transform:setScale(s, s)
 		end,
 	}))
+	scale_slider:setValue(70)  -- 初始缩放 1.0 (0.3 + 70/100)
 
 	-- X 偏移滑块
 	slider_y = slider_y + 40
@@ -239,7 +241,7 @@ function test.create(parent)
 		anchor = {0, 0, 0, 0}, padding = {0, 0, slider_y, 0},
 	}))
 
-	demo5:addChild(SliderBar({
+	local x_slider = demo5:addChild(SliderBar({
 		orientation = "horizontal",
 		anchor = {0, 0, 0.8, 0}, padding = {0, 0, slider_y + 16, 0}, h = 16,
 		max_limit = 400, block_length_percent = 0.05,
@@ -247,6 +249,7 @@ function test.create(parent)
 			target:setPosition(val, nil)
 		end,
 	}))
+	x_slider:setValue(350)  -- 初始 X = left(300) + w*pivot(50)
 end
 
 return test
