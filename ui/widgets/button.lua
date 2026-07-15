@@ -47,6 +47,12 @@ local Button = Class(ButtonBase, function(self, datas, theme)
 	self.text.raycast_target = false -- 按钮文字不阻断射线，让父按钮处理点击
 end)
 
+--- 按钮最小尺寸 = 内部文字最小尺寸 + 文本内边距
+function Button:getMinimumSize()
+	local tw, th = self.text:getMinimumSize()
+	return tw + BUTTON_TEXT_PADDING * 2, th + BUTTON_TEXT_PADDING * 2
+end
+
 --- 设置按钮在某个状态下的样式
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 ---@param style Utils.newButtonStateStyle 配置信息表 

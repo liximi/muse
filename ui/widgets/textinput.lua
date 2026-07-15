@@ -273,6 +273,14 @@ function TextInput:refreshHeight()
 	end
 end
 
+--- 输入框最小尺寸：宽为 0（可缩到任意宽度），高为一倍行高 + 内边距
+function TextInput:getMinimumSize()
+	local font = self.text:getFont()
+	local line_h = font:getHeight() * font:getLineHeight()
+	local pad = self.text.transform:getPadding()
+	return 0, math.max(self.min_height, line_h) + pad.top + pad.bottom
+end
+
 --- 查询 TextInput 的自然尺寸：委托内部 Text 的 measure，加上 padding 和 min_height
 ---@param max_w number|nil 可用宽度
 ---@param max_h number|nil 可用高度

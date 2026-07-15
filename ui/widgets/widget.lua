@@ -73,6 +73,13 @@ local Widget = Class(function(self, name, datas, theme)
 	-- 射线检测开关。开启后，即使没有显式事件 handler，鼠标落在区域内也会阻断事件穿透
 	self.raycast_target = false
 
+	-- 容器布局标志（参考 Godot SizeFlags，默认 FILL）
+	self.h_size_flags = Utils.SIZE_FLAGS.FILL
+	self.v_size_flags = Utils.SIZE_FLAGS.FILL
+	self.stretch_ratio = 1.0
+	self._custom_min_w = nil
+	self._custom_min_h = nil
+
 	self.enabled = true
 	self.shown = true
 	self.focus = false
@@ -225,6 +232,30 @@ end
 function Widget:measure(max_w, max_h)
 	local w, h = self.transform:getSize()
 	return {w = w, h = h}
+end
+
+--- 返回控件自身内容的最小自然尺寸（像素）。
+--- 子类覆写此方法报告基于实际内容（文字、贴图等）的最小尺寸。
+--- 容器通过 getCombinedMinimumSize() 聚合子控件的最小尺寸来决定布局。
+---@return number w
+---@return number h
+function Widget:getMinimumSize()
+	return 0, 0
+end
+
+--- 返回控件的最小有效尺寸 = max(内容最小尺寸, 用户设置的 custom_minimum_size)。
+--- 这是容器实际使用的值。
+---@return number w
+---@return number h
+function Widget:getCombinedMinimumSize()
+	local mw, mh = self:getMinimumSize()
+	return math.max(mw, self._custom_min_w or 0), math.max(mh, self._custom_min_h or 0)
+end
+
+--- 设置自定义最小尺寸（覆盖内容最小尺寸）。nil 表示不限制。
+function Widget:setCustomMinimumSize(w, h)
+	self._custom_min_w = w
+	self._custom_min_h = h
 end
 
 --------------------------------------------------

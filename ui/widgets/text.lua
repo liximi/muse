@@ -131,6 +131,20 @@ function Text:getDimensions()
 	return w, h
 end
 
+--- 返回文本自身的最小自然尺寸（不换行时的完整尺寸）。
+function Text:getMinimumSize()
+	if self.text == "" or self.text == nil then
+		return 0, 0
+	end
+	local font = self:getFont()
+	local text = self:getText(true)
+	local line_h = font:getHeight() * font:getLineHeight()
+	-- 取不换行的完整宽度
+	local w = font:getWidth(text)
+	local h = line_h
+	return w, h
+end
+
 function Text:getScaledDimensions()
 	local w, h = self:getDimensions()
 	local sx, sy = self.transform:getScale()

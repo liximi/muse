@@ -57,6 +57,15 @@ local Utils = {
 		CHECKBOX = "checkbox",
 		TOGGLE = "toggle",
 	},
+	-- 子控件在容器中的尺寸行为标志（参考 Godot Control::SizeFlags）
+	-- 可组合使用：FILL + EXPAND = 3
+	SIZE_FLAGS = {
+		SHRINK_BEGIN = 0,  -- 保持最小尺寸、靠左/上（默认）
+		FILL         = 1,  -- 填满容器分配给该控件的区域
+		EXPAND       = 2,  -- 参与剩余空间的瓜分（配合 stretch_ratio 比例）
+		SHRINK_CENTER = 4, -- 在分配区域内居中（需关闭 FILL）
+		SHRINK_END   = 8,  -- 在分配区域内靠右/下（需关闭 FILL）
+	},
 }
 
 --- 构造颜色对象

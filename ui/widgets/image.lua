@@ -64,6 +64,11 @@ function Image:getTextureRowSize()
 	end
 end
 
+--- 图片最小尺寸 = 纹理原始尺寸
+function Image:getMinimumSize()
+	return self:getTextureRowSize()
+end
+
 --- 查询图片的自然尺寸
 --- 已设显式尺寸时返回 transform.w/h，未设时 fallback 到纹理原始尺寸
 ---@param max_w number|nil
