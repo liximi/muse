@@ -194,4 +194,11 @@ function HBoxContainer:_hasStretched(cache)
 	return false
 end
 
+--- 添加弹性占位符。所有后续子控件会被推到右侧。
+--- 参考 Godot BoxContainer::add_spacer
+function HBoxContainer:addSpacer()
+	local Spacer = require "ui.widgets.spacer"
+	return self:addChild(Spacer())
+end
+
 return HBoxContainer

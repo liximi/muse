@@ -185,4 +185,10 @@ function VBoxContainer:_hasStretched(cache)
 	return false
 end
 
+--- 添加弹性占位符。所有后续子控件会被推到底部。
+function VBoxContainer:addSpacer()
+	local Spacer = require "ui.widgets.spacer"
+	return self:addChild(Spacer())
+end
+
 return VBoxContainer
