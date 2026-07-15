@@ -170,11 +170,11 @@ end
 function Scroll:onDraw()
 	-- 临时：跳过 scissor 测试 Dropdown 内容是否被误裁
 	-- TODO: 确认后恢复
-	return
+end
 
 function Scroll:onPostDraw()
 	-- 临时：跳过 scissor 测试
-	return
+end
 
 --- 设置要显示的内容
 ---@param item Widget 要显示的UI
