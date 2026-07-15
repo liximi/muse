@@ -548,16 +548,11 @@ function Widget:handleEvent(event_type, ...)
 
 	-- 射线检测 fallback：如果开了 raycast_target 且鼠标在区域内，就阻断事件
 	-- 有子节点也不影响——子节点和自身 handler 已在前面优先检查过了
+	-- 注意：WheelMoved 不在此列——滚轮应穿透到可滚动的父容器
 	if self.raycast_target then
-		local mouse_event_types = {MousePressed = true, MouseReleased = true, MouseMoved = true, WheelMoved = true}
+		local mouse_event_types = {MousePressed = true, MouseReleased = true, MouseMoved = true}
 		if mouse_event_types[event_type] then
-			-- WheelMoved 的参数是滚轮增量，不是屏幕坐标，需单独获取鼠标位置
-			local mx, my
-			if event_type == "WheelMoved" then
-				mx, my = love.mouse.getPosition()
-			else
-				mx, my = ...
-			end
+			local mx, my = ...
 			if mx and self:regionDetection(mx, my) then
 				return true
 			end
