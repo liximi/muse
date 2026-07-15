@@ -132,6 +132,12 @@ end
 -- 公开 API
 --------------------------------------------------
 
+--- 报告最小尺寸（容器布局需要）
+function Dropdown:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 function Dropdown:_getDisplayText()
 	if #self.options == 0 then
 		return ""
