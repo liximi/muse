@@ -80,10 +80,6 @@ local Widget = Class(function(self, name, datas, theme)
 	self.render_layer = DEFAULT_RENDER_LAYER
 	self.always_draw = false
 	self._clip_rect = nil
-
-	-- Canvas 缓存：启用后静态子树只渲染一次到 GPU 纹理
-	self._canvas_cache = nil       -- love.graphics.Canvas 对象
-	self._canvas_cache_dirty = true -- 是否需要重建 Canvas
 end)
 
 --------------------------------------------------
@@ -159,8 +155,6 @@ function Widget:addChild(child)
 	if self._attached then
 		child:_setAttached(true)
 	end
-	-- 子节点变化使 Canvas 缓存失效
-	self:invalidateCanvasCache()
 	return child
 end
 
@@ -174,8 +168,6 @@ function Widget:removeChild(child)
 			child.parent = nil
 			table.remove(self.children, i)
 			child.transform:setParent()
-			-- 子节点变化使 Canvas 缓存失效
-			self:invalidateCanvasCache()
 			return
 		end
 	end
@@ -284,111 +276,6 @@ function Widget:shouldDraw()
 	return self._valid and self.shown
 end
 
---------------------------------------------------
--- Canvas Cache
--- 启用后，静态子树渲染到 Canvas 一次，后续帧直接贴 Canvas 纹理
---------------------------------------------------
-
---- 启用 Canvas 缓存。子树视觉属性不变时跳过递归绘制。
---- 注意：Canvas 受 LÖVE 的 setScissor 影响，需 always_draw = true 配合使用
-function Widget:enableCanvasCache(enable)
-	self._canvas_cache_enabled = enable == true
-	if not self._canvas_cache_enabled then
-		if self._canvas_cache then
-			self._canvas_cache:release()
-			self._canvas_cache = nil
-		end
-	else
-		self._canvas_cache_dirty = true
-	end
-	return self
-end
-
---- 标记 Canvas 缓存失效（子树有视觉变化时调用）
---- 同时自动通知 UiManager 渲染层缓存失效
-function Widget:invalidateCanvasCache()
-	if self._canvas_cache_enabled then
-		self._canvas_cache_dirty = true
-	end
-	-- 向上传播失效（父节点的 Canvas 包含此子树）
-	if self.parent then
-		self.parent:invalidateCanvasCache()
-	end
-end
-
---- 将整棵子树渲染到 Canvas 纹理（由 draw() 自动调用）
-function Widget:_drawCanvasCache()
-	local gx, gy, gw, gh = self.transform:getGlobalAABB()
-	if gw <= 0 or gh <= 0 then return end
-
-	-- 旋转/缩放下 Canvas 无法正确表达，跳过缓存回退到正常绘制
-	local r = self.transform:getGlobalRotation()
-	if r ~= 0 and r ~= Utils.TWO_PI then
-		self:_drawNormal()
-		return
-	end
-
-	-- 创建或重建 Canvas
-	local cw, ch = math.ceil(gw), math.ceil(gh)
-	if not self._canvas_cache then
-		self._canvas_cache = love.graphics.newCanvas(cw, ch)
-		self._canvas_cache_dirty = true
-	elseif self._canvas_cache:getWidth() ~= cw or self._canvas_cache:getHeight() ~= ch then
-		self._canvas_cache:release()
-		self._canvas_cache = love.graphics.newCanvas(cw, ch)
-		self._canvas_cache_dirty = true
-	end
-
-	-- 脏时重新渲染到 Canvas
-	if self._canvas_cache_dirty then
-		local prev_canvas = love.graphics.getCanvas()
-		love.graphics.push("all")
-		love.graphics.origin()
-		love.graphics.setCanvas(self._canvas_cache)
-		love.graphics.clear()
-		love.graphics.translate(-gx, -gy)
-
-		if self.onDraw then self:onDraw() end
-		for _, child in ipairs(self.children) do
-			if child.render_layer == self.render_layer then
-				local prev_clip = child._clip_rect
-				child._clip_rect = nil
-				child:draw()
-				child._clip_rect = prev_clip
-			end
-		end
-		if self.onPostDraw then self:onPostDraw() end
-
-		love.graphics.setCanvas(prev_canvas)
-		love.graphics.pop()
-		self._canvas_cache_dirty = false
-	end
-
-	-- 绘制缓存的 Canvas 纹理
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.draw(self._canvas_cache, gx, gy)
-end
-
---- 非 Canvas 缓存的正常绘制路径（供 _drawCanvasCache 回退使用）
-function Widget:_drawNormal()
-	if self.onDraw then self:onDraw() end
-	for _, child in ipairs(self.children) do
-		if child.render_layer == self.render_layer then
-			local prev_clip = child._clip_rect
-			child._clip_rect = self._clip_rect or child._clip_rect
-			child:draw()
-			child._clip_rect = prev_clip
-		end
-	end
-	if self.onPostDraw then self:onPostDraw() end
-	if self._debug then
-		if self.onDebugDraw then self:onDebugDraw() end
-		love.graphics.setLineWidth(DEBUG_LINE_WIDTH)
-		self:drawBound()
-		self:drawAABB()
-	end
-end
-
 function Widget:shouldUpdate()
 	return self._valid and self.enabled
 end
@@ -440,16 +327,6 @@ function Widget:draw()
 			return
 		end
 	end
-	-- Canvas 缓存：启用后整棵子树渲染到一张纹理，后续帧只画纹理
-	if self._canvas_cache_enabled then
-		self:_drawCanvasCache()
-		return
-	end
-	self:_drawNormal()
-end
-
---- 非 Canvas 缓存的正常绘制路径
-function Widget:_drawNormal()
 	if self.onDraw then
 		self:onDraw()
 	end
