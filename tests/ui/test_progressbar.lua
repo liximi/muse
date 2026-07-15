@@ -6,9 +6,9 @@ local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local ProgressBar = require "ui.widgets.progressbar"
 local Box = require "ui.widgets.containers.box_container"
-local ORIENT = Utils.ORIENTATION
 local Margin = require "ui.widgets.containers.margin_container"
 local Utils = require "ui.utils"
+local ORIENT = Utils.ORIENTATION
 
 local uc = Utils.UI_COLORS
 local ORIENT = Utils.ORIENTATION
