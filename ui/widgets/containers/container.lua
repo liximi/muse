@@ -100,35 +100,18 @@ function Container:removeChild(child)
 end
 
 --- 在子控件 update 之前排序。Widget:_preChildrenUpdate 的覆写。
---- 确保子控件本帧就能拿到容器分配的尺寸。
---- 同时检测子控件内容变化（通过 getMinimumSize 缓存），自动触发重排。
+--- 每帧无条件重排——与锚点系统一致，避免复杂的缓存检测。
 function Container:_preChildrenUpdate(dt)
-	local cw, ch = self.transform:getSize()
-	-- 容器自身尺寸变了、或子控件内容尺寸变了（某个子控件自适应增高/变宽），都需要重排
-	local min_w, min_h = self:getMinimumSize()
-	if self._dirty
-		or cw ~= self._last_sort_w or ch ~= self._last_sort_h
-		or min_w ~= self._last_min_w or min_h ~= self._last_min_h then
-		print(string.format("[Container] %s RE-SORT | cw=%s->%.0f ch=%s->%.0f min_w=%s->%.0f min_h=%s->%.0f dirty=%s",
-			self._name, tostring(self._last_sort_w), cw, tostring(self._last_sort_h), ch,
-			tostring(self._last_min_w), min_w, tostring(self._last_min_h), min_h,
-			tostring(self._dirty)))
-		self:_sortChildren()
-		self._last_sort_w = cw
-		self._last_sort_h = ch
-		self._last_min_w = min_w
-		self._last_min_h = min_h
-		self._dirty = false
-		-- auto_size：只在主轴方向自动调整尺寸
-		if self.auto_size then
-			-- 复用上面已计算的 min_w/min_h
-			if self._auto_size_axis == "h" then
-				if min_w > 0 then self.transform:setSize(min_w, nil) end
-			elseif self._auto_size_axis == "v" then
-				if min_h > 0 then self.transform:setSize(nil, min_h) end
-			else
-				if min_w > 0 or min_h > 0 then self.transform:setSize(min_w, min_h) end
-			end
+	self:_sortChildren()
+	-- auto_size：只在主轴方向自动调整尺寸
+	if self.auto_size then
+		local min_w, min_h = self:getMinimumSize()
+		if self._auto_size_axis == "h" then
+			if min_w > 0 then self.transform:setSize(min_w, nil) end
+		elseif self._auto_size_axis == "v" then
+			if min_h > 0 then self.transform:setSize(nil, min_h) end
+		else
+			if min_w > 0 or min_h > 0 then self.transform:setSize(min_w, min_h) end
 		end
 	end
 end

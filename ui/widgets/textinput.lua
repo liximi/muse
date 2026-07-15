@@ -264,13 +264,11 @@ end
 --------------------------------------------------
 
 function TextInput:refreshHeight()
-	local _, text_h = self.text:getDimensions()  -- 读 LÖVE Text 对象真实渲染尺寸，非 Transform 缓存
+	local _, text_h = self.text:getDimensions()
 	text_h = math.max(self.min_height, text_h)
 	local w, h = self.transform:getSize()
 	local text_padding = self.text.transform:getPadding()
 	local new_h = text_h + text_padding.top + text_padding.bottom
-	print(string.format("[TextInput.refreshHeight] text_h=%.0f h=%.0f new_h=%.0f changed=%s",
-		text_h, h, new_h, tostring(h ~= new_h)))
 	if h ~= new_h then
 		self.transform:setSize(w, new_h)
 	end
@@ -280,7 +278,6 @@ end
 function TextInput:getMinimumSize()
 	if self.height_adaptive then
 		local w, h = self.transform:getSize()
-		print(string.format("[TextInput.getMinSize] adaptive, transform={%.0f,%.0f}", w, h))
 		return w, h
 	end
 	local font = self.text:getFont()

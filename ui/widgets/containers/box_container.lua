@@ -58,22 +58,16 @@ function BoxContainer:getMinimumSize()
 			along = along + child_along
 			cross = math.max(cross, child_cross)
 			first = false
-			print(string.format("  [Box.getMinSize] child=%s m={%.0f,%.0f} along+=%.0f -> %.0f",
-				tostring(c._name or c), mw, mh, child_along, along))
 		end
 	end
 
 	-- 显式尺寸不低于推导值
 	local cw, ch = self.transform:getSize()
-	local result_w, result_h
 	if self._is_horizontal then
-		result_w, result_h = math.max(along, cw), math.max(cross, ch)
+		return math.max(along, cw), math.max(cross, ch)
 	else
-		result_w, result_h = math.max(cross, cw), math.max(along, ch)
+		return math.max(cross, cw), math.max(along, ch)
 	end
-	print(string.format("[Box.getMinSize] %s along=%.0f cross=%.0f result={%.0f,%.0f}",
-		self._name, along, cross, result_w, result_h))
-	return result_w, result_h
 end
 
 function BoxContainer:_sortChildren()

@@ -49,6 +49,7 @@ function test.create(parent)
 
 	local ti = root:addChild(TextInput({
 		height_adaptive = true,
+		wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
 		bg = Panel(),
 		text_padding = {10, 10, 10, 10},
 		text = "Type here...\nCtrl+Z/Y to undo/redo\nCtrl+C/V to copy/paste\nShift+Arrow to select",
