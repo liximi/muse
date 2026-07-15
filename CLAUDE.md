@@ -231,6 +231,12 @@ return MyClass
 
 ## 变更记录
 
+### 2026-07-15 — 事件返回值 + raycast_target 射线检测
+- **feat** (`c268eb0`): UiManager 事件方法（KeyPressed/MousePressed/...）返回 `true`/`false` 标记是否被 UI 消费
+- **feat** (`e2c1dd8`): Widget 新增 `raycast_target` 属性（Unity 式射线检测开关），可视控件默认 `true`
+  - `handleEvent` 对鼠标事件有 fallback：无显式 handler 但 `raycast_target && regionDetection` 时也返回 `true`
+  - 解决了"Panel 没有 onMousePressed 但视觉上遮住了鼠标"导致外部分发判断不准的问题
+
 ### 2026-07-14 — Transform 重构 + 列表机制
 - **refactor** (`866af28`, `9b54f42`): Transform 统一真相源为 padding，消灭双模式分支
   - 4 个 `_update*` 函数 → 1 个 `_recalcLayout`，点锚点和拉伸锚点共用一个公式
@@ -311,4 +317,5 @@ return MyClass
 - **`Widget:enableDebug()` 之前没有 `return self`**，`Widget({...}):enableDebug(true)` 返回 `nil`。需要链式调用时注意
 - **事件传播是"子节点优先，兄弟间从后往前"**：后 `addChild` 的先收到事件。`handleEvent` 返回 `true` 才拦截，返回 `nil` 会继续传播
 - **`regionDetection` 对 Text 使用 `Widget:getGlobalScaledSize()`（虚方法）**：Text 覆写返回文本实际尺寸，所以鼠标碰撞检测正常。但 Transform 本地的 `getGlobalBounds()` 对 Text 仍然返回 `w=0`，不要在用 debug 框判断 Text 尺寸时被误导
+- **`UiManager` 事件方法返回 `bool`**：外部可据此判断事件是否被 UI 消费（`true`=被处理/遮挡，`false`=穿透到空白）。`MousePressed` 的 `clearFocus` 不计入返回值
 

@@ -37,7 +37,11 @@ Tab 键可循环切换 focusable 的 widget（按住 Shift 反向切换）。
 
 ### 事件分发
 
-UiManager 将 LÖVE 事件分发给 widget 树，从 hierarchy 末尾向前遍历（后添加的先收到事件）：
+UiManager 将 LÖVE 事件分发给 widget 树，从 hierarchy 末尾向前遍历（后添加的先收到事件）。
+
+所有事件方法（`update`/`draw` 除外）均返回 `boolean`：
+- `true` — 事件被 UI 消费（widget 显式处理，或被开启 `raycast_target` 的控件遮挡）
+- `false` — 事件穿透 UI，落在空白区域
 
 | 方法 | 对应 LÖVE 事件 |
 |------|---------------|
@@ -52,6 +56,18 @@ UiManager 将 LÖVE 事件分发给 widget 树，从 hierarchy 末尾向前遍�
 | `WheelMoved(x, y)` | `love.wheelmoved` |
 
 点击 widget 外部区域会自动清除焦点。
+
+**外部系统判断示例**：
+
+```lua
+function love.mousepressed(x, y, button)
+    local ui_handled = UiManager:MousePressed(x, y, button)
+    if not ui_handled then
+        -- 点击落在 UI 之外的空白区域，执行游戏逻辑
+        gameWorld:handleClick(x, y)
+    end
+end
+```
 
 ### 渲染层
 

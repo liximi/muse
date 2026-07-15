@@ -37,7 +37,11 @@ The Tab key cycles through focusable widgets (hold Shift for reverse order).
 
 ### Event Dispatch
 
-UiManager dispatches LÖVE events to the widget tree, traversing the hierarchy from end to beginning (most recently added widgets receive events first):
+UiManager dispatches LÖVE events to the widget tree, traversing the hierarchy from end to beginning (most recently added widgets receive events first).
+
+All event methods (except `update`/`draw`) return a `boolean`:
+- `true` — event was consumed by the UI (explicitly handled by a widget, or blocked by a `raycast_target` control)
+- `false` — event passed through the UI, landing on empty space
 
 | Method | Corresponding LÖVE Event |
 |--------|--------------------------|
@@ -52,6 +56,18 @@ UiManager dispatches LÖVE events to the widget tree, traversing the hierarchy f
 | `WheelMoved(x, y)` | `love.wheelmoved` |
 
 Clicking outside any widget automatically clears focus.
+
+**Usage example for external systems**:
+
+```lua
+function love.mousepressed(x, y, button)
+    local ui_handled = UiManager:MousePressed(x, y, button)
+    if not ui_handled then
+        -- Click landed outside UI — run game logic
+        gameWorld:handleClick(x, y)
+    end
+end
+```
 
 ### Render Layers
 

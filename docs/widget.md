@@ -97,6 +97,23 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 | `handleEvent(event_type, ...)` | 事件分发入口，自动拼接 `"on" .. event_type` 查找 handler |
 | `isOperational()` | 检查 widget 是否可操作（valid + enabled + shown） |
 
+### 射线检测（raycast_target）
+
+`handleEvent` 对鼠标事件（`MousePressed`/`MouseReleased`/`MouseMoved`）有 fallback 阻断机制：
+即使没有显式的 `onMousePressed` 等 handler，只要 `raycast_target == true` 且鼠标在 `regionDetection` 区域内，也会返回 `true` 阻断事件穿透。
+
+各控件默认值：
+
+| 控件 | 默认值 | 说明 |
+|------|--------|------|
+| Panel / Text / Image / NineSlice / ProgressBar | `true` | 有视觉实体 |
+| Button / ImageButton / Checkbox / RadioButton | `true` | 交互控件（继承 ButtonBase） |
+| TextInput / SliderBar / Scroll | `true` | 交互控件 |
+| Modal / TabView / Dropdown / Tooltip | `true` | 容器但有交互/视觉 |
+| Widget（基类） / Box / List / RadioGroup | `false` | 纯布局容器，不阻挡 |
+
+可通过直接赋值在运行时切换：`widget.raycast_target = false`。
+
 ## 事件处理器约定
 
 子类覆写以下方法以响应事件（命名规则：`on` + PascalCase 事件名）：
@@ -150,6 +167,7 @@ Text 覆写了此方法使用 `getGlobalScaledSize()`（文本实际尺寸），
 | `shown` | boolean | 是否可见 |
 | `focus` | boolean | 是否有焦点 |
 | `focusable` | boolean | 是否可通过 Tab 键获取焦点 |
+| `raycast_target` | boolean | 射线检测开关。开启后，即使没有显式事件 handler，鼠标落在区域内也会阻断事件穿透。可视控件默认 `true`，容器默认 `false` |
 | `render_layer` | number | 渲染层级（0=BASE, 50=OVERLAY, 80=DROPDOWN, 100=TOOLTIP） |
 | `always_draw` | boolean | 是否跳过可见性裁剪 |
 | `_name` | string | widget 名称（调试用） |

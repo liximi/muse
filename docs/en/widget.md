@@ -97,6 +97,23 @@ Event propagation: **children first** (reverse-order traversal of children). If 
 | `handleEvent(event_type, ...)` | Event dispatch entry point; auto-concatenates `"on" .. event_type` to look up the handler |
 | `isOperational()` | Check whether the widget is operational (valid + enabled + shown) |
 
+### Raycast Target
+
+For mouse events (`MousePressed`/`MouseReleased`/`MouseMoved`), `handleEvent` has a fallback blocking mechanism:
+even without an explicit handler, if `raycast_target == true` and the cursor is within `regionDetection` bounds, the event returns `true` to block penetration.
+
+Default values per widget type:
+
+| Widget | Default | Reason |
+|--------|---------|--------|
+| Panel / Text / Image / NineSlice / ProgressBar | `true` | Visual entity |
+| Button / ImageButton / Checkbox / RadioButton | `true` | Interactive (inherits ButtonBase) |
+| TextInput / SliderBar / Scroll | `true` | Interactive |
+| Modal / TabView / Dropdown / Tooltip | `true` | Container with interaction/visuals |
+| Widget (base) / Box / List / RadioGroup | `false` | Pure layout container, no blocking |
+
+Toggle at runtime: `widget.raycast_target = false`.
+
 ## Event Handler Conventions
 
 Subclasses override the following methods to respond to events (naming rule: `on` + PascalCase event name):
@@ -150,6 +167,7 @@ Culling uses a 1px tolerance; subtrees are skipped only when they have **zero ov
 | `shown` | boolean | Whether shown |
 | `focus` | boolean | Whether focused |
 | `focusable` | boolean | Whether focusable via Tab key |
+| `raycast_target` | boolean | Raycast toggle. When `true`, mouse events are blocked even without an explicit handler if the cursor falls within the widget's bounds. Visual controls default to `true`, containers to `false` |
 | `render_layer` | number | Render layer (0=BASE, 50=OVERLAY, 80=DROPDOWN, 100=TOOLTIP) |
 | `always_draw` | boolean | Whether to skip visibility culling |
 | `_name` | string | Widget name (for debugging) |
