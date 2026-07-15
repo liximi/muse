@@ -23,7 +23,6 @@ function test.create(parent)
 	-- 背景
 	parent:addChild(Panel({
 		anchor = {0, 0, 1, 1},
-		bg_color = Utils.RGB(35, 38, 42),
 	}))
 
 	-- 根布局
