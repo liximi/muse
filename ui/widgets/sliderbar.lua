@@ -100,6 +100,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 		bg_color = self.theme.sliderbar.track_color,
 		outline_width = 0
 	}))
+	self.bg.raycast_target = false -- track 不阻断射线，让 SliderBar 处理点击
 
 	-- 滑块 block（初始圆角由 _updateBlockRounding 在 enableSizeChangedEvent 后的首帧更新）
 	local block_style = Utils.newButtonStateStyle("", nil, nil, self.theme.sliderbar.block_color, 1,
