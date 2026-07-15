@@ -99,6 +99,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.min_height = datas.min_height or datas.h or DEFAULT_MIN_HEIGHT
 	self.single_line = datas.single_line == true
 	self._scroll_x = 0 -- 单行模式水平滚动偏移（像素）
+	self._scroll_y = 0 -- 多行模式垂直滚动偏移（像素）
 	self.onSubmit = datas.on_submit
 
 	if datas.bg then
@@ -150,12 +151,14 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		v_align = datas.v_align
 	}))
 	self.text.raycast_target = false -- 文字不阻断射线，让输入框处理点击
+	-- 保存原始 padding，滚动时在此基础上叠加偏移，失焦时用此值复位
+	local pad = self.text.transform:getPadding()
+	self._text_pad_left = pad.left
+	self._text_pad_right = pad.right
+	self._text_pad_top = pad.top
+	self._text_pad_bottom = pad.bottom
 	if self.single_line then
 		self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)
-		-- 保存原始 padding，滚动时在此基础上叠加偏移，失焦时用此值复位
-		local pad = self.text.transform:getPadding()
-		self._text_pad_left = pad.left
-		self._text_pad_right = pad.right
 	end
 	if datas.hint then
 		self.hint = self:addChild(Text({
@@ -1134,9 +1137,12 @@ function TextInput:onFocus()
 		self.bg.outline_width = 2
 		self.bg.outline_color = FOCUS_OUTLINE_COLOR
 	end
+	self._scroll_x = 0
+	self._scroll_y = 0
 	if self.single_line then
-		self._scroll_x = 0
 		self:_updateScroll()
+	else
+		self:_applyScroll()
 	end
 end
 
@@ -1147,19 +1153,18 @@ function TextInput:onRemoveFocus()
 		self.bg.outline_width = self._bg_orig_outline_w or 0
 		self.bg.outline_color = self._bg_orig_outline_c
 	end
-	if self.single_line then
-		self._scroll_x = 0
-		self:_applyScroll()
-	end
+	self._scroll_x = 0
+	self._scroll_y = 0
+	self:_applyScroll()
 end
 
 --- 将滚动偏移叠加到 Text 的原始 padding 上
 function TextInput:_applyScroll()
-	if not self.single_line then return end
 	self.text.transform:setPadding(
 		(self._text_pad_left or 0) - self._scroll_x,
 		(self._text_pad_right or 0) + self._scroll_x,
-		nil, nil
+		(self._text_pad_top or 0) - self._scroll_y,
+		(self._text_pad_bottom or 0) + self._scroll_y
 	)
 end
 
@@ -1237,9 +1242,13 @@ function TextInput:onUpdate(dt)
 	if self.height_adaptive then
 		self:refreshHeight()
 	end
-	-- 单行模式：保持光标在可见区域内
-	if self.single_line and self:isFocus() then
-		self:_updateScroll()
+	-- 保持光标在可见区域内
+	if self:isFocus() then
+		if self.single_line then
+			self:_updateScroll()
+		else
+			self:_updateScrollY()
+		end
 	end
 end
 
@@ -1268,7 +1277,73 @@ function TextInput:_updateScroll()
 	self:_applyScroll()
 end
 
---- 裁剪 TextInput 内容区域，防止单行模式下文字溢出边框
+--- 计算所有 section 的总换行数
+function TextInput:_getTotalWrappedLines()
+	local total = 0
+	for i = 1, #self.sections do
+		local wrapped = self:_getSectionWrap(i)
+		total = total + #wrapped
+	end
+	return math.max(1, total)
+end
+
+--- 调整垂直滚动偏移，确保光标位于可见区域内（多行模式）
+function TextInput:_updateScrollY()
+	if self.single_line then return end
+
+	local font = self.text:getFont()
+	local line_h = font:getHeight() * font:getLineHeight()
+	if line_h <= 0 then return end
+
+	local cursor_y = self.cursor._local_pos_cache[2]
+	local total_lines = self:_getTotalWrappedLines()
+	local total_h = total_lines * line_h
+
+	-- 可见高度 = TextInput 高度 - text padding（上下之和）
+	local pad = self.text.transform:getPadding()
+	local visible_h = self.transform.h - pad.top - pad.bottom
+	if visible_h <= 0 then return end
+
+	local max_scroll = math.max(0, total_h - visible_h)
+	local MARGIN = line_h -- 光标距边界至少一行高，防止帧间来回跳
+
+	-- 光标在可见区域上方 → 向上滚
+	if cursor_y < self._scroll_y + MARGIN then
+		self._scroll_y = cursor_y - MARGIN
+	end
+	-- 光标在可见区域下方 → 向下滚
+	if cursor_y + line_h > self._scroll_y + visible_h - MARGIN then
+		self._scroll_y = cursor_y + line_h - visible_h + MARGIN
+	end
+
+	self._scroll_y = math.max(0, math.min(max_scroll, self._scroll_y))
+	self:_applyScroll()
+end
+
+function TextInput:onWheelMoved(x, y, dx, dy)
+	if self.single_line then return end
+	-- 仅当鼠标在输入框范围内时处理滚轮
+	if not self:regionDetection(x, y) then return end
+	if not self:isFocus() then return end
+
+	local font = self.text:getFont()
+	local line_h = font:getHeight() * font:getLineHeight()
+	if line_h <= 0 then return end
+
+	local total_lines = self:_getTotalWrappedLines()
+	local total_h = total_lines * line_h
+	local pad = self.text.transform:getPadding()
+	local visible_h = self.transform.h - pad.top - pad.bottom
+	local max_scroll = math.max(0, total_h - visible_h)
+
+	-- 每格滚轮滚动 3 行
+	self._scroll_y = self._scroll_y - dy * line_h * 3
+	self._scroll_y = math.max(0, math.min(max_scroll, self._scroll_y))
+	self:_applyScroll()
+	return true -- 拦截事件，防止冒泡到外层 Scroll
+end
+
+--- 裁剪 TextInput 内容区域，防止文字溢出边框
 function TextInput:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
 	love.graphics.push()
