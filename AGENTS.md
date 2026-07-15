@@ -1,0 +1,289 @@
+# AGENTS.md
+
+Muse UI 框架的 AI 编程指南。覆盖架构、容器系统、编码规范和常见陷阱。
+
+## 项目概述
+
+**Muse** — 基于 LÖVE (Love2D) 游戏引擎的 UI 框架，使用 **LuaJIT**（Lua 5.1 + 扩展）编写。布局系统已从 Unity UGUI 锚点路线转向 **Godot Container 路线**（2026-07 重构）。
+
+## 运行
+
+```
+love .          # LÖVE 11.5
+```
+浏览器 `127.0.0.1:8000` → Lovebird 远程调试。
+
+---
+
+## 架构
+
+### 类系统
+
+`dependencies/classic.lua` — `Class(BaseClass, function(self, ...) end)`。`main.lua` 全局化 `Class`。
+
+### 核心系统
+
+**UiManager** (`ui/ui_manager.lua`) — 单例。持有 `hierarchy` 根节点列表，分发 LÖVE 事件。事件从末尾向前遍历。渲染层缓存 + 生命周期管理（`onAttached`/`onDetached`）。
+
+**Widget** (`ui/widgets/widget.lua`) — 基类。Transform 实例 + 树形结构 + 生命周期钩子 + 事件传播（子节点先处理，返回 `true` 拦截）。
+
+**Transform** (`ui/transform.lua`) — padding 是唯一真相源。所有 setter 最终写 padding，`_recalcLayout` 派生 x/y/w/h 缓存。
+
+### 布局系统 — Godot Container 路线（2026-07 重构）
+
+#### 设计哲学
+
+- **子控件投降**：进入 Container 的子控件放弃自主定位权，由容器 `_sortChildren()` 统一管理
+- **声明式布局**：容器套容器，每层只管一个维度
+- **SizeFlags**：子控件通过位标志表达布局意图（FILL / EXPAND / SHRINK）
+- **事件驱动重排**：addChild/removeChild → `queueSort()` → 下一帧 `_preChildrenUpdate` 自动重排
+
+#### 容器继承体系
+
+```
+Widget
+  └── Container (新增基类)
+        ├── BoxContainer (orientation="horizontal"/"vertical")
+        ├── MarginContainer
+        ├── CenterContainer
+        └── Spacer (不可见弹性占位)
+```
+
+#### Container 基类 (`ui/widgets/containers/container.lua`)
+
+核心方法：
+- `queueSort()` — 标记脏，下一帧自动重排
+- `_sortChildren()` — 子类覆写，实现具体布局算法
+- `fitChildInRect(child, x, y, w, h)` — 按 child 的 size_flags 决定 Fill/Shrink
+- `_preChildrenUpdate(dt)` — Widget.update 的钩子，在子控件 update 之前排序
+- `getMinimumSize()` — 子类覆写，报告容器最小尺寸
+- `auto_size` — 开启后在主轴方向自动调整尺寸（HBox→宽，VBox→高）
+
+**注意**：Container 覆写了 `_preChildrenUpdate` 而非 `onUpdate`。排序发生在子控件 update 之前，确保子控件同帧拿到容器分配的尺寸。
+
+#### BoxContainer (`ui/widgets/containers/box_container.lua`)
+
+三趟分配算法（对照 Godot `box_container.cpp _resort`）：
+
+```
+第一趟: 收集每个孩子的 min_size / desired_size / EXPAND 标记
+第二趟 A: 按 desired_size 比例分配（"我需要这么多"）
+    - stretch 孩子 → 提高 min，防止被 stretch 缩回去
+    - 非 stretch 孩子 → 从 stretch 池扣除
+第二趟 B: 按 stretch_ratio 比例分配剩余（"我贪婪"）
+    - 装不下的从池中移除 → 重新分配
+    - 浮点误差累积，最后一个 EXPAND 孩子吸收
+第三趟: fitChildInRect 逐个定位 + alignment 偏移
+```
+
+参数：
+- `orientation` — `ORIENT.HORIZONTAL` / `ORIENT.VERTICAL`（默认）
+- `separation` — 间距
+- `alignment` — `ALIGN.BEGIN` / `ALIGN.CENTER` / `ALIGN.END`（无 EXPAND 时生效）
+- `auto_size` — 主轴自动尺寸
+
+方法：`addSpacer()` — 添加弹性占位符（对标 Godot）。
+
+#### SizeFlags（`Utils.SIZE_FLAGS`）
+
+| 标志 | 值 | 含义 |
+|------|-----|------|
+| `SHRINK_BEGIN` | 0 | 保持最小尺寸，靠左/上（默认值 0） |
+| `FILL` | 1 | 填满分到的区域（**默认每个 widget 都有**） |
+| `EXPAND` | 2 | 参与剩余空间瓜分 |
+| `SHRINK_CENTER` | 4 | 分到区域内居中（需关闭 FILL） |
+| `SHRINK_END` | 8 | 分到区域内靠右/下（需关闭 FILL） |
+
+每个 Widget 持有 `h_size_flags`、`v_size_flags`（默认 `FILL`）和 `stretch_ratio`（默认 1.0）。
+
+**位检测**：`Utils.hasFlag(flags, flag)`。
+
+#### 其他容器
+
+- **MarginContainer** — 四边距。最简单的容器：自身尺寸减 margin → fitChildInRect
+- **CenterContainer** — 子控件居中
+- **Spacer** — 不可见 EXPAND+FILL Widget，射线穿透。用法：`hbox:addChild(Spacer())` 推右
+
+#### 最小尺寸系统
+
+每个 Widget 必须能报告最小自然尺寸，容器据此分配空间：
+
+```lua
+Widget:getMinimumSize()           -- 虚方法，返回 (0,0)，子类覆写
+Widget:getCombinedMinimumSize()   -- max(getMinimumSize(), custom_minimum)
+Widget:setCustomMinimumSize(w, h) -- 覆盖最小尺寸
+Widget:getDesiredSize()           -- 期望尺寸，默认等于 min。Text 覆写为完整文本宽度
+```
+
+已覆写 `getMinimumSize` 的控件：Text、Button、Image、ProgressBar、Scroll、BoxContainer。
+
+**重要**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize`，容器会分配 0 高度。需调用 `setCustomMinimumSize(nil, 40)` 或覆写 `getMinimumSize`。
+
+#### Widget 更新生命周期（2026-07 改动）
+
+```lua
+function Widget:update(dt, parent_should_update)
+    self.transform:onUpdate()        -- 1. Transform 脏检测
+    -- SizeChanged 事件检测
+    self:_preChildrenUpdate(dt)      -- 2. ★ 钩子（Container 在此排序）
+    for child in children do         -- 3. 子控件 update
+        child:update(dt, true)
+    end
+    self:onUpdate(dt)                -- 4. 自身 update
+end
+```
+
+Container 只覆写 `_preChildrenUpdate`，不覆写 `update`。这确保了排序发生在子控件拿尺寸之前。
+
+---
+
+### Scroll (`ui/widgets/containers/scroll_container.lua`)
+
+- scissor 裁剪由 `scroll_root.onDraw/onPostDraw` **闭包**管理（不要移到 Scroll.onDraw——会导致 Dropdown 内部 Scroll 内容不可见）
+- **auto_track**：默认开启，onUpdate 自动检测 `item` 尺寸变化 → 更新 `scrollable_h/w` + 滑块
+- **wheel 事件**：`onWheelMoved` 返回 `true` 拦截冒泡（嵌套 Scroll 各自独立滚动）
+- **WheelMoved 坐标**：scroll_root.handleEvent 对 WheelMoved 使用 `love.mouse.getPosition()` 而非事件参数
+- `getMinimumSize()` 返回自身 transform 尺寸
+
+### 枚举常量（`ui/utils.lua`）
+
+| 常量表 | 值 | 用途 |
+|--------|-----|------|
+| `ORIENTATION` | `VERTICAL`, `HORIZONTAL` | BoxContainer, SliderBar, ProgressBar |
+| `SIZE_FLAGS` | `SHRINK_BEGIN=0, FILL=1, EXPAND=2, SHRINK_CENTER=4, SHRINK_END=8` | 容器子控件布局意图 |
+| `ALIGNMENT` | `BEGIN, CENTER, END` | BoxContainer alignment |
+| `H_ALIGN` | `LEFT, CENTER, RIGHT, JUSTIFY` | Text, TextInput |
+| `V_ALIGN` | `TOP, CENTER, BOTTOM` | Text, TextInput |
+| `CROSS_ALIGN` | `STRETCH, START, CENTER, END` | 旧 Box（逐步废弃） |
+| `CHECKBOX_STYLE` | `CHECKBOX, TOGGLE` | Checkbox |
+| `BTN_STATES` | `NORMAL, PRESSED, DISABLED, SELECTED, HOVER, SELECTED_HOVER` | ButtonBase |
+| `TEXT_WRAP_MODE` | `OFF, DEFAULT` | Text, TextInput |
+
+工具函数：`Utils.validateEnum(value, enum, default, label)` — nil 时静默返回默认值，非法值打印警告。`Utils.hasFlag(flags, flag)` — 位检测。
+
+### Widget 继承体系
+
+```
+Widget
+├── Panel
+├── Text
+├── Image
+├── NineSlice
+├── ProgressBar
+├── Modal
+├── TabView
+├── RadioGroup
+├── ButtonBase
+│   ├── Button
+│   ├── ImageButton
+│   └── Checkbox → RadioButton
+├── TextInput
+├── Scroll
+├── SliderBar
+├── Dropdown
+├── Spacer (新)
+└── Container (新)
+    ├── BoxContainer (新，合并旧 HBox/VBox)
+    ├── MarginContainer (新)
+    └── CenterContainer (新)
+```
+
+旧 `Box`（flex-grow/shrink）和 `List`（updateItems diff）仍保留但逐步废弃。`chat_history.lua` 仍用 `List`。
+
+### Button 文字与样式分离（2026-07 重构）
+
+- **`text` 不再是样式的一部分**。`getStateStyle` 合并时跳过 `text` 字段
+- `applyButtonTextStyle` 不再调用 `setText`。状态切换只改颜色/字号
+- `setStateStyle(state, style)` 中若 `style.text` 存在，自动调用 `setText(style.text)`（兼容旧用法）
+- 按钮文字通过 `Button({ text = "..." })` 或 `button:setText("...")` 管理
+- Dropdown 触发按钮文字更新依赖 `setStateStyle` 的自动 `setText` 行为
+
+---
+
+## 编码规范
+
+### 缩进：Tab
+
+### 命名
+
+| 对象 | 风格 | 示例 |
+|------|------|------|
+| 局部变量、函数参数 | `snake_case` | `ui_root`, `font_key` |
+| 类内部字段 | `snake_case` | `self.bg_color` |
+| 类方法 | `camelCase` | `addWidget`, `getGlobalPosition` |
+| 类名 | `PascalCase` | `Widget`, `BoxContainer` |
+| 常量、枚举 | `UPPER_CASE` | `SIZE_FLAGS`, `DEFAULT_BAR_HEIGHT` |
+| Lua 文件名 | `snake_case` | `box_container.lua` |
+| 私有成员/函数 | `_` 前缀 | `self._dirty`, `_recalcLayout` |
+| 元属性 | `__` 前缀 | `self.__text`, `__oldw` |
+
+闭包内内外 `self` 冲突时，内层参数命名为 `_self`。
+
+### 模块结构
+
+```lua
+-- 1. require
+-- 2. 私有函数/伪常量
+-- 3. 类定义
+-- 4. 公有方法（按功能分隔）
+-- 5. 事件处理器（onXxx）
+-- 6. return
+```
+
+### datas 文档块
+
+每个 widget 文件头部 `--[[datas: ...]]` 描述构造参数。
+
+---
+
+## 常见陷阱
+
+### Container / 布局
+
+- **普通 Widget 在容器里需要 `setCustomMinimumSize`**：设了 `h=40` 但不覆写 `getMinimumSize` → 容器给 0 高度
+- **auto_size 只改主轴**：VBox 只自动高度，HBox 只自动宽度。交叉轴由 parent 或 anchor 决定
+- **`_preChildrenUpdate` 而非 `onUpdate`**：排序必须在子控件 update 之前
+- **Scroll 内 VBox 需要 `anchor = {0,0,1,0}`**：填充 scroll_root 的宽度
+
+### Scroll
+
+- **scissor 在 scroll_root 闭包，不在 Scroll.onDraw**
+- **wheel 返回 true**，防止冒泡到外层 Scroll
+- **raycast_target fallback 不含 WheelMoved**：滚轮穿透到可滚动父容器
+
+### Transform
+
+- `setSize` 对拉伸锚点不保持 x 不变
+- 构造期 `parent_w == 0`，依赖 measure 的布局放首帧 onUpdate
+- Text 的 `transform.w/h` 为 0，`getCullAABB` 覆写返回实际文本尺寸
+
+### 事件
+
+- 子节点优先，`return true` 拦截
+- `raycast_target` 只拦截 MousePressed/Released/Moved，**不拦截 WheelMoved**
+
+### 跨平台
+
+- **禁止 `>nul`**：用 `>/dev/null`
+
+---
+
+## 测试
+
+`tests/ui/` 下每个文件返回 `{name = "名称", create = function(parent)}`。`tests/gallery.lua` 注册。
+
+当前主要测试场景：
+- **Godot Containers** — 9 节演示所有容器特性（Fill/Expand/alignment/auto_size/Spacer/Scroll）
+- **Game Settings** — 真实复杂 UI（TabView + BoxContainer + Scroll auto_track）
+- **ProgressBar** — 容器重写版，静态/交互式水平垂直
+
+---
+
+## 依赖
+
+| 库 | 路径 | 用途 |
+|----|------|------|
+| classic | `dependencies/classic.lua` | OOP |
+| tween | `dependencies/tween.lua` | 动画（Scroll） |
+| Lovebird | `dependencies/lovebird/` | 远程调试 :8000 |
+| i18n | `dependencies/i18n/` | 本地化（zh-cn） |
