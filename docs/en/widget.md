@@ -99,10 +99,11 @@ Event propagation: **children first** (reverse-order traversal of children). If 
 
 ### Raycast Target
 
-For mouse events, `handleEvent` has a fallback blocking mechanism that **only applies to leaf nodes (`#children == 0`)**:
-even without an explicit handler, if `raycast_target == true` and the cursor is within `regionDetection` bounds, the event returns `true` to block penetration.
+`handleEvent` has a fallback blocking mechanism for mouse events, **only active for leaf nodes (`#children == 0`) whose ancestor chain has no explicit handler**:
 
-Container widgets with children do NOT block via raycast — they rely on child widgets or explicit handlers to consume events.
+1. Leaf node + no ancestor handler → fallback blocks (prevents visual-only widgets from being transparent)
+2. Leaf node + ancestor has handler → passes through (prevents a Button's child Text from stealing the event)
+3. Container with children → does not block via fallback (relies on children or explicit handlers)
 
 Default values per widget type:
 
