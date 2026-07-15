@@ -88,7 +88,7 @@ function test.create(parent)
 	--------------------------------------------------
 	-- TabView
 	--------------------------------------------------
-	root:addChild(TabView({
+	local tv = root:addChild(TabView({
 		tabs = {
 			{label = "Info", content = tab1},
 			{label = "Controls", content = tab2},
@@ -98,6 +98,7 @@ function test.create(parent)
 			print("[TabView] Switched to:", idx)
 		end,
 	}))
+	tv.v_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
 end
 
 return test

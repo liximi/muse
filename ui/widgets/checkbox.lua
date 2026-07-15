@@ -63,6 +63,12 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 	end
 end)
 
+--- 报告最小尺寸（容器布局需要）
+function Checkbox:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 --- 是否处于选中状态（逻辑状态，不依赖视觉 cur_state）
 function Checkbox:isChecked()
 	return self._checked

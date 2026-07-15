@@ -20,6 +20,12 @@ local RadioGroup = Class(Widget, function(self, datas, theme)
 	end
 end)
 
+--- 报告最小尺寸（容器布局需要）
+function RadioGroup:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 --- 设置选项列表
 ---@param items table 各选项的 datas 表数组
 ---@param selected_index number|nil 初始选中索引

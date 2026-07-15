@@ -46,6 +46,12 @@ local TabView = Class(Widget, function(self, datas, theme)
 	end
 end)
 
+--- 报告最小尺寸（容器布局需要）
+function TabView:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 --- 设置标签页列表
 ---@param tab_list table {{label = string, content = Widget}, ...}
 ---@param selected_index number|nil
