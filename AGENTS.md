@@ -56,8 +56,13 @@ Widget
 - `_sortChildren()` — 子类覆写，实现具体布局算法
 - `fitChildInRect(child, x, y, w, h)` — 按 child 的 size_flags 决定 Fill/Shrink
 - `_preChildrenUpdate(dt)` — Widget.update 的钩子，在子控件 update 之前排序
-- `getMinimumSize()` — 子类覆写，报告容器最小尺寸
+- `getMinimumSize()` — 子类覆写，报告容器最小尺寸（BoxContainer 含 `math.max(children, container_size)` 保底）
+- `_getChildrenMinSize()` — 纯子控件推导的最小尺寸（不经容器尺寸 cap），**供变化检测用**
 - `auto_size` — 开启后在主轴方向自动调整尺寸（HBox→宽，VBox→高）
+
+**变化检测**：`_preChildrenUpdate` 用 `_getChildrenMinSize()` 而非 `getMinimumSize()` 判断是否需要重排。
+原因：BoxContainer 的 `getMinimumSize()` 返回 `math.max(children_sum, container_size)`，当容器被 anchor 撑大时，
+子控件高度增长会被容器自身尺寸"盖住"，导致变化检测失败。`_getChildrenMinSize()` 返回纯子控件值，不受此影响。
 
 **注意**：Container 覆写了 `_preChildrenUpdate` 而非 `onUpdate`。排序发生在子控件 update 之前，确保子控件同帧拿到容器分配的尺寸。
 
@@ -144,6 +149,16 @@ Container 只覆写 `_preChildrenUpdate`，不覆写 `update`。这确保了排�
 - **wheel 事件**：`onWheelMoved` 返回 `true` 拦截冒泡（嵌套 Scroll 各自独立滚动）
 - **WheelMoved 坐标**：scroll_root.handleEvent 对 WheelMoved 使用 `love.mouse.getPosition()` 而非事件参数
 - `getMinimumSize()` 返回自身 transform 尺寸
+
+### TextInput (`ui/widgets/textinput.lua`)
+
+- **多行模式**（默认）：固定高度 + 内部垂直滚动。`singe_line = true` 切到单行+水平滚动
+- **`height_adaptive`**（opt-in，默认 false）：随文本内容自动撑高。注意此模式下 FILL 会与自适应冲突
+- **滚动原理**：通过调整内部 `Text` 子控件的 `padding.top/bottom` 偏移文本内容，配合 `onDraw` 的 scissor 裁剪实现
+- **光标跟随**：`_updateScrollY` 每帧检测光标是否超出可见区域，自动调整 `_scroll_y`
+- **鼠标滚轮**：`onWheelMoved`，每次 3 行，仅当鼠标在区域内且有焦点；返回 `true` 防冒泡
+- **原生滚动条**：`_drawScrollbar` 在 `onPostDraw` 绘制 6px 宽滚动条（轨道+比例滑块），仅在内容溢出时显示；支持拖拽滑块和点击轨道跳转
+- **`getMinimumSize()`**：`height_adaptive` 时返回当前 transform 尺寸；否则返回 `min_height` + padding
 
 ### 枚举常量（`ui/utils.lua`）
 
@@ -244,6 +259,8 @@ Widget
 - **auto_size 只改主轴**：VBox 只自动高度，HBox 只自动宽度。交叉轴由 parent 或 anchor 决定
 - **`_preChildrenUpdate` 而非 `onUpdate`**：排序必须在子控件 update 之前
 - **Scroll 内 VBox 需要 `anchor = {0,0,1,0}`**：填充 scroll_root 的宽度
+- **BoxContainer.getMinimumSize() 含 `math.max(children, container_size)`**：被 anchor 撑大时子控件变化可能被掩盖；做变化检测用 `_getChildrenMinSize()`
+- **子控件尺寸变化不会自动通知父容器**：依赖 `_preChildrenUpdate` 每帧 poll `_getChildrenMinSize()` 来检测
 
 ### Scroll
 
