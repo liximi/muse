@@ -28,7 +28,7 @@ function test.create(parent)
 		margin_top = 16, margin_bottom = 16,
 	}))
 
-	local root = margin:addChild(Box({ separation = 12 }))
+	local root = margin:addChild(Box({ separation = 16 }))
 
 	--------------------------------------------------
 	-- 标题
