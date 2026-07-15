@@ -278,12 +278,16 @@ end
 function TextInput:getMinimumSize()
 	if self.height_adaptive then
 		local w, h = self.transform:getSize()
+		print(string.format("[TextInput.minSize] ADAPTIVE transform={%.0f,%.0f}", w, h))
 		return w, h
 	end
 	local font = self.text:getFont()
 	local line_h = font:getHeight() * font:getLineHeight()
 	local pad = self.text.transform:getPadding()
-	return 0, math.max(self.min_height, line_h) + pad.top + pad.bottom
+	local mw, mh = 0, math.max(self.min_height, line_h) + pad.top + pad.bottom
+	print(string.format("[TextInput.minSize] FIXED transform={%.0f,%.0f} min={%.0f,%.0f}",
+		self.transform.w, self.transform.h, mw, mh))
+	return mw, mh
 end
 
 --- 查询 TextInput 的自然尺寸：委托内部 Text 的 measure，加上 padding 和 min_height
@@ -295,10 +299,14 @@ function TextInput:measure(max_w, max_h)
 	local tw, th = self.text:getScaledSize()
 	th = math.max(self.min_height, th) -- min_height 作用于文本高度，然后加 padding
 	local pad = self.text.transform:getPadding()
-	return {
+	local result = {
 		w = tw + pad.left + pad.right,
 		h = th + pad.top + pad.bottom,
 	}
+	print(string.format("[TextInput.measure] max={%s,%s} transform={%.0f,%.0f} result={%.0f,%.0f}",
+		tostring(max_w), tostring(max_h), self.transform.w, self.transform.h,
+		result.w, result.h))
+	return result
 end
 
 --------------------------------------------------
