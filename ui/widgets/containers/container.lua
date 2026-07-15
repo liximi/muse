@@ -109,7 +109,7 @@ function Container:_preChildrenUpdate(dt)
 	if self._dirty
 		or cw ~= self._last_sort_w or ch ~= self._last_sort_h
 		or min_w ~= self._last_min_w or min_h ~= self._last_min_h then
-		print(string.format("[Container] %s RE-SORT | cw=%.0f->%.0f ch=%.0f->%.0f min_w=%.0f->%.0f min_h=%.0f->%.0f dirty=%s",
+		print(string.format("[Container] %s RE-SORT | cw=%s->%.0f ch=%s->%.0f min_w=%s->%.0f min_h=%s->%.0f dirty=%s",
 			self._name, tostring(self._last_sort_w), cw, tostring(self._last_sort_h), ch,
 			tostring(self._last_min_w), min_w, tostring(self._last_min_h), min_h,
 			tostring(self._dirty)))
