@@ -177,6 +177,12 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self:onSizeChanged(self.transform.w, self.transform.h)
 end)
 
+--- 最小尺寸 = 自身显式尺寸（如果构造时设了 w/h）
+function Scroll:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 --- 设置要显示的内容
 ---@param item Widget 要显示的UI
 function Scroll:setItem(item)
