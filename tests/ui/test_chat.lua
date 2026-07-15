@@ -37,7 +37,7 @@ function test.create(parent)
 		Utils.UI_COLORS.TITLE, {8, 8, 6, 6}, "right"
 	))
 	chat:setChatBubbleStyle("agent", chat:createChatBubbleStyle(
-		Utils.RGB(55, 55, 65), 4, nil, nil, nil,
+		Utils.UI_COLORS.SURFACE, 4, nil, nil, nil,
 		Utils.UI_COLORS.PRIMARY_TEXT, {8, 8, 6, 6}, "left"
 	))
 	chat:setChatHistory({

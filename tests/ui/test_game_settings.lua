@@ -612,9 +612,9 @@ function test.create(parent)
 	-- 底部操作栏
 	--------------------------------------------------
 	local bottom_bar = parent:addChild(Panel({
-		bg_color = {0.08, 0.08, 0.10, 0.95},
+		bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.95},
 		outline_width = 1,
-		outline_color = Utils.RGB(50, 50, 55),
+		outline_color = uc.LINE,
 		rounding_radius = 0,
 		anchor = {0, 1, 1, 1},
 		padding = {0, 0, -BOTTOM_BAR_H, 0},
@@ -640,7 +640,7 @@ function test.create(parent)
 	-- 取消按钮（靠右，pivot={1,0} + 负 left 偏移）
 	bottom_bar:addChild(Button({
 		normal = Utils.newButtonStateStyle("取消", uc.PRIMARY_TEXT, 12,
-			uc.BTN_NORMAL, 1, Utils.RGB(70, 70, 75), nil, nil, 4),
+			uc.BTN_NORMAL, 1, uc.LINE, nil, nil, 4),
 		hover = Utils.newButtonStateStyle(nil, nil, nil,
 			uc.BTN_HOVER, 1, uc.LINE, nil, nil, 4),
 		pressed = Utils.newButtonStateStyle(nil, nil, nil, nil, nil, nil, {0, 1}),
