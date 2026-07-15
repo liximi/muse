@@ -104,6 +104,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		self.bg = self:addChild(datas.bg)
 		self.bg.transform:setAnchor(0, 0, 1, 1)
 		self.bg.transform:setPadding(0, 0, 0, 0)
+		self.bg.raycast_target = false -- bg 不阻断射线，让 TextInput 处理点击
 		-- 保存原始边框样式，用于焦点切换时恢复
 		self._bg_orig_outline_w = self.bg.outline_width
 		self._bg_orig_outline_c = self.bg.outline_color
