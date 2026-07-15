@@ -13,7 +13,8 @@ local Dropdown = require "ui.widgets.dropdown"
 local SliderBar = require "ui.widgets.sliderbar"
 local TabView = require "ui.widgets.tabview"
 local Scroll = require "ui.widgets.containers.scroll_container"
-local List = require "ui.widgets.containers.list_container"
+local Box = require "ui.widgets.containers.box_container"
+local ORIENT = Utils.ORIENTATION
 local Utils = require "ui.utils"
 
 local uc = Utils.UI_COLORS
@@ -360,14 +361,14 @@ function test.create(parent)
 	table.insert(gfx_items, row)
 	setting_widgets.texture_quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
-	local gfx_list = List({
-		orientation = Utils.ORIENTATION.VERTICAL,
+	local gfx_list = Box({ auto_size = true,
+		
 		anchor = {0, 0, 1, 0},
-		space = ROW_GAP,
-		items = gfx_items,
+		separation = ROW_GAP,
+		-- items populated below
 	})
+	for _, item in ipairs(gfx_items) do gfx_list:addChild(item) end
 	scroll_gfx:setItem(gfx_list)
-	scroll_gfx:setScrollableH(gfx_list.transform.h)
 
 	--------------------------------------------------
 	-- 音频 Tab
@@ -418,14 +419,14 @@ function test.create(parent)
 	table.insert(aud_items, row)
 	setting_widgets.mute_in_bg = { widget = cb, type = "toggle", default = false }
 
-	local aud_list = List({
-		orientation = Utils.ORIENTATION.VERTICAL,
+	local aud_list = Box({ auto_size = true,
+		
 		anchor = {0, 0, 1, 0},
-		space = ROW_GAP,
-		items = aud_items,
+		separation = ROW_GAP,
+		-- items populated below
 	})
+	for _, item in ipairs(aud_items) do aud_list:addChild(item) end
 	scroll_aud:setItem(aud_list)
-	scroll_aud:setScrollableH(aud_list.transform.h)
 
 	--------------------------------------------------
 	-- 游戏 Tab
@@ -486,14 +487,14 @@ function test.create(parent)
 	table.insert(gp_items, row)
 	setting_widgets.crosshair = { widget = cb, type = "toggle", default = true }
 
-	local gp_list = List({
-		orientation = Utils.ORIENTATION.VERTICAL,
+	local gp_list = Box({ auto_size = true,
+		
 		anchor = {0, 0, 1, 0},
-		space = ROW_GAP,
-		items = gp_items,
+		separation = ROW_GAP,
+		-- items populated below
 	})
+	for _, item in ipairs(gp_items) do gp_list:addChild(item) end
 	scroll_gp:setItem(gp_list)
-	scroll_gp:setScrollableH(gp_list.transform.h)
 
 	--------------------------------------------------
 	-- 辅助功能 Tab
@@ -542,14 +543,14 @@ function test.create(parent)
 	table.insert(acc_items, row)
 	setting_widgets.ui_scale = { widget = slider, type = "slider", default = 100 }
 
-	local acc_list = List({
-		orientation = Utils.ORIENTATION.VERTICAL,
+	local acc_list = Box({ auto_size = true,
+		
 		anchor = {0, 0, 1, 0},
-		space = ROW_GAP,
-		items = acc_items,
+		separation = ROW_GAP,
+		-- items populated below
 	})
+	for _, item in ipairs(acc_items) do acc_list:addChild(item) end
 	scroll_acc:setItem(acc_list)
-	scroll_acc:setScrollableH(acc_list.transform.h)
 
 	--------------------------------------------------
 	-- TabView
