@@ -7,12 +7,13 @@ local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
 local Box = require "ui.widgets.containers.box_container"
-local ORIENT = Utils.ORIENTATION
-local ALIGN = Utils.ALIGNMENT
 local Margin = require "ui.widgets.containers.margin_container"
 local Center = require "ui.widgets.containers.center_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local Spacer = require "ui.widgets.spacer"
+local Utils = require "ui.utils"
+local ORIENT = Utils.ORIENTATION
+local ALIGN = Utils.ALIGNMENT
 local Utils = require "ui.utils"
 
 local SZ = Utils.SIZE_FLAGS
