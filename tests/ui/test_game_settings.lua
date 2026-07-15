@@ -45,6 +45,7 @@ local function makeSectionRow(title_text)
 		anchor = {0, 0, 1, 0},
 		h = SECTION_H,
 	})
+	row:setCustomMinimumSize(nil, SECTION_H)
 	row:addChild(Text({
 		text = title_text,
 		font_size = 11,
@@ -63,6 +64,7 @@ local function makeDropdownRow(label_text, options, selected, on_select)
 		anchor = {0, 0, 1, 0},
 		h = ROW_H,
 	})
+	row:setCustomMinimumSize(nil, ROW_H)
 	row:addChild(Text({
 		text = label_text,
 		font_size = 13,
@@ -93,6 +95,7 @@ local function makeSliderRow(label_text, max_limit, value, format_fn, on_release
 		anchor = {0, 0, 1, 0},
 		h = ROW_H,
 	})
+	row:setCustomMinimumSize(nil, ROW_H)
 	row:addChild(Text({
 		text = label_text,
 		font_size = 13,
@@ -153,6 +156,7 @@ local function makeToggleRow(label_text, checked, on_checked)
 		anchor = {0, 0, 1, 0},
 		h = ROW_H,
 	})
+	row:setCustomMinimumSize(nil, ROW_H)
 	row:addChild(Text({
 		text = label_text,
 		font_size = 13,
