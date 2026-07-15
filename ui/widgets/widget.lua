@@ -430,8 +430,9 @@ function Widget:handleEvent(event_type, ...)
 		return handler(self, ...)
 	end
 
-	-- 射线检测 fallback：即使没有显式 handler，如果开了 raycast_target 且鼠标在区域内，也阻断事件
-	if self.raycast_target then
+	-- 射线检测 fallback：仅叶子节点（无子节点）生效，防止容器阻断兄弟节点的传播
+	-- 即使没有显式 handler，如果开了 raycast_target 且鼠标在区域内，也阻断事件
+	if self.raycast_target and #self.children == 0 then
 		local mouse_event_types = {MousePressed = true, MouseReleased = true, MouseMoved = true, WheelMoved = true}
 		if mouse_event_types[event_type] then
 			-- WheelMoved 的参数是滚轮增量，不是屏幕坐标，需单独获取鼠标位置

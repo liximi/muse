@@ -99,8 +99,10 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 
 ### 射线检测（raycast_target）
 
-`handleEvent` 对鼠标事件（`MousePressed`/`MouseReleased`/`MouseMoved`/`WheelMoved`）有 fallback 阻断机制：
-即使没有显式的 `onMousePressed` 等 handler，只要 `raycast_target == true` 且鼠标在 `regionDetection` 区域内，也会返回 `true` 阻断事件穿透。
+`handleEvent` 对鼠标事件有 fallback 阻断机制，**仅对叶子节点（`#children == 0`）生效**：
+即使没有显式的 handler，只要 `raycast_target == true` 且鼠标在 `regionDetection` 区域内，也会返回 `true` 阻断事件穿透。
+
+有子节点的容器 widget 不会通过 raycast 阻断——它们依赖子节点或显式 handler 处理事件。
 
 各控件默认值：
 
