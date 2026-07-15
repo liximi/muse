@@ -70,6 +70,11 @@ local Scroll = Class(Widget, function(self, datas, theme)
 	self._h_bar_min_w = (datas and datas.h_bar_min_w) or 0
 	self._block_min_len = (datas and datas.block_min_len) or 0
 
+	-- 自动追踪内容尺寸。设为 false 可退回到手动 setScrollableW/H
+	self._auto_track = (datas and datas.auto_track) ~= false
+	self._last_content_w = -1
+	self._last_content_h = -1
+
 		local h_bar_h = datas and datas.h_slider_bar_height or DEFAULT_BAR_HEIGHT
 		local v_bar_w = datas and datas.v_slider_bar_width or DEFAULT_BAR_WIDTH
 		self._h_bar_h = h_bar_h
@@ -178,6 +183,9 @@ function Scroll:setItem(item)
 	self.scroll_root:removeAllChildren()
 	if item then
 		self.item = self.scroll_root:addChild(item)
+		-- 重置内容尺寸跟踪，下一帧 onUpdate 自动捕获新尺寸
+		self._last_content_w = -1
+		self._last_content_h = -1
 	end
 end
 
@@ -371,6 +379,24 @@ function Scroll:onUpdate(dt)
 		if finish then
 			self.tweeny = nil
 		end
+	end
+
+	-- 自动追踪内容尺寸（参考评估报告 #6）：内容大小变了自动更新可滚动范围
+	if self._auto_track and self.item then
+		local cw, ch = self.item.transform:getSize()
+		if self.enable_scroll_h and cw > 0 and cw ~= self._last_content_w then
+			self:setScrollableW(cw)
+			self._last_content_w = cw
+		end
+		if self.enable_scroll_v and ch > 0 and ch ~= self._last_content_h then
+			self:setScrollableH(ch)
+			self._last_content_h = ch
+		end
+		-- 内容缩小后，修正越界的 offset
+		local max_x = math.max(self.scrollable_w - self.transform.w, 0)
+		local max_y = math.max(self.scrollable_h - self.transform.h, 0)
+		if self.offset_x > max_x then self:setXOffset(max_x, false) end
+		if self.offset_y > max_y then self:setYOffset(max_y, false) end
 	end
 end
 

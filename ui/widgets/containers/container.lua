@@ -111,11 +111,16 @@ function Container:onUpdate(dt)
 		self._last_sort_w = cw
 		self._last_sort_h = ch
 		self._dirty = false
-		-- 自动尺寸：用子控件总尺寸覆盖自身尺寸
+		-- 自动尺寸：用子控件总尺寸覆盖自身尺寸（仅主轴方向）
+		-- HBox 只自动宽度，VBox 只自动高度，通用容器两个轴都自动
 		if self.auto_size then
 			local mw, mh = self:getMinimumSize()
-			if mw > 0 or mh > 0 then
-				self.transform:setSize(mw, mh)
+			if self._auto_size_axis == "h" then
+				if mw > 0 then self.transform:setSize(mw, nil) end
+			elseif self._auto_size_axis == "v" then
+				if mh > 0 then self.transform:setSize(nil, mh) end
+			else
+				if mw > 0 or mh > 0 then self.transform:setSize(mw, mh) end
 			end
 		end
 	end

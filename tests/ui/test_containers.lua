@@ -164,6 +164,27 @@ function test.create(parent)
 		vbox:addChild(dbg(Button({ normal = BTN, text = "第二行" })))
 		vbox:addChild(dbg(Button({ normal = BTN, text = "第三行 —— VBox 高度自动收缩" })))
 	end
+
+	--------------------------------------------------
+	-- 7. 带滚动条的列表（Scroll + VBox auto_size + auto_track）
+	--------------------------------------------------
+	root_vbox:addChild(dbg(Text({
+		text = "7. Scroll + VBox auto_size（内容高度自动追踪，不需要手动 setScrollableH）",
+		font_size = 14, text_color = uc.PRIMARY_TEXT,
+	})))
+
+	do
+		local Scroll = require "ui.widgets.containers.scroll_container"
+		local scroll = root_vbox:addChild(Scroll({ h = 120 }))
+		scroll:enableDebug(true)
+
+		local list = VBox({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
+		scroll:setItem(list)
+		-- 生成 10 个按钮，超出 120px 即触发滚动
+		for i = 1, 10 do
+			list:addChild(dbg(Button({ normal = BTN, text = "滚动项 #" .. i })))
+		end
+	end
 end
 
 return test

@@ -26,6 +26,7 @@ end
 local VBoxContainer = Class(Container, function(self, datas, theme)
 	Container.new(self, "VBoxContainer", datas, theme)
 
+	self._auto_size_axis = "v"  -- auto_size 时只自动高度
 	self.separation = (datas and datas.separation) or 0
 	self.alignment = (datas and datas.alignment) or "begin"
 end)
