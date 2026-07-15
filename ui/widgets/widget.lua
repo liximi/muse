@@ -402,9 +402,14 @@ function Widget:update(dt, parent_should_update)
 			self.__oldh = self.transform.h
 		end
 	end
-	if not self:shouldUpdate() or not parent_should_update then
+	-- 父节点指示不更新 → 跳过整棵子树（祖先已隐藏/禁用）
+	if not parent_should_update then
+		return
+	end
+	if not self:shouldUpdate() then
+		-- 自身禁用但子节点可能活跃，继续传播
 		for _, child in ipairs(self.children) do
-			child:update(dt, false)
+			child:update(dt, true)
 		end
 		return
 	end
