@@ -26,6 +26,8 @@ end
 local Container = Class(Widget, function(self, name, datas, theme)
 	Widget.new(self, name, datas, theme)
 	self._dirty = true
+	-- 开启后每次 _sortChildren 之后自动根据子控件最小尺寸调整自身尺寸
+	self.auto_size = (datas and datas.auto_size) or false
 end)
 
 --- 标记需要重排。下一帧 onUpdate 时自动调用 _sortChildren。
@@ -109,6 +111,13 @@ function Container:onUpdate(dt)
 		self._last_sort_w = cw
 		self._last_sort_h = ch
 		self._dirty = false
+		-- 自动尺寸：用子控件总尺寸覆盖自身尺寸
+		if self.auto_size then
+			local mw, mh = self:getMinimumSize()
+			if mw > 0 or mh > 0 then
+				self.transform:setSize(mw, mh)
+			end
+		end
 	end
 end
 

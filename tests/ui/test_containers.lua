@@ -148,6 +148,22 @@ function test.create(parent)
 		local b3 = hbox:addChild(dbg(Button({ normal = BTN, text = "!" })))
 		b3.h_size_flags = 0
 	end
+
+	--------------------------------------------------
+	-- 6. auto_size — 容器自动根据子控件调整自身尺寸
+	--------------------------------------------------
+	root_vbox:addChild(dbg(Text({
+		text = "6. VBox auto_size=true — 高度自动跟随子控件（粉色框 = 容器边界）",
+		font_size = 14, text_color = uc.PRIMARY_TEXT,
+	})))
+
+	do
+		local vbox = root_vbox:addChild(VBox({ auto_size = true, separation = 4 }))
+		vbox:enableDebug(true)
+		vbox:addChild(dbg(Button({ normal = BTN, text = "第一行" })))
+		vbox:addChild(dbg(Button({ normal = BTN, text = "第二行" })))
+		vbox:addChild(dbg(Button({ normal = BTN, text = "第三行 —— VBox 高度自动收缩" })))
+	end
 end
 
 return test
