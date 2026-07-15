@@ -37,7 +37,9 @@ local Button = Class(ButtonBase, function(self, datas, theme)
 		padding = {BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING, BUTTON_TEXT_PADDING},
 		h_align = "center",
 		v_align = "center",
-		text = self.state_styles.normal and self.state_styles.normal.text or "Button",
+		text = datas.text
+			or (self.state_styles.normal and self.state_styles.normal.text)
+			or "Button",
 		text_color = self.state_styles.normal and self.state_styles.normal.text_color or
 			(self.theme.button and self.theme.button.normal.text_color),
 		font_key = datas.font_key,
