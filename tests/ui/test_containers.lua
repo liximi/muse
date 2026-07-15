@@ -22,7 +22,13 @@ test.name = "Godot Containers"
 function test.create(parent)
 	parent:removeAllChildren()
 
-	-- 中层灰色背景，与按钮 BTN_NORMAL(38,38,38) 有明显对比
+	-- 调试辅助：给子控件加边界框的快捷函数
+	local function dbg(w)
+		w:enableDebug(true)
+		return w
+	end
+
+	-- 中层灰色背景
 	parent:addChild(Panel({
 		anchor = {0, 0, 1, 1},
 		bg_color = Utils.RGB(55, 58, 64),
@@ -31,144 +37,138 @@ function test.create(parent)
 	--------------------------------------------------
 	-- 总体布局：Margin(边距) → VBox(垂直排列)
 	--------------------------------------------------
-	local root_vbox = VBox({
-		separation = 12,
-	})
+	local root_vbox = VBox({ separation = 12 })
 	local margin = parent:addChild(Margin({
 		anchor = {0, 0, 1, 1},
 		margin_left = 12, margin_right = 12,
 		margin_top = 12, margin_bottom = 12,
 	}))
 	margin:addChild(root_vbox)
-	-- 调试：给 margin 和 root_vbox 画边界框
 	margin:enableDebug(true)
 	root_vbox:enableDebug(true)
 
 	-- 标题
-	root_vbox:addChild(Text({
+	root_vbox:addChild(dbg(Text({
 		text = "Godot 风格容器系统测试",
 		font_size = 18,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
+
+	-- 诊断：显式亮色按钮，确认渲染路径正常
+	root_vbox:addChild(dbg(Button({
+		text = "【诊断】显式 normal bg_color",
+		normal = { bg_color = {0.2, 0.5, 0.8, 1}, text_color = {1, 1, 1, 1}, text = "显式蓝色按钮" },
+	})))
 
 	-- 说明
-	root_vbox:addChild(Text({
-		text = "HBox / VBox / Margin / Center — 子控件最小尺寸驱动 + Fill/Expand 标志",
+	root_vbox:addChild(dbg(Text({
+		text = "粉框 = 各 Widget 边界  |  HBox / VBox / Margin / Center",
 		font_size = 12,
 		text_color = uc.SECONDARY_TEXT,
-	}))
+	})))
 
 	--------------------------------------------------
 	-- 1. HBox + 按钮（Fill 默认，等分空间）
 	--------------------------------------------------
-	root_vbox:addChild(Text({
-		text = "1. HBoxContainer — 三个按钮默认 FILL（等分）",
+	root_vbox:addChild(dbg(Text({
+		text = "1. HBox — 三个按钮默认 FILL（等分）",
 		font_size = 14,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
 
-	local hbox1 = root_vbox:addChild(HBox({
-		h = 40,
-		separation = 8,
-	}))
-	hbox1:enableDebug(true)
-
-	hbox1:addChild(Button({ text = "按钮 A" }))
-	hbox1:addChild(Button({ text = "按钮 B" }))
-	hbox1:addChild(Button({ text = "按钮 C" }))
+	do
+		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8 }))
+		hbox:enableDebug(true)
+		hbox:addChild(dbg(Button({ text = "按钮 A" })))
+		hbox:addChild(dbg(Button({ text = "按钮 B" })))
+		hbox:addChild(dbg(Button({ text = "按钮 C" })))
+	end
 
 	--------------------------------------------------
 	-- 2. HBox + EXPAND + stretch_ratio
 	--------------------------------------------------
-	root_vbox:addChild(Text({
-		text = "2. HBoxContainer — 右侧 EXPAND(ratio=2) 左侧固定",
+	root_vbox:addChild(dbg(Text({
+		text = "2. HBox — SHRINK_BEGIN(固定) + EXPAND ratio=2 + EXPAND ratio=1",
 		font_size = 14,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
 
-	local hbox2 = root_vbox:addChild(HBox({
-		h = 40,
-		separation = 8,
-	}))
-	hbox2:enableDebug(true)
+	do
+		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8 }))
+		hbox:enableDebug(true)
 
-	local left_btn = hbox2:addChild(Button({ text = "固定" }))
-	left_btn.h_size_flags = 0 -- SHRINK_BEGIN，不 Fill，不 Expand
+		local b1 = hbox:addChild(dbg(Button({ text = "固定" })))
+		b1.h_size_flags = 0
 
-	local right_btn = hbox2:addChild(Button({ text = "占2/3" }))
-	right_btn.h_size_flags = SZ.FILL + SZ.EXPAND
-	right_btn.stretch_ratio = 2
+		local b2 = hbox:addChild(dbg(Button({ text = "占2/3" })))
+		b2.h_size_flags = SZ.FILL + SZ.EXPAND
+		b2.stretch_ratio = 2
 
-	local right_btn2 = hbox2:addChild(Button({ text = "占1/3" }))
-	right_btn2.h_size_flags = SZ.FILL + SZ.EXPAND
-	right_btn2.stretch_ratio = 1
+		local b3 = hbox:addChild(dbg(Button({ text = "占1/3" })))
+		b3.h_size_flags = SZ.FILL + SZ.EXPAND
+		b3.stretch_ratio = 1
+	end
 
 	--------------------------------------------------
 	-- 3. VBox + SHRINK_CENTER
 	--------------------------------------------------
-	root_vbox:addChild(Text({
-		text = "3. VBoxContainer — 按钮 SHRINK_CENTER（保持最小尺寸居中）",
+	root_vbox:addChild(dbg(Text({
+		text = "3. VBox — SHRINK_CENTER（保持最小尺寸，水平居中）",
 		font_size = 14,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
 
-	local vbox1 = root_vbox:addChild(VBox({
-		h = 120,
-		separation = 4,
-		alignment = "center",
-	}))
-	vbox1:enableDebug(true)
-
-	for i = 1, 3 do
-		local btn = vbox1:addChild(Button({ text = "居中按钮 " .. i }))
-		btn.h_size_flags = SZ.SHRINK_CENTER -- 不 Fill，水平居中
-		btn.v_size_flags = 0 -- SHRINK_BEGIN
+	do
+		local vbox = root_vbox:addChild(VBox({ h = 120, separation = 4, alignment = "center" }))
+		vbox:enableDebug(true)
+		for i = 1, 3 do
+			local btn = vbox:addChild(dbg(Button({ text = "居中 " .. i })))
+			btn.h_size_flags = SZ.SHRINK_CENTER
+			btn.v_size_flags = 0
+		end
 	end
 
 	--------------------------------------------------
 	-- 4. Margin + Center 嵌套
 	--------------------------------------------------
-	root_vbox:addChild(Text({
-		text = "4. MarginContainer → CenterContainer → Button（边距+居中）",
+	root_vbox:addChild(dbg(Text({
+		text = "4. Margin → Center → Button（边距 + 居中嵌套）",
 		font_size = 14,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
 
-	local margin = root_vbox:addChild(Margin({
-		margin_top = 8,
-		margin_bottom = 8,
-		margin_left = 24,
-		margin_right = 24,
-		h = 60,
-	}))
-	margin:enableDebug(true)
-
-	local center = margin:addChild(Center({}))
-	center:enableDebug(true)
-	center:addChild(Button({ text = "居中 + 边距" }))
+	do
+		local m = root_vbox:addChild(Margin({
+			margin_top = 8, margin_bottom = 8,
+			margin_left = 24, margin_right = 24,
+			h = 60,
+		}))
+		m:enableDebug(true)
+		local c = m:addChild(Center({}))
+		c:enableDebug(true)
+		c:addChild(dbg(Button({ text = "居中+边距" })))
+	end
 
 	--------------------------------------------------
 	-- 5. HBox alignment 测试
 	--------------------------------------------------
-	root_vbox:addChild(Text({
-		text = "5. HBoxContainer alignment = end（无 EXPAND，整体靠右）",
+	root_vbox:addChild(dbg(Text({
+		text = "5. HBox alignment=end（无 EXPAND 时整体靠右）",
 		font_size = 14,
 		text_color = uc.PRIMARY_TEXT,
-	}))
+	})))
 
-	local hbox3 = root_vbox:addChild(HBox({
-		h = 40,
-		separation = 8,
-		alignment = "end",
-	}))
-	hbox3:enableDebug(true)
+	do
+		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8, alignment = "end" }))
+		hbox:enableDebug(true)
 
-	local b1 = hbox3:addChild(Button({ text = "靠" }))
-	b1.h_size_flags = 0
-	local b2 = hbox3:addChild(Button({ text = "右" }))
-	b2.h_size_flags = 0
-	local b3 = hbox3:addChild(Button({ text = "!" }))
-	b3.h_size_flags = 0
+		local b1 = hbox:addChild(dbg(Button({ text = "靠" })))
+		b1.h_size_flags = 0
+		local b2 = hbox:addChild(dbg(Button({ text = "右" })))
+		b2.h_size_flags = 0
+		local b3 = hbox:addChild(dbg(Button({ text = "!" })))
+		b3.h_size_flags = 0
+	end
 end
 
 return test
