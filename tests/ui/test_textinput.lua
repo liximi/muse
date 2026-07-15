@@ -47,12 +47,13 @@ function test.create(parent)
 		text_color = uc.HINT,
 	}))
 
-	root:addChild(TextInput({
+	local ti = root:addChild(TextInput({
 		height_adaptive = true,
 		bg = Panel(),
 		text_padding = {10, 10, 10, 10},
 		text = "Type here...\nCtrl+Z/Y to undo/redo\nCtrl+C/V to copy/paste\nShift+Arrow to select",
 	}))
+	ti.v_size_flags = 0  -- 自管理高度，容器不覆盖
 
 	--------------------------------------------------
 	-- 单行输入
