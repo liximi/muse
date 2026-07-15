@@ -99,7 +99,7 @@ Event propagation: **children first** (reverse-order traversal of children). If 
 
 ### Raycast Target
 
-For mouse events (`MousePressed`/`MouseReleased`/`MouseMoved`), `handleEvent` has a fallback blocking mechanism:
+For mouse events (`MousePressed`/`MouseReleased`/`MouseMoved`/`WheelMoved`), `handleEvent` has a fallback blocking mechanism:
 even without an explicit handler, if `raycast_target == true` and the cursor is within `regionDetection` bounds, the event returns `true` to block penetration.
 
 Default values per widget type:
