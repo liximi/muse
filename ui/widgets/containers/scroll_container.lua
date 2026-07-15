@@ -168,12 +168,36 @@ function Scroll:getMinimumSize()
 end
 
 function Scroll:onDraw()
-	-- 临时：跳过 scissor 测试 Dropdown 内容是否被误裁
-	-- TODO: 确认后恢复
+	local sx, sy, sw, sh, r = self.transform:getGlobalBounds()
+	love.graphics.push()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+	love.graphics.setScissor(sx, sy, sw, sh)
+	if self._debug and not self._debug_printed then
+		print(string.format("[Scroll scissor] x=%.0f y=%.0f w=%.0f h=%.0f", sx, sy, sw, sh))
+		self._debug_printed = true
+	end
+	self.scroll_root._clip_rect = {
+		sx - CLIP_RECT_EPSILON,
+		sy - CLIP_RECT_EPSILON,
+		sw + CLIP_RECT_EPSILON * 2,
+		sh + CLIP_RECT_EPSILON * 2,
+	}
 end
 
 function Scroll:onPostDraw()
-	-- 临时：跳过 scissor 测试
+	local pc = self._clip_rect
+	if pc then
+		love.graphics.setScissor(pc[1], pc[2], pc[3], pc[4])
+	else
+		love.graphics.setScissor()
+	end
+	self.scroll_root._clip_rect = nil
+	love.graphics.pop()
 end
 
 --- 设置要显示的内容

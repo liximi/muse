@@ -260,6 +260,7 @@ function Dropdown:_buildItems()
 			v_bar_pad_top = self._scrollbar_edge_pad,
 			v_bar_pad_bottom = self._scrollbar_edge_pad,
 		})
+		scroll:enableDebug(true)  -- 诊断：看 scissor 坐标
 		self.panel:addChild(scroll)
 			-- 内容高度 = 选项数 * 单项高 + 底部空白边距
 			local content_h = #self.options * ITEM_HEIGHT + self._scroll_bottom_pad
