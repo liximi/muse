@@ -145,6 +145,12 @@ function Text:getMinimumSize()
 	return w, h
 end
 
+--- 文本的期望尺寸 = 完整文本宽度（不换行）。和最小尺寸相同。
+--- 将来如果需要「文本在有多余空间时自然伸展到完整宽度」，这里可以返回更长的 unwrapped 宽度。
+function Text:getDesiredSize()
+	return self:getMinimumSize()
+end
+
 function Text:getScaledDimensions()
 	local w, h = self:getDimensions()
 	local sx, sy = self.transform:getScale()

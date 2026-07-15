@@ -69,20 +69,26 @@ function VBoxContainer:_sortChildren()
 	--------------------------------------------------
 	local cache = {}
 	local total_min = 0
+	local desired_extra = 0
 	local stretch_avail = 0
 	local stretch_ratio_total = 0
 
 	for _, c in ipairs(children) do
 		local _, mh = c:getCombinedMinimumSize()
+		local _, dh = c:getDesiredSize()
 		local will_stretch = hasFlag(c.v_size_flags, SZ.EXPAND)
 		local entry = {
 			child = c,
 			min = mh,
+			desired = dh,
 			stretch = will_stretch,
 			final = mh,
 		}
 		table.insert(cache, entry)
 		total_min = total_min + mh
+		if dh > mh then
+			desired_extra = desired_extra + (dh - mh)
+		end
 		if will_stretch then
 			stretch_avail = stretch_avail + mh
 			stretch_ratio_total = stretch_ratio_total + (c.stretch_ratio or 1)
@@ -94,7 +100,25 @@ function VBoxContainer:_sortChildren()
 	stretch_avail = stretch_avail + stretch_diff
 
 	--------------------------------------------------
-	-- 第二趟：按 stretch_ratio 比例分配
+	-- 第二趟 A：先分配 desired_size（"我需要这么多"）
+	--------------------------------------------------
+	if stretch_diff > 0 and desired_extra > 0 then
+		local space_ratio = math.min(stretch_diff / desired_extra, 1.0)
+		for _, entry in ipairs(cache) do
+			if entry.desired > entry.min then
+				local inc = math.floor((entry.desired - entry.min) * space_ratio)
+				if entry.stretch then
+					entry.min = entry.min + inc
+				else
+					stretch_avail = stretch_avail - inc
+				end
+				entry.final = entry.final + inc
+			end
+		end
+	end
+
+	--------------------------------------------------
+	-- 第二趟 B：按 stretch_ratio 比例分配剩余
 	--------------------------------------------------
 	while stretch_ratio_total > 0 do
 		local ok = true

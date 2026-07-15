@@ -258,6 +258,14 @@ function Widget:setCustomMinimumSize(w, h)
 	self._custom_min_h = h
 end
 
+--- 返回控件期望的自然尺寸（用于两趟分配的第一趟：先满足 desired，再瓜分剩余）。
+--- 默认等于最小尺寸。子类覆写以报告更大的自然尺寸（如 Text 返回完整文本宽度）。
+---@return number w
+---@return number h
+function Widget:getDesiredSize()
+	return self:getCombinedMinimumSize()
+end
+
 --------------------------------------------------
 -- Lifecycle Hooks (called by UiManager when widget enters/leaves the active tree)
 --------------------------------------------------
