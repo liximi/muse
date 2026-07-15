@@ -76,6 +76,16 @@ function ProgressBar:getValue()
 	return self.value
 end
 
+--- 最小尺寸：水平条 min_h=当前高度，垂直条 min_w=当前宽度
+function ProgressBar:getMinimumSize()
+	local w, h = self.transform:getSize()
+	if self.orientation == Utils.ORIENTATION.VERTICAL then
+		return w, 0
+	else
+		return 0, h
+	end
+end
+
 --------------------------------------------------
 -- Thumb Helpers
 --------------------------------------------------
