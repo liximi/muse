@@ -87,8 +87,32 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			padding = {0, right_pad, 0, bottom_pad}
 		}))
 
-	-- 裁剪：Scroll 自身的 onDraw/onPostDraw 管理 scissor
-	-- scroll_root 只负责布局，不碰 scissor
+	-- scissor 裁剪：在 scroll_root 的 onDraw/onPostDraw 中管理
+	-- （放在 scroll_root 而非 Scroll 自身，因为 Widget:draw 先 onDraw → children → onPostDraw，
+	--  scroll_root 的 children 循环内设 scissor 可以精确覆盖内容绘制阶段）
+	function self.scroll_root.onDraw(_self)
+		local x, y, w, h, r = self.transform:getGlobalBounds()
+		love.graphics.push()
+		if r ~= 0 and r ~= Utils.TWO_PI then
+			local px, py = self.transform:getGlobalPosition()
+			love.graphics.translate(px, py)
+			love.graphics.rotate(r)
+			love.graphics.translate(-px, -py)
+		end
+		love.graphics.setScissor(x, y, w, h)
+		_self._clip_rect = {
+			x - CLIP_RECT_EPSILON,
+			y - CLIP_RECT_EPSILON,
+			w + CLIP_RECT_EPSILON * 2,
+			h + CLIP_RECT_EPSILON * 2,
+		}
+	end
+	function self.scroll_root.onPostDraw(_self)
+		love.graphics.setScissor()
+		_self._clip_rect = nil
+		love.graphics.pop()
+	end
+
 	self._scissor_x, self._scissor_y, self._scissor_w, self._scissor_h = 0, 0, 0, 0
 
 	-- 事件裁剪：鼠标仅当在 Scroll 可见区域内时才传播给内容
@@ -168,41 +192,10 @@ function Scroll:getMinimumSize()
 end
 
 function Scroll:onDraw()
-	local sx, sy, sw, sh, r = self.transform:getGlobalBounds()
-	love.graphics.push()
-	if r ~= 0 and r ~= Utils.TWO_PI then
-		local px, py = self.transform:getGlobalPosition()
-		love.graphics.translate(px, py)
-		love.graphics.rotate(r)
-		love.graphics.translate(-px, -py)
-	end
-	love.graphics.setScissor(sx, sy, sw, sh)
-	if self._debug and not self._debug_printed then
-		print(string.format("[Scroll scissor] x=%.0f y=%.0f w=%.0f h=%.0f", sx, sy, sw, sh))
-		if self.item then
-			local ix, iy = self.item.transform:getGlobalPosition()
-			local iw, ih = self.item.transform:getSize()
-			print(string.format("[Scroll item]   x=%.0f y=%.0f w=%.0f h=%.0f", ix, iy, iw, ih))
-		end
-		self._debug_printed = true
-	end
-	self.scroll_root._clip_rect = {
-		sx - CLIP_RECT_EPSILON,
-		sy - CLIP_RECT_EPSILON,
-		sw + CLIP_RECT_EPSILON * 2,
-		sh + CLIP_RECT_EPSILON * 2,
-	}
+	-- 保持空：scissor 由 scroll_root.onDraw 闭包管理（见构造函数）
 end
 
 function Scroll:onPostDraw()
-	local pc = self._clip_rect
-	if pc then
-		love.graphics.setScissor(pc[1], pc[2], pc[3], pc[4])
-	else
-		love.graphics.setScissor()
-	end
-	self.scroll_root._clip_rect = nil
-	love.graphics.pop()
 end
 
 --- 设置要显示的内容
