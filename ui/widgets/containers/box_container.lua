@@ -58,6 +58,8 @@ function BoxContainer:getMinimumSize()
 			along = along + child_along
 			cross = math.max(cross, child_cross)
 			first = false
+			print(string.format("  [Box.getMinSize] child=%s m={%.0f,%.0f} along+=%.0f -> %.0f",
+				tostring(c._name or c), mw, mh, child_along, along))
 		end
 	end
 

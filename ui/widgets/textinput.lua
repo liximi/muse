@@ -277,6 +277,11 @@ end
 
 --- 输入框最小尺寸：宽为 0（可缩到任意宽度），高为一倍行高 + 内边距
 function TextInput:getMinimumSize()
+	if self.height_adaptive then
+		local w, h = self.transform:getSize()
+		print(string.format("[TextInput.getMinSize] adaptive, transform={%.0f,%.0f}", w, h))
+		return w, h
+	end
 	local font = self.text:getFont()
 	local line_h = font:getHeight() * font:getLineHeight()
 	local pad = self.text.transform:getPadding()
