@@ -269,8 +269,9 @@ function TextInput:refreshHeight()
 	local w, h = self.transform:getSize()
 	local text_padding = self.text.transform:getPadding()
 	local new_h = text_h + text_padding.top + text_padding.bottom
+	print(string.format("[TextInput.refreshHeight] text_h=%.0f h=%.0f new_h=%.0f changed=%s",
+		text_h, h, new_h, tostring(h ~= new_h)))
 	if h ~= new_h then
-		print(string.format("[TextInput.refreshHeight] h: %.0f -> %.0f (text_h=%.0f)", h, new_h, text_h))
 		self.transform:setSize(w, new_h)
 	end
 end
