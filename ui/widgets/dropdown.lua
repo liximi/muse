@@ -153,6 +153,11 @@ function Dropdown:_open()
 		return
 	end
 	print(string.format("[Dropdown] open: %d options, panel_h=%d", #self.options, self:_calcPanelHeight()))
+	for i, opt in ipairs(self.options) do
+		if opt == "" or opt == nil then
+			print(string.format("  [%d] EMPTY", i))
+		end
+	end
 	-- 确保 popup 整棵子树都是 DROPDOWN 渲染层（_buildItems 可能新增了节点）
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self._is_open = true

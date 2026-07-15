@@ -168,37 +168,13 @@ function Scroll:getMinimumSize()
 end
 
 function Scroll:onDraw()
-	-- scissor = Scroll 自身固定可见区域，不随内容滚动
-	-- 不扣除滑条空间——滑条自身渲染在 Widget:draw 的 children 阶段，
-	-- 位于 onDraw 之后、onPostDraw 之前，需要在 scissor 范围内才能显示
-	local sx, sy, sw, sh, r = self.transform:getGlobalBounds()
-	love.graphics.push()
-	if r ~= 0 and r ~= Utils.TWO_PI then
-		local px, py = self.transform:getGlobalPosition()
-		love.graphics.translate(px, py)
-		love.graphics.rotate(r)
-		love.graphics.translate(-px, -py)
-	end
-	love.graphics.setScissor(sx, sy, sw, sh)
-	self.scroll_root._clip_rect = {
-		sx - CLIP_RECT_EPSILON,
-		sy - CLIP_RECT_EPSILON,
-		sw + CLIP_RECT_EPSILON * 2,
-		sh + CLIP_RECT_EPSILON * 2,
-	}
-end
+	-- 临时：跳过 scissor 测试 Dropdown 内容是否被误裁
+	-- TODO: 确认后恢复
+	return
 
 function Scroll:onPostDraw()
-	-- 恢复父级裁剪区域（而非直接清空，避免破坏外层 Scroll 的 scissor）
-	local pc = self._clip_rect
-	if pc then
-		love.graphics.setScissor(pc[1], pc[2], pc[3], pc[4])
-	else
-		love.graphics.setScissor()
-	end
-	self.scroll_root._clip_rect = nil
-	love.graphics.pop()
-end
+	-- 临时：跳过 scissor 测试
+	return
 
 --- 设置要显示的内容
 ---@param item Widget 要显示的UI
