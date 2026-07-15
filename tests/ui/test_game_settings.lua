@@ -179,7 +179,6 @@ end
 --------------------------------------------------
 function test.create(parent)
 	parent:removeAllChildren()
-	Dropdown.destroyAll()
 
 	--------------------------------------------------
 	-- 读取当前 LÖVE 窗口设置

@@ -8,7 +8,6 @@ test.name = "Dropdown"
 
 function test.create(parent)
 	parent:removeAllChildren()
-	Dropdown.destroyAll()  -- 清理上次测试遗留的 popup
 
 	parent:addChild(Text({
 		text = "Dropdown — click to open, select an option",

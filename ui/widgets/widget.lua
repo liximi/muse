@@ -36,6 +36,7 @@ local Widget = Class(function(self, name, datas, theme)
 	end
 	self._name = name or "widget"
 	self._valid = true
+	self._attached = false  -- 生命周期：是否已加入 UiManager 活动树
 	self._debug = false
 
 	self.transform = Transform()
@@ -148,12 +149,20 @@ function Widget:addChild(child)
 	child.parent = self
 	table.insert(self.children, child)
 	child.transform:setParent(self.transform)
+	-- 如果父节点已在活动树中，子节点自动获得 attached 状态
+	if self._attached then
+		child:_setAttached(true)
+	end
 	return child
 end
 
 function Widget:removeChild(child)
 	for i, _child in ipairs(self.children) do
 		if _child == child then
+			-- 如果子节点在活动树中，先触发 detach
+			if child._attached then
+				child:_setAttached(false)
+			end
 			child.parent = nil
 			table.remove(self.children, i)
 			child.transform:setParent()
@@ -164,10 +173,29 @@ end
 
 function Widget:removeAllChildren()
 	for _, child in ipairs(self.children) do
+		if child._attached then
+			child:_setAttached(false)
+		end
 		child.parent = nil
 		child.transform:setParent()
 	end
 	self.children = {}
+end
+
+--- 递归设置 attached 状态并触发生命周期钩子
+function Widget:_setAttached(attached)
+	if attached == self._attached then
+		return
+	end
+	self._attached = attached
+	if attached then
+		self:onAttached()
+	else
+		self:onDetached()
+	end
+	for _, child in ipairs(self.children) do
+		child:_setAttached(attached)
+	end
 end
 
 --------------------------------------------------
@@ -184,10 +212,26 @@ function Widget:measure(max_w, max_h)
 end
 
 --------------------------------------------------
+-- Lifecycle Hooks (called by UiManager when widget enters/leaves the active tree)
+--------------------------------------------------
+
+--- 当 Widget（或其祖先）被添加到 UiManager 的活动树时调用。子类可覆写以注册全局资源。
+function Widget:onAttached()
+end
+
+--- 当 Widget（或其祖先）从 UiManager 的活动树移除时调用。子类可覆写以释放全局资源。
+function Widget:onDetached()
+end
+
+--------------------------------------------------
 -- Destroy
 --------------------------------------------------
 
 function Widget:destroy()
+	-- 先从活动树中分离（触发生命周期清理）
+	if self._attached then
+		self:_setAttached(false)
+	end
 	local temp_children = self.children
 	self:removeAllChildren()
 	for _, child in ipairs(temp_children) do

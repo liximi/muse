@@ -13,6 +13,7 @@ local UNDO_STACK_MAX = 100             -- 撤销栈最大容量
 local UNDO_INACTIVITY_THRESHOLD = 0.3  -- 撤销操作组合并停顿阈值（秒）
 local SELECTION_COLOR = {0.2, 0.4, 0.8, 0.35} -- 文本选区高亮颜色
 local CURSOR_COLOR = {1, 1, 1, 1}     -- 光标颜色
+local FOCUS_OUTLINE_COLOR = {0.3, 0.6, 1, 1} -- 焦点边框颜色
 local SKIP_FIRST_CHAR = 2             -- splitText 跳过首字符的偏移
 
 ---使用utf8字符的下标来分割文本
@@ -133,6 +134,10 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self._undo_inactivity_timer = 0
 	self._undo_inactivity_threshold = UNDO_INACTIVITY_THRESHOLD
 
+	-- 换行缓存：避免每次光标移动都重新计算 font:getWrap
+	self._wrap_cache = {}        -- {section_idx = wrapped_lines}
+	self._wrap_cache_width = nil -- 缓存时的换行宽度
+
 	self.focusable = true
 
 	self.text = self:addChild(Text({
@@ -234,6 +239,7 @@ end
 
 --- 将当前sections里的文本同步到字体组件里
 function TextInput:flushText()
+	self:_invalidateWrapCache()
 	self.text:setText(table.concat(self.sections, "\n"))
 end
 
@@ -303,6 +309,30 @@ function TextInput:_getWrapWidth()
 	return self.text.transform.w
 end
 
+--- 获取指定 section 的换行结果（带缓存）。仅在 section 内容或 wrap 宽度变更时重新计算。
+---@param section_idx number 段落索引（1-based）
+---@return table wrapped_lines
+function TextInput:_getSectionWrap(section_idx)
+	local width = self:_getWrapWidth()
+	if self._wrap_cache_width ~= width then
+		self._wrap_cache = {}
+		self._wrap_cache_width = width
+	end
+	local cached = self._wrap_cache[section_idx]
+	if not cached then
+		local font = self.text:getFont()
+		local _, wrapped = font:getWrap(self.sections[section_idx], width)
+		self._wrap_cache[section_idx] = wrapped
+		return wrapped
+	end
+	return cached
+end
+
+--- 使换行缓存失效（section 内容变更时调用）
+function TextInput:_invalidateWrapCache()
+	self._wrap_cache = {}
+end
+
 function TextInput:setCursorIndex(index)
 	index = index or self.cursor.index
 	local text = self.sections[self.cursor.section]
@@ -317,7 +347,7 @@ function TextInput:setCursorIndex(index)
 		local font = self.text:getFont()
 		local line = 0
 		for i, section in ipairs(self.sections) do
-			local _, wrappedtext = font:getWrap(section, self:_getWrapWidth())
+			local wrappedtext = self:_getSectionWrap(i)
 			if i < self.cursor.section then
 				line = line + #wrappedtext
 			else
@@ -368,7 +398,7 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 	local target_section = 1
 	local temp_lines = line -- 用于存储target_section里占据的行数
 	for i, section in ipairs(self.sections) do
-		local _, _wrappedtext = font:getWrap(section, self:_getWrapWidth())
+		local _wrappedtext = self:_getSectionWrap(i)
 		_len = _len - #section
 		if _len < 0 then
 			-- 光标在当前段落内部
@@ -389,7 +419,7 @@ function TextInput:setCursorPosByScreenPos(screen_x, screen_y)
 
 	local target_index = 0
 	local target_x = 0
-	local _, wrappedtext = font:getWrap(self.sections[target_section], self:_getWrapWidth())
+	local wrappedtext = self:_getSectionWrap(target_section)
 	for l, s in ipairs(wrappedtext) do
 		if l >= temp_lines then
 			local count = getNearestIndex(s, local_x, font)
@@ -465,7 +495,7 @@ function TextInput:moveCursorUp()
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
 	local font = self.text:getFont()
-	local _, wrappedtext = font:getWrap(self.sections[old_section], self:_getWrapWidth())
+	local wrappedtext = self:_getSectionWrap(old_section)
 	local lines = #wrappedtext
 	local x_cache = self.cursor._local_pos_cache[1]
 	local move_to_last_section = false
@@ -483,7 +513,7 @@ function TextInput:moveCursorUp()
 	end
 
 	if move_to_last_section and old_section > 1 then -- 移动到上一段落里的最后一行
-		local _, wrappedtext = font:getWrap(self.sections[old_section - 1], self:_getWrapWidth())
+		local wrappedtext = self:_getSectionWrap(old_section - 1)
 		local last_line_text = wrappedtext[#wrappedtext]
 		local count = getNearestIndex(last_line_text, x_cache, font)
 		local len = utf8.len(self.sections[old_section - 1])
@@ -494,8 +524,7 @@ end
 function TextInput:moveCursorDown()
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
-	local font = self.text:getFont()
-	local _, wrappedtext = font:getWrap(self.sections[old_section], self:_getWrapWidth())
+	local wrappedtext = self:_getSectionWrap(old_section)
 	local lines = #wrappedtext
 	local x_cache = self.cursor._local_pos_cache[1]
 	local move_to_next_section = false
@@ -512,7 +541,7 @@ function TextInput:moveCursorDown()
 	end
 
 	if move_to_next_section and old_section < #self.sections then -- 移动到下一段落里的第一行
-		local _, wrappedtext = font:getWrap(self.sections[old_section + 1], self:_getWrapWidth())
+		local wrappedtext = self:_getSectionWrap(old_section + 1)
 		local count = getNearestIndex(wrappedtext[1], x_cache, font)
 		self:toNextSection(count)
 	end
@@ -525,7 +554,7 @@ function TextInput:moveCursorToHead()
 		return
 	end
 	local font = self.text:getFont()
-	local _, wrappedtext = font:getWrap(self.sections[old_section], self:_getWrapWidth())
+	local wrappedtext = self:_getSectionWrap(old_section)
 	local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
 	self.cursor.head_or_tail = true
 	self:setCursorIndex(len + 1)
@@ -535,7 +564,7 @@ function TextInput:moveCursorToEnd()
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
 	local font = self.text:getFont()
-	local _, wrappedtext = font:getWrap(self.sections[old_section], self:_getWrapWidth())
+	local wrappedtext = self:_getSectionWrap(old_section)
 	local line, cur_line_len, len = findLineByIndex(wrappedtext, old_idx, self.cursor.head_or_tail)
 	self.cursor.head_or_tail = false
 	self:setCursorIndex(len + cur_line_len + 1)
@@ -1087,7 +1116,7 @@ function TextInput:onFocus()
 	self:showCursor(true)
 	if self.bg then
 		self.bg.outline_width = 2
-		self.bg.outline_color = {0.3, 0.6, 1, 1} -- 蓝色焦点边框
+		self.bg.outline_color = FOCUS_OUTLINE_COLOR
 	end
 	if self.single_line then
 		self._scroll_x = 0
@@ -1247,7 +1276,7 @@ function TextInput:onPostDraw()
 		local current_line = 0
 		for i, section in ipairs(self.sections) do
 			if i < s_section then
-				local _, wt = font:getWrap(section, self:_getWrapWidth())
+				local wt = self:_getSectionWrap(i)
 				current_line = current_line + #wt
 			elseif i <= e_section then
 				-- 计算当前段落内的选区范围
@@ -1260,7 +1289,7 @@ function TextInput:onPostDraw()
 					section_e_idx = e_idx
 				end
 
-				local _, wt = font:getWrap(section, self:_getWrapWidth())
+				local wt = self:_getSectionWrap(i)
 				local char_offset = 0
 				for l, line_text in ipairs(wt) do
 					local line_len = utf8.len(line_text)

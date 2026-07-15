@@ -15,8 +15,9 @@ local PADDING_X = 8              -- 水平内边距（像素）
 local PADDING_Y = 5              -- 垂直内边距（像素）
 local SCREEN_EDGE_GAP = 8        -- 屏幕边缘最小间距（像素）
 
--- 跟踪所有活跃的 Tooltip 实例，用于批量清理
-local active_tooltips = {}
+-- Tooltip 主题色
+local TOOLTIP_BG_COLOR = {0.08, 0.08, 0.08, 0.92}
+local TOOLTIP_TEXT_COLOR = {0.95, 0.95, 0.95, 1}
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	target = Widget      目标 widget（必填）
@@ -43,7 +44,7 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 
 	-- 背景面板
 	self.bg = self:addChild(Panel({
-		bg_color = {0.08, 0.08, 0.08, 0.92},
+		bg_color = TOOLTIP_BG_COLOR,
 		rounding_radius = 4,
 		outline_width = 0,
 		anchor = {0, 0, 0, 0},
@@ -54,7 +55,7 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 	-- 文本标签（拉伸锚点填满 bg，padding 提供文字内边距）
 	self.label = self.bg:addChild(Text({
 		text = datas.text or "",
-		text_color = {0.95, 0.95, 0.95, 1},
+		text_color = TOOLTIP_TEXT_COLOR,
 		font_size = DEFAULT_FONT_SIZE,
 		anchor = {0, 0, 1, 1},
 		pivot = {0, 0},
@@ -62,10 +63,9 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 	}))
 	self.label.render_layer = Utils.RENDER_LAYERS.TOOLTIP
 
-	-- 初始隐藏，直接注册到 UiManager 作为根 widget（避免父容器偏移干扰屏幕坐标定位）
+	-- 初始隐藏；Tooltip 是无父节点的独立 UiManager 根 widget，构造时直接注册
 	self:hide()
 	UiManager:addWidget(self)
-	table.insert(active_tooltips, self)
 end)
 
 function Tooltip:setText(text)
@@ -76,30 +76,28 @@ function Tooltip:setTarget(target)
 	self.target = target
 end
 
---- 销毁当前 Tooltip 并从 UiManager 移除
-function Tooltip:destroy()
-	for i, w in ipairs(UiManager.hierarchy) do
-		if w == self then
-			table.remove(UiManager.hierarchy, i)
-			break
-		end
-	end
-	for i, t in ipairs(active_tooltips) do
-		if t == self then
-			table.remove(active_tooltips, i)
-			break
-		end
-	end
-	Widget.destroy(self)
+--------------------------------------------------
+-- Lifecycle：加入/离开 UiManager 活动树时自动注册/注销
+--------------------------------------------------
+
+function Tooltip:onAttached()
+	-- Tooltip 在构造函数中自注册，不需要在此重复注册
 end
 
---- 销毁所有活跃的 Tooltip 实例（测试场景切换时调用）
+function Tooltip:onDetached()
+	-- 从 UiManager 注销（由 Widget:destroy → _setAttached(false) 触发）
+end
+
+--- 销毁所有活跃的 Tooltip（测试场景切换用）
 function Tooltip.destroyAll()
-	local copy = {}
-	for _, t in ipairs(active_tooltips) do
-		table.insert(copy, t)
+	-- 收集所有 UiManager 根节点中的 Tooltip 实例
+	local to_destroy = {}
+	for _, w in ipairs(UiManager.hierarchy) do
+		if w._name == "Tooltip" then
+			table.insert(to_destroy, w)
+		end
 	end
-	for _, t in ipairs(copy) do
+	for _, t in ipairs(to_destroy) do
 		t:destroy()
 	end
 end

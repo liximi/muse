@@ -4,31 +4,16 @@ i18n.__call = function(self, key)
     return self:get(key)
 end
 
-local love_version_major, love_version_minor, love_version_revision = love._version_major, love._version_minor, love._version_revision
 local function IsFile(file)
-    if love_version_major >= 11 then
-        local info = love.filesystem.getInfo(file)
-        if not info or info.type ~= "file"  then
-            return false
-        end
-    else
-        if not love.filesystem.isFile(file) then
-            return false
-        end
+    local info = love.filesystem.getInfo(file)
+    if not info or info.type ~= "file" then
+        return false
     end
 end
 
-local d = console and console.d or print
-local i = console and console.i or print
-local e = console and console.e or print
-
-local ok, memoize = pcall(require, "memoize")
-if not ok then
-    i("Memoize not available. Using passthrough.")
-    memoize = function(f)
-        return f
-    end
-end
+local d = print
+local i = print
+local e = print
 
 local function new()
     return setmetatable({
@@ -71,7 +56,7 @@ function i18n:load(file)
     locale.strings.base = locale.base
     self.strings[locale.locale] = locale.strings
 
-    i(string.format("Loaded locale \"%s\" from \"%s\"", locale.locale, file))
+    -- locale loaded
     self:invalidate_cache()
 
     return true
@@ -129,7 +114,7 @@ function i18n:get(key)
     if not self._get_internal then
         self:invalidate_cache()
     end
-    return memoize(self._get_internal)(self, key)
+    return self._get_internal(self, key)
 end
 
 return setmetatable({

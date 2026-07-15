@@ -11,7 +11,7 @@ test.name = "Tooltip"
 
 function test.create(parent)
 	parent:removeAllChildren()
-	Tooltip.destroyAll()  -- 清理上次测试场景遗留的 Tooltip
+	Tooltip.destroyAll()  -- Tooltip 是无父节点的独立 widget，需手动清理
 
 	parent:addChild(Text({
 		text = "Tooltip — hover over widgets to see tooltips",

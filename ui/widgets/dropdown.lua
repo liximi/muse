@@ -6,9 +6,6 @@ local Utils = require "ui.utils"
 local UiManager = require "ui.ui_manager":GetInstance()
 local Class = require "dependencies.classic"
 
--- 跟踪所有活跃的 Dropdown popup，用于测试场景切换时批量清理
-local active_dropdowns = {}
-
 -- 递归设置 widget 及其所有子节点的 render_layer
 local function setRenderLayerRecursive(widget, layer)
 	widget.render_layer = layer
@@ -26,6 +23,13 @@ local SCROLL_BAR_GAP = 0        -- 滚动条与内容间距（像素）
 local SCROLL_EDGE_PAD = 2       -- 滚动条两端距面板边缘的默认边距（像素）
 local SCROLL_BOTTOM_PAD = 4     -- 滚动内容底部额外空白边距（像素），避免滚动到底时太拥挤
 local SCREEN_EDGE_GAP = 8       -- 屏幕边缘最小间距（像素）
+
+-- 弹出面板主题色
+local POPUP_BG_COLOR = {0.12, 0.12, 0.14, 0.98}
+local POPUP_OUTLINE_COLOR = {0.25, 0.25, 0.3, 1}
+local ITEM_SELECTED_BG = {0.18, 0.3, 0.5, 1}
+local ITEM_SELECTED_HOVER_BG = {0.22, 0.35, 0.55, 1}
+local ITEM_HOVER_BG = {0.18, 0.18, 0.22, 1}
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	options = {string, ...}     选项文本列表
@@ -60,20 +64,19 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	}))
 
 	-- 弹出层：作为 UiManager 根 widget，全屏锚点 + DROPDOWN 渲染层
+	-- （构造时不注册到 UiManager —— onAttached 时注册，onDetached 时注销）
 	self.popup = Widget({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0},
 	})
 	self.popup.render_layer = Utils.RENDER_LAYERS.DROPDOWN
-	UiManager:addWidget(self.popup)
-	table.insert(active_dropdowns, self)
 
 	-- 弹出面板（在 popup 内部绝对定位）
 	self.panel = self.popup:addChild(Panel({
-		bg_color = {0.12, 0.12, 0.14, 0.98},
+		bg_color = POPUP_BG_COLOR,
 		rounding_radius = 4,
 		outline_width = 1,
-		outline_color = {0.25, 0.25, 0.3, 1},
+		outline_color = POPUP_OUTLINE_COLOR,
 		anchor = {0, 0, 0, 0},
 		pivot = {0, 0},
 	}))
@@ -106,31 +109,28 @@ local Dropdown = Class(Widget, function(self, datas, theme)
 	self.popup:hide()
 end)
 
---- 销毁当前 Dropdown 的 popup 并从 UiManager 移除
-function Dropdown:destroyPopup()
-	if not self.popup then
-		return
+--------------------------------------------------
+-- Lifecycle：加入/离开 UiManager 活动树时注册/注销 popup
+--------------------------------------------------
+
+function Dropdown:onAttached()
+	if self.popup then
+	UiManager:addWidget(self.popup)
+	self.popup:hide()
 	end
-	for i, w in ipairs(UiManager.hierarchy) do
-		if w == self.popup then
-			table.remove(UiManager.hierarchy, i)
-			break
-		end
-	end
-	self.popup:destroy()
-	self.popup = nil
 end
 
---- 销毁所有活跃 Dropdown 的 popup（测试场景切换时调用）
-function Dropdown.destroyAll()
-	for _, dd in ipairs(active_dropdowns) do
-		dd:destroyPopup()
-	end
-	-- 清空注册表（但保留表本身，下次创建还会往里加）
-	for i = #active_dropdowns, 1, -1 do
-		active_dropdowns[i] = nil
+function Dropdown:onDetached()
+	if self.popup then
+	UiManager:removeWidget(self.popup)
+	self.popup:destroy()
+	self.popup = nil
 	end
 end
+
+--------------------------------------------------
+-- 公开 API
+--------------------------------------------------
 
 function Dropdown:_getDisplayText()
 	if #self.options == 0 then
@@ -201,15 +201,15 @@ function Dropdown:_makeItemStyles(index)
 	local text = self.options[index]
 	if index == self.selected_index then
 		return {
-			normal = Utils.newButtonStateStyle(text, nil, nil, {0.18, 0.3, 0.5, 1}, nil, nil, nil, nil, 0),
-			hover = Utils.newButtonStateStyle(nil, nil, nil, {0.22, 0.35, 0.55, 1}, nil, nil, nil, nil, 0),
-			pressed = Utils.newButtonStateStyle(nil, nil, nil, {0.22, 0.35, 0.55, 1}, nil, nil, nil, nil, 0),
+			normal = Utils.newButtonStateStyle(text, nil, nil, ITEM_SELECTED_BG, nil, nil, nil, nil, 0),
+			hover = Utils.newButtonStateStyle(nil, nil, nil, ITEM_SELECTED_HOVER_BG, nil, nil, nil, nil, 0),
+			pressed = Utils.newButtonStateStyle(nil, nil, nil, ITEM_SELECTED_HOVER_BG, nil, nil, nil, nil, 0),
 		}
 	else
 		return {
 			normal = Utils.newButtonStateStyle(text, nil, nil, {0, 0, 0, 0}, nil, nil, nil, nil, 0),
-			hover = Utils.newButtonStateStyle(nil, nil, nil, {0.18, 0.18, 0.22, 1}, nil, nil, nil, nil, 0),
-			pressed = Utils.newButtonStateStyle(nil, nil, nil, {0.18, 0.18, 0.22, 1}, nil, nil, nil, nil, 0),
+			hover = Utils.newButtonStateStyle(nil, nil, nil, ITEM_HOVER_BG, nil, nil, nil, nil, 0),
+			pressed = Utils.newButtonStateStyle(nil, nil, nil, ITEM_HOVER_BG, nil, nil, nil, nil, 0),
 		}
 	end
 end

@@ -5,58 +5,7 @@ local utf8 = require "utf8"
 local Class = require "dependencies.classic"
 
 -- 伪常量
-local CHAR_LF = 10          -- 换行符 \n 的 UTF-8 码点
 local ALIGN_CENTER = 0.5    -- 居中对齐的偏移系数
-
--- 尝试使用自定义的自动换行方法，但是没有成功...
-local function _getWrap_char(font, str, limit)
-	-- 该函数的效率是Font:getWrap的10% ~ 50%，字符串越长，效率越低。
-	local char_width_cache = {}
-	local max_width = 0
-	local line_start = 1
-	local linew = 0
-	local line_ranges = {}
-	for pos, code in utf8.codes(str) do
-		if code == CHAR_LF then -- 遇到换行符，强制结束当前行（不包含换行符本身）
-			max_width = math.max(max_width, linew)
-			if line_start <= pos - 1 then
-				table.insert(line_ranges, {line_start, pos - 1})
-			else
-				table.insert(line_ranges, {pos, pos - 1}) -- 处理连续换行符的情况（如空行）
-			end
-			line_start = pos + 1
-			linew = 0
-			goto continue
-		end
-
-		local char = utf8.char(code)
-		local cw = char_width_cache[char] or font:getWidth(char)
-		if not char_width_cache[char] then
-			char_width_cache[char] = cw
-		end
-		local neww = linew + cw
-		if neww > limit then
-			max_width = math.max(max_width, linew)
-			table.insert(line_ranges, {line_start, pos - 1})
-			line_start = pos
-			linew = cw
-		else
-			linew = neww
-		end
-
-		::continue::
-	end
-	if line_start <= #str then
-		table.insert(line_ranges, {line_start, #str})
-		max_width = math.max(max_width, linew)
-	end
-
-	local wrappedtext = {}
-	for _, range in ipairs(line_ranges) do
-		table.insert(wrappedtext, string.sub(str, range[1], range[2]))
-	end
-	return max_width, wrappedtext
-end
 
 -- TODO: 设置文本溢出行为
 -- 如果没看到创建出来的文本，请检查是否设置了该 UI 的尺寸。
@@ -167,7 +116,7 @@ end
 ---@param align "top"|"bottom"|"center"
 function Text:setVAlign(align)
 	self.vertical_align = align
-	self:updateTextLayout()
+	-- VAlign 在 onDraw() 中通过 y 偏移实现，无需重建 Text 对象
 end
 
 function Text:setWrapMode(wrap_mode)

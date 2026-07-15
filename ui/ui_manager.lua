@@ -15,7 +15,20 @@ function Manager:addWidget(widget)
 		end
 	end
 	table.insert(self.hierarchy, widget)
+	widget:_setAttached(true)
 	return widget
+end
+
+--- 从 UiManager 移除根 widget 并通知生命周期
+function Manager:removeWidget(widget)
+	for k, v in ipairs(self.hierarchy) do
+		if v == widget then
+			table.remove(self.hierarchy, k)
+			widget:_setAttached(false)
+			return true
+		end
+	end
+	return false
 end
 
 --------------------------------------------------
