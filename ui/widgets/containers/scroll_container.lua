@@ -39,6 +39,7 @@ local CLIP_RECT_EPSILON = 1       -- 裁剪矩形容差（像素），防止 GPU
 ]]
 local Scroll = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Scroll", datas, theme)
+	self.raycast_target = true
 
 	self.offset_x = 0
 	self.offset_y = 0

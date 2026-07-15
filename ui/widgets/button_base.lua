@@ -10,6 +10,7 @@ local BTN_STATES = Utils.BTN_STATES
 ]]
 local ButtonBase = Class(Widget, function(self, name, datas, theme)
 	Widget.new(self, name or "ButtonBase", datas, theme)
+	self.raycast_target = true
 
 	self.cur_state = BTN_STATES.NORMAL
 	self.onClick = datas and datas.on_click

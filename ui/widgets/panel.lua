@@ -11,6 +11,7 @@ local Class = require "dependencies.classic"
 ]]
 local Panel = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Panel", datas, theme)
+	self.raycast_target = true
 	self.bg_color = datas and datas.bg_color or self.theme.panel.bg_color
 	self.outline_width = datas and datas.outline_width or self.theme.panel.outline_width
 	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color

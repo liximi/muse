@@ -17,6 +17,7 @@ local DEFAULT_TAB_INDEX = 1   -- 默认选中的 Tab 索引
 ]]
 local TabView = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "TabView", datas, theme)
+	self.raycast_target = true
 
 	self.tabs = {}
 	self._tab_buttons = {}

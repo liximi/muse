@@ -27,6 +27,7 @@ local active_tooltips = {}
 ]]
 local Tooltip = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Tooltip", datas, theme)
+	self.raycast_target = true
 
 	self.target = datas.target
 	self._hover_timer = 0

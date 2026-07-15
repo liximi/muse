@@ -70,6 +70,7 @@ end
 ]]
 local Text = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Text", datas, theme)
+	self.raycast_target = true
 
 	self.font_key = datas and datas.font_key or self.theme.text.font_key
 	self.font_size = datas and datas.font_size or self.theme.text.font_size

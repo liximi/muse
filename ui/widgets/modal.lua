@@ -17,6 +17,7 @@ local Modal = Class(Widget, function(self, datas, theme)
 	datas.anchor = datas.anchor or {0, 0, 1, 1}
 
 	Widget.new(self, "Modal", datas, theme)
+	self.raycast_target = true
 
 	self.shown = false -- Modal 默认隐藏，必须通过 show() 显示
 	self.dismiss_on_outside_click = datas and datas.dismiss_on_outside_click ~= false

@@ -8,6 +8,7 @@ local Class = require "dependencies.classic"
 ]]
 local NineSlice = Class(Widget, function(self, datas)
 	Widget.new(self, "NineSlice", datas)
+	self.raycast_target = true
 
 	self.texture = datas.texture ---@type love.Texture
 	--[[self.quads:

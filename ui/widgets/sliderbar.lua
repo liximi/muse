@@ -71,6 +71,7 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	local a = self._axis
 
 	Widget.new(self, orientation == "vertical" and "SliderBarV" or "SliderBarH", datas, theme)
+	self.raycast_target = true
 
 	self.drag = false
 	self.pressed = false

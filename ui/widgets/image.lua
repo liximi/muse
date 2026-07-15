@@ -15,6 +15,7 @@ local DEBUG_INFO_MIN_WIDTH = 100 -- 调试信息最小显示宽度
 ]]
 local Image = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Image", datas, theme)
+	self.raycast_target = true
 
 	self.__quad = love.graphics.newQuad(0, 0, 0, 0, 1, 1)
 

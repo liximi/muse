@@ -25,6 +25,7 @@ local MIN_THUMB_RADIUS = 5              -- 滑块最小半径（像素）
 ]]
 local ProgressBar = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "ProgressBar", datas, theme)
+	self.raycast_target = true
 	self.value = Utils.clamp(datas and datas.value or 0, 0, 1)
 	self.fill_color = datas and datas.fill_color or self.theme.progressbar.fill_color
 	self.bg_color = datas and datas.bg_color or self.theme.progressbar.bg_color

@@ -92,6 +92,7 @@ end
 local TextInput = Class(Widget, function(self, datas, theme)
 	datas = datas or {}
 	Widget.new(self, "TextInput", datas, theme)
+	self.raycast_target = true
 
 	self.height_adaptive = datas.height_adaptive == true
 	self.min_height = datas.min_height or datas.h or DEFAULT_MIN_HEIGHT

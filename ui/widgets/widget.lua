@@ -67,6 +67,9 @@ local Widget = Class(function(self, name, datas, theme)
 	self.children = {}
 	self.parent = nil
 
+	-- 射线检测开关。开启后，即使没有显式事件 handler，鼠标落在区域内也会阻断事件穿透
+	self.raycast_target = false
+
 	self.enabled = true
 	self.shown = true
 	self.focus = false
@@ -425,6 +428,17 @@ function Widget:handleEvent(event_type, ...)
 	local handler = self[handler_name]
 	if handler then
 		return handler(self, ...)
+	end
+
+	-- 射线检测 fallback：即使没有显式 handler，如果开了 raycast_target 且鼠标在区域内，也阻断事件
+	if self.raycast_target then
+		local mouse_event_types = {MousePressed = true, MouseReleased = true, MouseMoved = true}
+		if mouse_event_types[event_type] then
+			local x = ...
+			if x and self:regionDetection(x, (select(2, ...))) then
+				return true
+			end
+		end
 	end
 end
 

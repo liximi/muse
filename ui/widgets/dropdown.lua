@@ -38,6 +38,7 @@ local SCREEN_EDGE_GAP = 8       -- 屏幕边缘最小间距（像素）
 ]]
 local Dropdown = Class(Widget, function(self, datas, theme)
 	Widget.new(self, "Dropdown", datas, theme)
+	self.raycast_target = true
 
 	self.options = datas.options or {}
 	self.selected_index = datas.selected_index or 1
