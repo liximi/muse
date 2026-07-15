@@ -104,37 +104,16 @@ function Container:removeChild(child)
 	return child
 end
 
---- 覆写 Widget:update，确保 _sortChildren 在子控件 update 之前运行。
---- 这样子控件本帧就能拿到容器分配给自己的尺寸。
-function Container:update(dt, parent_should_update)
-	-- 先做 Transform 更新（检测父容器尺寸变化 → 重算自身尺寸）
-	self.transform:onUpdate()
-
-	-- 触发 SizeChanged 事件（同 Widget:update 逻辑）
-	if self.__enable_size_changed_event then
-		if self.__oldw ~= self.transform.w or self.__oldh ~= self.transform.h then
-			self:handleEvent("SizeChanged", self.transform.w, self.transform.h)
-			self.__oldw = self.transform.w
-			self.__oldh = self.transform.h
-		end
-	end
-
-	if not parent_should_update then return end
-	if not self:shouldUpdate() then
-		for _, child in ipairs(self.children) do
-			child:update(dt, true)
-		end
-		return
-	end
-
-	-- ★ 关键：先排序（分配子控件尺寸），再传播给子控件
+--- 在子控件 update 之前排序。Widget:_preChildrenUpdate 的覆写。
+--- 确保子控件本帧就能拿到容器分配的尺寸。
+function Container:_preChildrenUpdate(dt)
 	local cw, ch = self.transform:getSize()
 	if self._dirty or cw ~= self._last_sort_w or ch ~= self._last_sort_h then
 		self:_sortChildren()
 		self._last_sort_w = cw
 		self._last_sort_h = ch
 		self._dirty = false
-		-- auto_size
+		-- auto_size：只在主轴方向自动调整尺寸
 		if self.auto_size then
 			local mw, mh = self:getMinimumSize()
 			if self._auto_size_axis == "h" then
@@ -145,11 +124,6 @@ function Container:update(dt, parent_should_update)
 				if mw > 0 or mh > 0 then self.transform:setSize(mw, mh) end
 			end
 		end
-	end
-
-	-- 再传播给子控件（此时子控件已有正确的尺寸）
-	for _, child in ipairs(self.children) do
-		child:update(dt, true)
 	end
 end
 

@@ -339,12 +339,19 @@ function Widget:update(dt, parent_should_update)
 		end
 		return
 	end
+	-- ★ 钩子：子类（Container）在此对子控件排序，确保子控件 update 时拿到正确尺寸
+	self:_preChildrenUpdate(dt)
 	for _, child in ipairs(self.children) do
 		child:update(dt, true)
 	end
 	if self.onUpdate then
 		self:onUpdate(dt)
 	end
+end
+
+--- 在子控件 update 之前调用的钩子。默认空实现。
+--- Container 覆写此方法以在子控件拿到尺寸前完成布局。
+function Widget:_preChildrenUpdate(dt)
 end
 
 --- 供可见性裁剪使用的包围盒。子类可覆写以提供比 transform 更精确的尺寸（如 Text 的内部纹理尺寸）
