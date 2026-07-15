@@ -168,10 +168,15 @@ function Scroll:getMinimumSize()
 end
 
 function Scroll:onDraw()
-	-- 使用 scroll_root 的实际区域（排除滚动条空间）设置 scissor
-	local sx, sy, sw, sh = self.scroll_root.transform:getGlobalBounds()
+	-- scissor = Scroll 自身固定可见区域（排除滚动条空间），不随内容滚动
+	local sx, sy, sw, sh, r = self.transform:getGlobalBounds()
+	if self.enable_scroll_v then
+		sw = sw - self._v_bar_w - DEFAULT_SCROLLBAR_GAP
+	end
+	if self.enable_scroll_h then
+		sh = sh - self._h_bar_h - DEFAULT_SCROLLBAR_GAP
+	end
 	love.graphics.push()
-	local r = self.transform:getGlobalRotation()
 	if r ~= 0 and r ~= Utils.TWO_PI then
 		local px, py = self.transform:getGlobalPosition()
 		love.graphics.translate(px, py)
@@ -179,7 +184,6 @@ function Scroll:onDraw()
 		love.graphics.translate(-px, -py)
 	end
 	love.graphics.setScissor(sx, sy, sw, sh)
-	-- _clip_rect 设置到 scroll_root，通过 Widget:draw 传播给子控件
 	self.scroll_root._clip_rect = {
 		sx - CLIP_RECT_EPSILON,
 		sy - CLIP_RECT_EPSILON,
