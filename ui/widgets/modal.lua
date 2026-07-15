@@ -1,6 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Utils = require "ui.utils"
+local UiManager = require "ui.ui_manager":GetInstance()
 local Class = require "dependencies.classic"
 
 -- 模态框，全屏半透明遮罩 + 居中内容
@@ -94,11 +95,14 @@ function Modal:show()
 	end
 	self.shown = true
 	self:moveToTop()
+	UiManager:invalidateRenderCache()
 end
 
 --- 隐藏模态框
 function Modal:hide()
+	if not self.shown then return end
 	self.shown = false
+	UiManager:invalidateRenderCache()
 end
 
 --- 关闭（触发 onDismiss 回调后隐藏）
