@@ -99,14 +99,14 @@ Event propagation: **children first** (reverse-order traversal of children). If 
 
 ### Raycast Target
 
-`handleEvent` has a fallback blocking mechanism for mouse events, **only active for leaf nodes (`#children == 0`)**:
-if `raycast_target == true` and the cursor is within bounds, the event is blocked even without an explicit handler.
+`handleEvent` has a fallback after children and own handler:
+`raycast_target == true` and cursor within `regionDetection` → returns `true` to block.
 
-Containers with children do not block via fallback — they rely on children or explicit handlers.
+Applies to containers too — children are already checked first, so no conflict.
 
-> **Note:** Interactive widgets like Button/Checkbox/TextInput set `raycast_target = false`
-> on their child Text/Image during construction, preventing children from intercepting clicks
-> meant for the parent. If you build custom composite widgets, do the same.
+> **Composite widgets:** Button/TextInput/SliderBar internally set `raycast_target = false`
+> on child Text/Panel widgets to prevent them from intercepting the parent's events.
+> Do the same in your custom composite widgets.
 
 Default values per widget type:
 
