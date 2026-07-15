@@ -22,6 +22,12 @@ test.name = "Godot Containers"
 function test.create(parent)
 	parent:removeAllChildren()
 
+	-- 浅色背景便于观察按钮和容器边界
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
+		bg_color = Utils.RGB(32, 34, 38),
+	}))
+
 	--------------------------------------------------
 	-- 总体布局：Margin(边距) → VBox(垂直排列)
 	--------------------------------------------------
@@ -34,6 +40,9 @@ function test.create(parent)
 		margin_top = 12, margin_bottom = 12,
 	}))
 	margin:addChild(root_vbox)
+	-- 调试：给 margin 和 root_vbox 画边界框
+	margin:enableDebug(true)
+	root_vbox:enableDebug(true)
 
 	-- 标题
 	root_vbox:addChild(Text({
@@ -62,6 +71,7 @@ function test.create(parent)
 		h = 40,
 		separation = 8,
 	}))
+	hbox1:enableDebug(true)
 
 	hbox1:addChild(Button({ text = "按钮 A" }))
 	hbox1:addChild(Button({ text = "按钮 B" }))
@@ -80,6 +90,7 @@ function test.create(parent)
 		h = 40,
 		separation = 8,
 	}))
+	hbox2:enableDebug(true)
 
 	local left_btn = hbox2:addChild(Button({ text = "固定" }))
 	left_btn.h_size_flags = 0 -- SHRINK_BEGIN，不 Fill，不 Expand
@@ -106,6 +117,7 @@ function test.create(parent)
 		separation = 4,
 		alignment = "center",
 	}))
+	vbox1:enableDebug(true)
 
 	for i = 1, 3 do
 		local btn = vbox1:addChild(Button({ text = "居中按钮 " .. i }))
@@ -129,8 +141,10 @@ function test.create(parent)
 		margin_right = 24,
 		h = 60,
 	}))
+	margin:enableDebug(true)
 
 	local center = margin:addChild(Center({}))
+	center:enableDebug(true)
 	center:addChild(Button({ text = "居中 + 边距" }))
 
 	--------------------------------------------------
@@ -147,6 +161,7 @@ function test.create(parent)
 		separation = 8,
 		alignment = "end",
 	}))
+	hbox3:enableDebug(true)
 
 	local b1 = hbox3:addChild(Button({ text = "靠" }))
 	b1.h_size_flags = 0
