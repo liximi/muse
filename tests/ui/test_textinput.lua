@@ -48,11 +48,18 @@ function test.create(parent)
 	}))
 
 	local ti = root:addChild(TextInput({
-		height_adaptive = false,
+		h = 80,
 		wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
 		bg = Panel(),
 		text_padding = {10, 10, 10, 10},
-		text = "Type here...\nCtrl+Z/Y to undo/redo\nCtrl+C/V to copy/paste\nShift+Arrow to select",
+		text = [[Type here...
+Ctrl+Z/Y to undo/redo
+Ctrl+C/V to copy/paste
+Shift+Arrow to select
+Line 5: more text for scrolling
+Line 6: scrollbar should appear
+Line 7: drag the scrollbar
+Line 8: or use mouse wheel]],
 	}))
 
 	--------------------------------------------------

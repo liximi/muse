@@ -100,6 +100,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.single_line = datas.single_line == true
 	self._scroll_x = 0 -- 单行模式水平滚动偏移（像素）
 	self._scroll_y = 0 -- 多行模式垂直滚动偏移（像素）
+	self._last_cursor_x = nil -- 上一次光标 X 坐标（用于检测光标移动，仅在移动时触发滚动跟随）
+	self._last_cursor_y = nil -- 上一次光标 Y 坐标
 
 	-- 滚动条
 	self._scrollbar_w = 6
@@ -1147,8 +1149,9 @@ function TextInput:onFocus()
 		self.bg.outline_width = 2
 		self.bg.outline_color = FOCUS_OUTLINE_COLOR
 	end
-	self._scroll_x = 0
-	self._scroll_y = 0
+	-- 重置光标位置缓存，强制下一帧重新检测滚动
+	self._last_cursor_x = nil
+	self._last_cursor_y = nil
 	if self.single_line then
 		self:_updateScroll()
 	else
@@ -1321,12 +1324,20 @@ function TextInput:onUpdate(dt)
 	if self.height_adaptive then
 		self:refreshHeight()
 	end
-	-- 保持光标在可见区域内
+	-- 光标移动时自动跟随滚动（仅在光标坐标变化时触发，避免与滚轮/拖拽冲突）
 	if self:isFocus() then
+		local cx = self.cursor._local_pos_cache[1]
+		local cy = self.cursor._local_pos_cache[2]
 		if self.single_line then
-			self:_updateScroll()
+			if cx ~= self._last_cursor_x then
+				self._last_cursor_x = cx
+				self:_updateScroll()
+			end
 		else
-			self:_updateScrollY()
+			if cy ~= self._last_cursor_y then
+				self._last_cursor_y = cy
+				self:_updateScrollY()
+			end
 		end
 	end
 end
@@ -1399,13 +1410,14 @@ function TextInput:_updateScrollY()
 	self:_applyScroll()
 end
 
-function TextInput:onWheelMoved(x, y, dx, dy)
+function TextInput:onWheelMoved(x, y)
 	if self.single_line then return end
-	-- 仅当鼠标在输入框范围内时处理滚轮
-	if not self:regionDetection(x, y) then return end
-	if not self:isFocus() then return end
+	-- 使用鼠标屏幕坐标检测区域（x, y 参数是滚轮增量，非屏幕坐标）
+	local mx, my = love.mouse.getPosition()
+	if not self:regionDetection(mx, my) then return end
 
 	local font = self.text:getFont()
+	if not font then return end
 	local line_h = font:getHeight() * font:getLineHeight()
 	if line_h <= 0 then return end
 
@@ -1414,9 +1426,10 @@ function TextInput:onWheelMoved(x, y, dx, dy)
 	local pad = self.text.transform:getPadding()
 	local visible_h = self.transform.h - pad.top - pad.bottom
 	local max_scroll = math.max(0, total_h - visible_h)
+	if max_scroll <= 0 then return end
 
 	-- 每格滚轮滚动 3 行
-	self._scroll_y = self._scroll_y - dy * line_h * 3
+	self._scroll_y = self._scroll_y - y * line_h * 3
 	self._scroll_y = math.max(0, math.min(max_scroll, self._scroll_y))
 	self:_applyScroll()
 	return true -- 拦截事件，防止冒泡到外层 Scroll
