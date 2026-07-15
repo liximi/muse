@@ -14,8 +14,8 @@ local SliderBar = require "ui.widgets.sliderbar"
 local TabView = require "ui.widgets.tabview"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local Box = require "ui.widgets.containers.box_container"
-local ORIENT = Utils.ORIENTATION
 local Utils = require "ui.utils"
+local ORIENT = Utils.ORIENTATION
 
 local uc = Utils.UI_COLORS
 
