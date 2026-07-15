@@ -22,10 +22,10 @@ test.name = "Godot Containers"
 function test.create(parent)
 	parent:removeAllChildren()
 
-	-- 浅色背景便于观察按钮和容器边界
+	-- 中层灰色背景，与按钮 BTN_NORMAL(38,38,38) 有明显对比
 	parent:addChild(Panel({
 		anchor = {0, 0, 1, 1},
-		bg_color = Utils.RGB(32, 34, 38),
+		bg_color = Utils.RGB(55, 58, 64),
 	}))
 
 	--------------------------------------------------
