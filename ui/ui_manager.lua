@@ -5,6 +5,9 @@ local Manager = Class(function(self)
 	self.hierarchy = {}
 	self.default_theme = Theme()
 	self.current_focus = nil
+	self._render_cache_dirty = true  -- 首帧强制重建渲染层缓存
+	self._layers_cache = {}
+	self._sorted_layers = {}
 end)
 
 function Manager:addWidget(widget)
@@ -16,6 +19,7 @@ function Manager:addWidget(widget)
 	end
 	table.insert(self.hierarchy, widget)
 	widget:_setAttached(true)
+	self._render_cache_dirty = true
 	return widget
 end
 
@@ -25,10 +29,16 @@ function Manager:removeWidget(widget)
 		if v == widget then
 			table.remove(self.hierarchy, k)
 			widget:_setAttached(false)
+			self._render_cache_dirty = true
 			return true
 		end
 	end
 	return false
+end
+
+--- 标记渲染层缓存失效（Widget show/hide/render_layer 变更时调用）
+function Manager:invalidateRenderCache()
+	self._render_cache_dirty = true
 end
 
 --------------------------------------------------
@@ -119,17 +129,21 @@ function Manager:_collectByLayer(widget, layers, parent_layer)
 end
 
 function Manager:draw()
-	local layers = {}
-	for _, widget in ipairs(self.hierarchy) do
-		self:_collectByLayer(widget, layers)
+	if self._render_cache_dirty then
+		self._layers_cache = {}
+		for _, widget in ipairs(self.hierarchy) do
+			self:_collectByLayer(widget, self._layers_cache)
+		end
+		-- 重建排序后的 layer key 列表
+		self._sorted_layers = {}
+		for layer, _ in pairs(self._layers_cache) do
+			table.insert(self._sorted_layers, layer)
+		end
+		table.sort(self._sorted_layers)
+		self._render_cache_dirty = false
 	end
-	local sorted = {}
-	for layer, _ in pairs(layers) do
-		table.insert(sorted, layer)
-	end
-	table.sort(sorted)
-	for _, layer in ipairs(sorted) do
-		for _, widget in ipairs(layers[layer]) do
+	for _, layer in ipairs(self._sorted_layers) do
+		for _, widget in ipairs(self._layers_cache[layer]) do
 			widget:draw()
 		end
 	end

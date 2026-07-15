@@ -78,6 +78,10 @@ local Widget = Class(function(self, name, datas, theme)
 	self.render_layer = DEFAULT_RENDER_LAYER
 	self.always_draw = false
 	self._clip_rect = nil
+
+	-- Canvas 缓存：启用后静态子树只渲染一次到 GPU 纹理
+	self._canvas_cache = nil       -- love.graphics.Canvas 对象
+	self._canvas_cache_dirty = true -- 是否需要重建 Canvas
 end)
 
 --------------------------------------------------
@@ -255,6 +259,56 @@ function Widget:shouldDraw()
 	return self._valid and self.shown
 end
 
+--------------------------------------------------
+-- Canvas Cache
+-- 启用后，静态子树渲染到 Canvas 一次，后续帧直接贴 Canvas 纹理
+--------------------------------------------------
+
+--- 启用 Canvas 缓存。子树视觉属性不变时跳过递归绘制。
+--- 注意：Canvas 受 LÖVE 的 setScissor 影响，需 always_draw = true 配合使用
+function Widget:enableCanvasCache(enable)
+	self._canvas_cache_enabled = enable == true
+	if not self._canvas_cache_enabled then
+		if self._canvas_cache then
+			self._canvas_cache:release()
+			self._canvas_cache = nil
+		end
+	else
+		self._canvas_cache_dirty = true
+	end
+	return self
+end
+
+--- 标记 Canvas 缓存失效（子树有视觉变化时调用）
+--- 同时自动通知 UiManager 渲染层缓存失效
+function Widget:invalidateCanvasCache()
+	if self._canvas_cache_enabled then
+		self._canvas_cache_dirty = true
+	end
+	-- 向上传播失效（父节点的 Canvas 包含此子树）
+	if self.parent then
+		self.parent:invalidateCanvasCache()
+	end
+end
+
+--- 渲染当前 widget（不含 Canvas 缓存逻辑）供子类覆写的 Canvas 友好版本
+function Widget:_drawContent()
+	if self.onDraw then
+		self:onDraw()
+	end
+	for _, child in ipairs(self.children) do
+		if child.render_layer == self.render_layer then
+			local prev_clip = child._clip_rect
+			child._clip_rect = self._clip_rect or child._clip_rect
+			child:draw()
+			child._clip_rect = prev_clip
+		end
+	end
+	if self.onPostDraw then
+		self:onPostDraw()
+	end
+end
+
 function Widget:shouldUpdate()
 	return self._valid and self.enabled
 end
@@ -368,11 +422,17 @@ function Widget:isShown()
 end
 
 function Widget:show()
-	self.shown = true
+	if not self.shown then
+		self.shown = true
+		UiManager:invalidateRenderCache()
+	end
 end
 
 function Widget:hide()
-	self.shown = false
+	if self.shown then
+		self.shown = false
+		UiManager:invalidateRenderCache()
+	end
 end
 
 --------------------------------------------------
