@@ -152,12 +152,6 @@ function Dropdown:_open()
 	if not self.trigger or not self.popup then
 		return
 	end
-	print(string.format("[Dropdown] open: %d options, panel_h=%d", #self.options, self:_calcPanelHeight()))
-	for i, opt in ipairs(self.options) do
-		if opt == "" or opt == nil then
-			print(string.format("  [%d] EMPTY", i))
-		end
-	end
 	-- 确保 popup 整棵子树都是 DROPDOWN 渲染层（_buildItems 可能新增了节点）
 	setRenderLayerRecursive(self.popup, Utils.RENDER_LAYERS.DROPDOWN)
 	self._is_open = true
@@ -260,7 +254,6 @@ function Dropdown:_buildItems()
 			v_bar_pad_top = self._scrollbar_edge_pad,
 			v_bar_pad_bottom = self._scrollbar_edge_pad,
 		})
-		scroll:enableDebug(true)  -- 诊断：看 scissor 坐标
 		self.panel:addChild(scroll)
 			-- 内容高度 = 选项数 * 单项高 + 底部空白边距
 			local content_h = #self.options * ITEM_HEIGHT + self._scroll_bottom_pad

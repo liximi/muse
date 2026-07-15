@@ -113,8 +113,6 @@ local Scroll = Class(Widget, function(self, datas, theme)
 		love.graphics.pop()
 	end
 
-	self._scissor_x, self._scissor_y, self._scissor_w, self._scissor_h = 0, 0, 0, 0
-
 	-- 事件裁剪：鼠标仅当在 Scroll 可见区域内时才传播给内容
 	local _widget_handleEvent = Widget.handleEvent
 	function self.scroll_root.handleEvent(_self, event_type, ...)
@@ -189,13 +187,6 @@ end)
 function Scroll:getMinimumSize()
 	local w, h = self.transform:getSize()
 	return w, h
-end
-
-function Scroll:onDraw()
-	-- 保持空：scissor 由 scroll_root.onDraw 闭包管理（见构造函数）
-end
-
-function Scroll:onPostDraw()
 end
 
 --- 设置要显示的内容
