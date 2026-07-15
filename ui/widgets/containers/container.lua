@@ -103,8 +103,11 @@ function Container:removeChild(child)
 end
 
 function Container:onUpdate(dt)
-	if self._dirty then
+	local cw, ch = self.transform:getSize()
+	if self._dirty or cw ~= self._last_sort_w or ch ~= self._last_sort_h then
 		self:_sortChildren()
+		self._last_sort_w = cw
+		self._last_sort_h = ch
 		self._dirty = false
 	end
 end
