@@ -271,6 +271,9 @@ function TextInput:refreshHeight()
 	local new_h = text_h + text_padding.top + text_padding.bottom
 	if h ~= new_h then
 		self.transform:setSize(w, new_h)
+		print(string.format(
+			"[TextInput] 高度变化: %.0f -> %.0f | transform.h=%.0f | minSize.h=%.0f",
+			h, new_h, self.transform.h, select(2, self:getMinimumSize())))
 	end
 end
 
@@ -278,16 +281,12 @@ end
 function TextInput:getMinimumSize()
 	if self.height_adaptive then
 		local w, h = self.transform:getSize()
-		print(string.format("[TextInput.minSize] ADAPTIVE transform={%.0f,%.0f}", w, h))
 		return w, h
 	end
 	local font = self.text:getFont()
 	local line_h = font:getHeight() * font:getLineHeight()
 	local pad = self.text.transform:getPadding()
-	local mw, mh = 0, math.max(self.min_height, line_h) + pad.top + pad.bottom
-	print(string.format("[TextInput.minSize] FIXED transform={%.0f,%.0f} min={%.0f,%.0f}",
-		self.transform.w, self.transform.h, mw, mh))
-	return mw, mh
+	return 0, math.max(self.min_height, line_h) + pad.top + pad.bottom
 end
 
 --- 查询 TextInput 的自然尺寸：委托内部 Text 的 measure，加上 padding 和 min_height
@@ -295,18 +294,13 @@ end
 ---@param max_h number|nil 可用高度
 ---@return table {w = number, h = number}
 function TextInput:measure(max_w, max_h)
-	-- 直接取内部 Text 的实际渲染尺寸，与 refreshHeight 同源，保证和视觉边框一致
 	local tw, th = self.text:getScaledSize()
-	th = math.max(self.min_height, th) -- min_height 作用于文本高度，然后加 padding
+	th = math.max(self.min_height, th)
 	local pad = self.text.transform:getPadding()
-	local result = {
+	return {
 		w = tw + pad.left + pad.right,
 		h = th + pad.top + pad.bottom,
 	}
-	print(string.format("[TextInput.measure] max={%s,%s} transform={%.0f,%.0f} result={%.0f,%.0f}",
-		tostring(max_w), tostring(max_h), self.transform.w, self.transform.h,
-		result.w, result.h))
-	return result
 end
 
 --------------------------------------------------
