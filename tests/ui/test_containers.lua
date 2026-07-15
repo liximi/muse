@@ -30,16 +30,19 @@ function test.create(parent)
 		bg_color = Utils.RGB(55, 58, 64),
 	}))
 
-	-- 根布局
-	local root_vbox = VBox({ separation = 12 })
+	-- 根布局：Margin → Scroll → VBox
+	local root_vbox = VBox({ auto_size = true, separation = 12, anchor = {0, 0, 1, 0} })
 	local margin = parent:addChild(Margin({
 		anchor = {0, 0, 1, 1},
 		margin_left = 12, margin_right = 12,
 		margin_top = 12, margin_bottom = 12,
 	}))
-	margin:addChild(root_vbox)
+	local scroll = margin:addChild(Scroll({
+		anchor = {0, 0, 1, 1},
+	}))
+	scroll:setItem(root_vbox)
 	margin:enableDebug(true)
-	root_vbox:enableDebug(true)
+	scroll:enableDebug(true)
 
 	root_vbox:addChild(Text({
 		text = "Godot 风格容器系统测试  |  粉色框 = 容器边界",
