@@ -271,9 +271,10 @@ function TextInput:refreshHeight()
 	local new_h = text_h + text_padding.top + text_padding.bottom
 	if h ~= new_h then
 		self.transform:setSize(w, new_h)
-		print(string.format(
-			"[TextInput] 高度变化: %.0f -> %.0f | transform.h=%.0f | minSize.h=%.0f",
-			h, new_h, self.transform.h, select(2, self:getMinimumSize())))
+		-- 通知父级容器重排：子控件尺寸变化会影响 getCombinedMinimumSize()
+		if self.parent and self.parent.queueSort then
+			self.parent:queueSort()
+		end
 	end
 end
 

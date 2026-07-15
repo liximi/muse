@@ -70,6 +70,36 @@ function BoxContainer:getMinimumSize()
 	end
 end
 
+--- 返回纯子控件推导的最小尺寸（不含 math.max(cw,ch) cap）。
+--- 供 Container._preChildrenUpdate 检测子控件尺寸变化用——
+--- 避免容器自身较大尺寸掩盖子控件增长。
+function BoxContainer:_getChildrenMinSize()
+	local along, cross = 0, 0
+	local first = true
+
+	for _, c in ipairs(self.children) do
+		if c:isShown() then
+			local mw, mh = c:getCombinedMinimumSize()
+			local child_along, child_cross
+			if self._is_horizontal then
+				child_along, child_cross = mw, mh
+			else
+				child_along, child_cross = mh, mw
+			end
+			if not first then along = along + self.separation end
+			along = along + child_along
+			cross = math.max(cross, child_cross)
+			first = false
+		end
+	end
+
+	if self._is_horizontal then
+		return along, cross
+	else
+		return cross, along
+	end
+end
+
 function BoxContainer:_sortChildren()
 	local children = self:_visibleChildren()
 	if #children == 0 then return end

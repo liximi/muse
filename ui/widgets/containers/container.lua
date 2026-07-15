@@ -87,6 +87,15 @@ function Container:_sortChildren()
 	-- 子类覆写
 end
 
+--- 返回纯子控件推导的最小尺寸（不含容器自身尺寸的 cap）。
+--- 用于 _preChildrenUpdate 中检测子控件尺寸变化。
+--- 默认委托给 getMinimumSize()；BoxContainer 需覆写以避免 math.max(children, container_size) 的掩盖效应。
+---@return number w
+---@return number h
+function Container:_getChildrenMinSize()
+	return self:getMinimumSize()
+end
+
 function Container:addChild(child)
 	Widget.addChild(self, child)
 	self:queueSort()
@@ -100,26 +109,28 @@ function Container:removeChild(child)
 end
 
 --- 在子控件 update 之前排序。Widget:_preChildrenUpdate 的覆写。
---- 缓存子控件 getMinimumSize 结果，仅在容器尺寸或子内容变化时重排，避免无效计算。
+--- 用 _getChildrenMinSize()（纯子控件最小尺寸）而非 getMinimumSize() 检测变化，
+--- 避免 BoxContainer 中 math.max(children, container_size) 将子控件增长掩盖掉。
 function Container:_preChildrenUpdate(dt)
 	local cw, ch = self.transform:getSize()
-	local min_w, min_h = self:getMinimumSize()
+	local children_min_w, children_min_h = self:_getChildrenMinSize()
 	if self._dirty
 		or cw ~= self._last_sort_w or ch ~= self._last_sort_h
-		or min_w ~= self._last_min_w or min_h ~= self._last_min_h then
+		or children_min_w ~= self._last_children_min_w
+		or children_min_h ~= self._last_children_min_h then
 		self:_sortChildren()
 		self._last_sort_w = cw
 		self._last_sort_h = ch
-		self._last_min_w = min_w
-		self._last_min_h = min_h
+		self._last_children_min_w = children_min_w
+		self._last_children_min_h = children_min_h
 		self._dirty = false
 		if self.auto_size then
 			if self._auto_size_axis == "h" then
-				if min_w > 0 then self.transform:setSize(min_w, nil) end
+				if children_min_w > 0 then self.transform:setSize(children_min_w, nil) end
 			elseif self._auto_size_axis == "v" then
-				if min_h > 0 then self.transform:setSize(nil, min_h) end
+				if children_min_h > 0 then self.transform:setSize(nil, children_min_h) end
 			else
-				if min_w > 0 or min_h > 0 then self.transform:setSize(min_w, min_h) end
+				if children_min_w > 0 or children_min_h > 0 then self.transform:setSize(children_min_w, children_min_h) end
 			end
 		end
 	end

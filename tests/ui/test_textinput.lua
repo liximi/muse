@@ -48,7 +48,7 @@ function test.create(parent)
 	}))
 
 	local ti = root:addChild(TextInput({
-		height_adaptive = true,
+		height_adaptive = false,
 		wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
 		bg = Panel(),
 		text_padding = {10, 10, 10, 10},
