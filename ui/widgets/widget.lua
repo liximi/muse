@@ -430,8 +430,8 @@ function Widget:handleEvent(event_type, ...)
 		return handler(self, ...)
 	end
 
-	-- 射线检测 fallback：仅叶子节点生效，且祖先链上有显式 handler 时不阻断
-	-- 防止子节点 Text 的 fallback 抢在父节点 Button 的 onMousePressed 之前拦截事件
+	-- 射线检测 fallback：仅叶子节点（无子节点）生效，防止容器阻断兄弟节点的传播
+	-- 即使没有显式 handler，如果开了 raycast_target 且鼠标在区域内，也阻断事件
 	if self.raycast_target and #self.children == 0 then
 		local mouse_event_types = {MousePressed = true, MouseReleased = true, MouseMoved = true, WheelMoved = true}
 		if mouse_event_types[event_type] then
@@ -443,15 +443,6 @@ function Widget:handleEvent(event_type, ...)
 				mx, my = ...
 			end
 			if mx and self:regionDetection(mx, my) then
-				-- 祖先链上有显式 handler 就别抢——让父节点处理
-				local handler_name = "on" .. event_type
-				local ancestor = self.parent
-				while ancestor do
-					if ancestor[handler_name] then
-						return false -- 不阻断，让祖先的 handler 处理
-					end
-					ancestor = ancestor.parent
-				end
 				return true
 			end
 		end

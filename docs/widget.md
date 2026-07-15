@@ -99,11 +99,14 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 
 ### 射线检测（raycast_target）
 
-`handleEvent` 对鼠标事件有 fallback 阻断机制，**仅对叶子节点（`#children == 0`）且祖先链上无显式 handler 时生效**：
+`handleEvent` 对鼠标事件有 fallback 阻断机制，**仅对叶子节点（`#children == 0`）生效**：
+即使没有显式 handler，只要 `raycast_target == true` 且鼠标在区域内，就阻断穿透。
 
-1. 叶子节点 + 无祖先 handler → fallback 阻断（防止纯展示控件穿透）
-2. 叶子节点 + 有祖先 handler → 放行，让祖先处理（防止按钮上的 Text 抢走事件）
-3. 有子节点的容器 → 不通过 fallback 阻断（依赖子节点或显式 handler）
+有子节点的容器不通过 fallback 阻断——它们依赖子节点或显式 handler。
+
+> **注意：** 按钮/复选框等交互控件的子 Text/Image 已在构造中设为
+> `raycast_target = false`，避免子节点抢走父控件的点击事件。
+> 如果你的自定义控件有类似结构，别忘了禁用子节点的 raycast。
 
 各控件默认值：
 

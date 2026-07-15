@@ -42,6 +42,7 @@ local ImageButton = Class(ButtonBase, function(self, datas, theme)
 		padding = {0, 0, 0, 0}
 	}
 	self.image = self:addChild(Image(img_datas, theme))
+	self.image.raycast_target = false -- 图片不阻断射线，让父按钮处理点击
 
 	if not datas.no_text then
 		self.text = self:addChild(Text({
@@ -57,6 +58,7 @@ local ImageButton = Class(ButtonBase, function(self, datas, theme)
 			font_size = self.state_styles.normal and self.state_styles.normal.font_size or
 				(self.theme.imagebutton and self.theme.imagebutton.normal.font_size)
 		}))
+		self.text.raycast_target = false
 	end
 end)
 

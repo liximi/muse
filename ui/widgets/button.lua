@@ -44,6 +44,7 @@ local Button = Class(ButtonBase, function(self, datas, theme)
 		font_size = self.state_styles.normal and self.state_styles.normal.font_size or
 			(self.theme.button and self.theme.button.normal.font_size)
 	}))
+	self.text.raycast_target = false -- 按钮文字不阻断射线，让父按钮处理点击
 end)
 
 --- 设置按钮在某个状态下的样式

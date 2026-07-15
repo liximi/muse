@@ -143,6 +143,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		h_align = datas.h_align,
 		v_align = datas.v_align
 	}))
+	self.text.raycast_target = false -- 文字不阻断射线，让输入框处理点击
 	if self.single_line then
 		self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)
 		-- 保存原始 padding，滚动时在此基础上叠加偏移，失焦时用此值复位
@@ -157,6 +158,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 			anchor = {0, 0, 1, 1},
 			padding = datas.text_padding or {0, 0, 0, 0}
 		}))
+		self.hint.raycast_target = false
 	end
 
 	addHoverState(self)
