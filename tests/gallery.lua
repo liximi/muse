@@ -7,6 +7,7 @@ local CollapsiblePanel = require "ui.widgets.advanced.collapsible_h_screen_edge_
 local Tween = require "dependencies.tween"
 local UiUtils = require "ui.utils"
 local Tooltip = require "ui.widgets.tooltip"
+local Checkbox = require "ui.widgets.checkbox"
 
 -- 加载所有测试模块
 local test_modules = {
@@ -95,6 +96,24 @@ local function Gallery(parent)
 	end
 	scroll:setItem(btn_list)
 	scroll:setScrollableH(total_h)
+
+	-- Canvas 缓存开关
+	local cache_toggle = left_panel:addChild(Checkbox({
+		style = "toggle",
+		label = "Canvas cache",
+		label_font_size = 11,
+		label_color = UiUtils.UI_COLORS.SECONDARY_TEXT,
+		anchor = {0, 1, 1, 1},
+		padding = {12, 0, -26, 0},
+		h = 22,
+		on_checked = function(_self, checked)
+			display_area:enableCanvasCache(checked)
+			-- 切换时强制刷新缓存
+			if checked then
+				display_area:invalidateCanvasCache()
+			end
+		end,
+	}))
 
 	--------------------------------------------------
 	-- 右侧展示画布
