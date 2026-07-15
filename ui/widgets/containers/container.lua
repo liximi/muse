@@ -15,11 +15,6 @@ local Class = require "dependencies.classic"
 
 local SZ = Utils.SIZE_FLAGS
 
--- 检查 size_flags 中是否包含某个标志位
-local function hasFlag(flags, flag)
-	return flags % (flag * 2) >= flag
-end
-
 --[[datas: 此处不包括基类所支持的字段
 	（Container 本身无额外 datas 字段，由子类定义）
 ]]
@@ -48,22 +43,22 @@ function Container:fitChildInRect(child, x, y, w, h)
 	local vf = child.v_size_flags
 
 	-- 水平 Fill/Shrink
-	if not hasFlag(hf, SZ.FILL) then
+	if not Utils.hasFlag(hf, SZ.FILL) then
 		local fw = mw
-		if hasFlag(hf, SZ.SHRINK_END) then
+		if Utils.hasFlag(hf, SZ.SHRINK_END) then
 			x = x + w - fw
-		elseif hasFlag(hf, SZ.SHRINK_CENTER) then
+		elseif Utils.hasFlag(hf, SZ.SHRINK_CENTER) then
 			x = x + math.floor((w - fw) / 2)
 		end
 		w = fw
 	end
 
 	-- 垂直 Fill/Shrink
-	if not hasFlag(vf, SZ.FILL) then
+	if not Utils.hasFlag(vf, SZ.FILL) then
 		local fh = mh
-		if hasFlag(vf, SZ.SHRINK_END) then
+		if Utils.hasFlag(vf, SZ.SHRINK_END) then
 			y = y + h - fh
-		elseif hasFlag(vf, SZ.SHRINK_CENTER) then
+		elseif Utils.hasFlag(vf, SZ.SHRINK_CENTER) then
 			y = y + math.floor((h - fh) / 2)
 		end
 		h = fh

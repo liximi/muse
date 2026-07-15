@@ -66,6 +66,12 @@ local Utils = {
 		SHRINK_CENTER = 4, -- 在分配区域内居中（需关闭 FILL）
 		SHRINK_END   = 8,  -- 在分配区域内靠右/下（需关闭 FILL）
 	},
+	-- 容器 alignment（无 EXPAND 子控件时，剩余空间的分配方向）
+	ALIGNMENT = {
+		BEGIN  = "begin",
+		CENTER = "center",
+		END    = "end",
+	},
 }
 
 --- 构造颜色对象
@@ -181,6 +187,14 @@ function Utils.validateEnum(value, enum, default, label)
 	end
 	print(string.format("%s: invalid value '%s', using default '%s'", label, tostring(value), tostring(default)))
 	return default
+end
+
+--- 检查 size_flags 中是否包含某个标志位（LuaJIT 兼容的位运算）
+---@param flags number 组合标志值
+---@param flag number 要检测的标志位（2 的幂）
+---@return boolean
+function Utils.hasFlag(flags, flag)
+	return flags % (flag * 2) >= flag
 end
 
 return Utils

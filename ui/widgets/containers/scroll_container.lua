@@ -325,6 +325,7 @@ function Scroll:onWheelMoved(x, y)
 	elseif y < 0 then
 		self:setYOffset(self.offset_y + self.sensitivity, true)
 	end
+	return true  -- 已处理，阻止冒泡到外层 Scroll
 end
 
 function Scroll:onSizeChanged(w, h)

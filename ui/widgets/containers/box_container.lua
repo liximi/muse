@@ -1,196 +1,214 @@
-local Widget = require "ui.widgets.widget"
+--------------------------------------------------
+-- BoxContainer — 线性排列子控件（水平 / 垂直）
+-- 参考 Godot scene/gui/box_container.cpp BoxContainer::_resort
+--
+-- HBoxContainer = BoxContainer({ orientation = "horizontal" })
+-- VBoxContainer = BoxContainer({ orientation = "vertical" })
+--
+-- 算法（三趟式）：
+--   第一趟：收集每个孩子的最小/期望尺寸 + 标记 EXPAND
+--   第二趟 A：先分配 desired_size（"我需要这么多"）
+--   第二趟 B：按 stretch_ratio 比例分配剩余（"我贪婪"）
+--   第三趟：fitChildInRect 逐个定位 + alignment 偏移
+--------------------------------------------------
+
+local Container = require "ui.widgets.containers.container"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-local AXIS = {
-	vertical = {
-		pos = "y",
-		size = "h",
-		alter_pos = "x",
-		alter_size = "w"
-	},
-	horizontal = {
-		pos = "x",
-		size = "w",
-		alter_pos = "y",
-		alter_size = "h"
-	}
-}
+local SZ = Utils.SIZE_FLAGS
+local ALIGN = Utils.ALIGNMENT
+local ORIENT = Utils.ORIENTATION
 
--- Flexbox 式布局容器，子元素按 flex 权重伸缩
--- 子 widget 上设置 flex_grow / flex_shrink / flex_min_size 字段来控制布局行为
---[[datas: 此处不包括基类所支持的字段
-	orientation = "vertical" | "horizontal"
-	space = number  -- 子元素间隔，默认 0
-	cross_align = "stretch" | "start" | "center" | "end"  -- 交叉轴对齐，默认 "stretch"
+--[[datas:
+	orientation = "horizontal" | "vertical"  默认 "vertical"
+	separation  = number  子控件间距，默认 0
+	alignment   = "begin" | "center" | "end"  无 EXPAND 时的整体偏移，默认 "begin"
 ]]
-local Box = Class(Widget, function(self, datas, theme)
+local BoxContainer = Class(Container, function(self, datas, theme)
 	datas = datas or {}
 	local orientation = Utils.validateEnum(
-		datas.orientation, Utils.ORIENTATION, Utils.ORIENTATION.VERTICAL, "Box.orientation")
-	self._axis = AXIS[orientation]
+		datas.orientation, ORIENT, ORIENT.VERTICAL, "BoxContainer.orientation")
+	local is_horizontal = orientation == ORIENT.HORIZONTAL
 
-	Widget.new(self, orientation == "vertical" and "BoxVContainer" or "BoxHContainer", datas, theme)
+	Container.new(self, is_horizontal and "HBoxContainer" or "VBoxContainer", datas, theme)
 
-	self.space = datas.space or 0
-	self.cross_align = Utils.validateEnum(
-		datas.cross_align, Utils.CROSS_ALIGN, Utils.CROSS_ALIGN.STRETCH, "Box.cross_align")
-	self._layout_dirty = true
-	self._in_layout = false
-
-	self:enableSizeChangedEvent(true)
+	self._is_horizontal = is_horizontal
+	self._auto_size_axis = is_horizontal and "h" or "v"
+	self.separation = datas.separation or 0
+	self.alignment = datas.alignment or ALIGN.BEGIN
 end)
 
-function Box:layout()
-	if self._in_layout then
-		return
-	end
-	self._in_layout = true
+--- 返回容器自身的最小尺寸（子控件推导 + 显式尺寸取 max）
+--- 参考 Godot box_container.cpp get_minimum_size
+function BoxContainer:getMinimumSize()
+	local along, cross = 0, 0  -- 主轴总尺寸、交叉轴最大尺寸
+	local first = true
 
-	local a = self._axis
-	local container_main = self.transform[a.size]
-	local container_cross = self.transform[a.alter_size]
-
-	-- 收集可见子元素及其首选尺寸
-	local visible = {}
-	local total_preferred = 0
-	local total_flex_grow = 0
-
-	-- cross_align=stretch 时将 cross 约束传给子元素，使其能根据宽度计算自动换行高度（如 Text）
-	local cross_constraint = (self.cross_align == "stretch") and container_cross or nil
-
-	for _, child in ipairs(self.children) do
-		if not child.shown then
-			goto continue
-		end
-		-- 用 measure() 替代 getScaledSize()：子元素根据内容 + 约束返回自然尺寸
-		local m
-		if a.pos == "x" then
-			-- 水平 Box：cross=height，约束高度
-			m = child:measure(nil, cross_constraint)
-		else
-			-- 垂直 Box：cross=width，约束宽度
-			m = child:measure(cross_constraint, nil)
-		end
-		local main_size = a.pos == "x" and m.w or m.h
-		local cross_size = a.pos == "x" and m.h or m.w
-		local entry = {
-			child = child,
-			main_size = main_size,
-			cross_size = cross_size,
-			flex_grow = child.flex_grow or 0,
-			flex_shrink = child.flex_shrink or 1,
-			min_size = child.flex_min_size or 0
-		}
-		table.insert(visible, entry)
-		total_preferred = total_preferred + main_size
-		total_flex_grow = total_flex_grow + entry.flex_grow
-		::continue::
-	end
-
-	local n = #visible
-	if n == 0 then
-		self._in_layout = false
-		return
-	end
-
-	total_preferred = total_preferred + self.space * (n - 1)
-
-	-- 计算每个元素的主轴分配尺寸
-	local remaining = container_main - total_preferred
-
-	for _, entry in ipairs(visible) do
-		if remaining > 0 and total_flex_grow > 0 then
-			-- 有剩余空间，按 flex_grow 分配
-			local extra = entry.flex_grow / total_flex_grow * remaining
-			entry.allocated = entry.main_size + extra
-		elseif remaining < 0 then
-			-- 空间不足，按 flex_shrink 压缩
-			local total_shrink = 0
-			for _, e in ipairs(visible) do
-				total_shrink = total_shrink + e.flex_shrink
+	for _, c in ipairs(self.children) do
+		if c:isShown() then
+			local mw, mh = c:getCombinedMinimumSize()
+			local child_along, child_cross
+			if self._is_horizontal then
+				child_along, child_cross = mw, mh
+			else
+				child_along, child_cross = mh, mw
 			end
-			local reduction = entry.flex_shrink / total_shrink * math.abs(remaining)
-			entry.allocated = math.max(entry.min_size, entry.main_size - reduction)
-		else
-			entry.allocated = entry.main_size
+			if not first then along = along + self.separation end
+			along = along + child_along
+			cross = math.max(cross, child_cross)
+			first = false
 		end
 	end
 
-	-- 计算交叉轴尺寸
-	for _, entry in ipairs(visible) do
-		if self.cross_align == "stretch" then
-			entry.cross_allocated = container_cross
-		else
-			entry.cross_allocated = entry.cross_size
+	-- 显式尺寸不低于推导值
+	local cw, ch = self.transform:getSize()
+	if self._is_horizontal then
+		return math.max(along, cw), math.max(cross, ch)
+	else
+		return math.max(cross, cw), math.max(along, ch)
+	end
+end
+
+function BoxContainer:_sortChildren()
+	local children = self:_visibleChildren()
+	if #children == 0 then return end
+
+	local cw, ch = self.transform.w, self.transform.h
+	local along_size, cross_size
+	if self._is_horizontal then
+		along_size, cross_size = cw, ch
+	else
+		along_size, cross_size = ch, cw
+	end
+
+	--------------------------------------------------
+	-- 第一趟：收集尺寸 + 标记 stretch
+	--------------------------------------------------
+	local cache = {}  -- { child, min, desired, stretch, final }
+	local total_min = 0
+	local desired_extra = 0
+	local stretch_avail = 0
+	local stretch_ratio_total = 0
+
+	for _, c in ipairs(children) do
+		local mw, mh = c:getCombinedMinimumSize()
+		local dw, dh = c:getDesiredSize()
+		local flags = self._is_horizontal and c.h_size_flags or c.v_size_flags
+		local min, desired = self._is_horizontal and mw or mh, self._is_horizontal and dw or dh
+
+		local entry = {
+			child = c, min = min, desired = desired,
+			stretch = Utils.hasFlag(flags, SZ.EXPAND), final = min,
+		}
+		table.insert(cache, entry)
+		total_min = total_min + min
+		if desired > min then
+			desired_extra = desired_extra + (desired - min)
+		end
+		if entry.stretch then
+			stretch_avail = stretch_avail + min
+			stretch_ratio_total = stretch_ratio_total + (c.stretch_ratio or 1)
 		end
 	end
 
-	-- 应用位置和尺寸
+	local max_space = along_size - self.separation * (#children - 1)
+	local stretch_diff = math.max(0, max_space - total_min)
+	stretch_avail = stretch_avail + stretch_diff
+
+	--------------------------------------------------
+	-- 第二趟 A：desired_size
+	--------------------------------------------------
+	if stretch_diff > 0 and desired_extra > 0 then
+		local ratio = math.min(stretch_diff / desired_extra, 1.0)
+		for _, entry in ipairs(cache) do
+			if entry.desired > entry.min then
+				local inc = math.floor((entry.desired - entry.min) * ratio)
+				if entry.stretch then
+					entry.min = entry.min + inc
+				else
+					stretch_avail = stretch_avail - inc
+				end
+				entry.final = entry.final + inc
+			end
+		end
+	end
+
+	--------------------------------------------------
+	-- 第二趟 B：stretch_ratio
+	--------------------------------------------------
+	while stretch_ratio_total > 0 do
+		local ok = true
+		for _, entry in ipairs(cache) do
+			if entry.stretch then
+				local ratio = entry.child.stretch_ratio or 1
+				local size = stretch_avail * ratio / stretch_ratio_total
+				if size < entry.min then
+					entry.stretch = false
+					stretch_ratio_total = stretch_ratio_total - ratio
+					stretch_avail = stretch_avail - entry.min
+					entry.final = entry.min
+					ok = false
+					break
+				else
+					entry.final = size
+				end
+			end
+		end
+		if ok then break end
+	end
+
+	--------------------------------------------------
+	-- alignment（无 EXPAND 时整体偏移）
+	--------------------------------------------------
+	local final_diff = max_space - total_min
+	for _, entry in ipairs(cache) do
+		final_diff = final_diff - (entry.final - entry.min)
+	end
+	final_diff = math.max(0, final_diff)
+
 	local offset = 0
-	for _, entry in ipairs(visible) do
-		local child = entry.child
-
-		-- 主轴位置
-		if a.pos == "x" then
-			child:setPosition(offset, nil)
-		else
-			child:setPosition(nil, offset)
+	if not self:_hasStretched(cache) then
+		if self.alignment == ALIGN.END then
+			offset = final_diff
+		elseif self.alignment == ALIGN.CENTER then
+			offset = math.floor(final_diff / 2)
 		end
-
-		-- 交叉轴位置
-		local cross_offset
-		if self.cross_align == "start" then
-			cross_offset = 0
-		elseif self.cross_align == "center" then
-			cross_offset = (container_cross - entry.cross_allocated) / 2
-		elseif self.cross_align == "end" then
-			cross_offset = container_cross - entry.cross_allocated
-		else
-			cross_offset = 0 -- stretch 模式，由尺寸填充
-		end
-
-		if a.pos == "x" then
-			child:setPosition(nil, cross_offset)
-		else
-			child:setPosition(cross_offset, nil)
-		end
-
-		-- 设置子元素尺寸
-		if a.pos == "x" then
-			child.transform:setSize(entry.allocated, entry.cross_allocated)
-		else
-			child.transform:setSize(entry.cross_allocated, entry.allocated)
-		end
-
-		offset = offset + entry.allocated + self.space
 	end
 
-	self._layout_dirty = false
-	self._in_layout = false
-end
+	--------------------------------------------------
+	-- 第三趟：fitChildInRect
+	--------------------------------------------------
+	for i, entry in ipairs(cache) do
+		local size = entry.final
+		-- 最后一个 EXPAND 收容舍入误差
+		if entry.stretch and i == #cache then
+			size = along_size - offset
+		end
 
-function Box:addChild(child)
-	Widget.addChild(self, child)
-	self._layout_dirty = true
-	return child
-end
-
-function Box:removeChild(child)
-	Widget.removeChild(self, child)
-	self._layout_dirty = true
-	return child
-end
-
-function Box:onUpdate(dt)
-	if self._layout_dirty then
-		self:layout()
-		self._layout_dirty = false
+		local rx, ry, rw, rh
+		if self._is_horizontal then
+			rx, ry, rw, rh = offset, 0, size, cross_size
+		else
+			rx, ry, rw, rh = 0, offset, cross_size, size
+		end
+		self:fitChildInRect(entry.child, rx, ry, rw, rh)
+		offset = offset + size + self.separation
 	end
 end
 
-function Box:onSizeChanged(w, h)
-	self._layout_dirty = true
+function BoxContainer:_hasStretched(cache)
+	for _, entry in ipairs(cache) do
+		if entry.stretch then return true end
+	end
+	return false
 end
 
-return Box
+--- 添加弹性占位符。后续子控件被推到主轴末端。
+--- 参考 Godot BoxContainer::add_spacer
+function BoxContainer:addSpacer()
+	local Spacer = require "ui.widgets.spacer"
+	return self:addChild(Spacer())
+end
+
+return BoxContainer

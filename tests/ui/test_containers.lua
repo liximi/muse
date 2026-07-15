@@ -6,8 +6,9 @@
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
-local HBox = require "ui.widgets.containers.hbox_container"
-local VBox = require "ui.widgets.containers.vbox_container"
+local Box = require "ui.widgets.containers.box_container"
+local ORIENT = Utils.ORIENTATION
+local ALIGN = Utils.ALIGNMENT
 local Margin = require "ui.widgets.containers.margin_container"
 local Center = require "ui.widgets.containers.center_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
@@ -31,7 +32,7 @@ function test.create(parent)
 	}))
 
 	-- 根布局：Margin → Scroll → VBox
-	local root_vbox = VBox({ auto_size = true, separation = 12, anchor = {0, 0, 1, 0} })
+	local root_vbox = Box({ auto_size = true, separation = 12, anchor = {0, 0, 1, 0} })
 	local margin = parent:addChild(Margin({
 		anchor = {0, 0, 1, 1},
 		margin_left = 12, margin_right = 12,
@@ -55,7 +56,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8 }))
+		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
 		hbox:enableDebug(true)
 		hbox:addChild(Button({ normal = BTN, text = "Button A" }))
 		hbox:addChild(Button({ normal = BTN, text = "Button B" }))
@@ -68,7 +69,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8 }))
+		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
 		hbox:enableDebug(true)
 
 		local b1 = hbox:addChild(Button({ normal = BTN, text = "固定" }))
@@ -89,7 +90,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local vbox = root_vbox:addChild(VBox({ h = 120, separation = 4, alignment = "center" }))
+		local vbox = root_vbox:addChild(Box({ h = 120, separation = 4, alignment = ALIGN.CENTER }))
 		vbox:enableDebug(true)
 		for i = 1, 3 do
 			local btn = vbox:addChild(Button({ normal = BTN, text = "居中 " .. i }))
@@ -121,7 +122,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8, alignment = "end" }))
+		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8, alignment = ALIGN.END }))
 		hbox:enableDebug(true)
 
 		local b1 = hbox:addChild(Button({ normal = BTN, text = "靠" }))
@@ -138,7 +139,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local vbox = root_vbox:addChild(VBox({ auto_size = true, separation = 4 }))
+		local vbox = root_vbox:addChild(Box({ auto_size = true, separation = 4 }))
 		vbox:enableDebug(true)
 		vbox:addChild(Button({ normal = BTN, text = "第一行" }))
 		vbox:addChild(Button({ normal = BTN, text = "第二行" }))
@@ -154,7 +155,7 @@ function test.create(parent)
 		local scroll = root_vbox:addChild(Scroll({ h = 120 }))
 		scroll:enableDebug(true)
 
-		local list = VBox({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
+		local list = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		scroll:setItem(list)
 		for i = 1, 10 do
 			list:addChild(Button({ normal = BTN, text = "滚动项 #" .. i }))
@@ -167,7 +168,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local hbox = root_vbox:addChild(HBox({ h = 40, separation = 8 }))
+		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
 		hbox:enableDebug(true)
 		hbox:addChild(Button({ normal = BTN, text = "左侧" }))
 		hbox:addChild(Spacer())
@@ -180,7 +181,7 @@ function test.create(parent)
 		font_size = 14, text_color = uc.PRIMARY_TEXT,
 	}))
 	do
-		local vbox = root_vbox:addChild(VBox({ h = 100, separation = 4 }))
+		local vbox = root_vbox:addChild(Box({ h = 100, separation = 4 }))
 		vbox:enableDebug(true)
 		vbox:addChild(Button({ normal = BTN, text = "顶部" }))
 		vbox:addChild(Spacer())
