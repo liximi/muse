@@ -176,14 +176,14 @@ function Widget:removeChild(child)
 end
 
 function Widget:removeAllChildren()
+	-- 先复制再遍历（destroy 会修改 self.children）
+	local copy = {}
 	for _, child in ipairs(self.children) do
-		if child._attached then
-			child:_setAttached(false)
-		end
-		child.parent = nil
-		child.transform:setParent()
+		table.insert(copy, child)
 	end
-	self.children = {}
+	for _, child in ipairs(copy) do
+		child:destroy()
+	end
 end
 
 --- 递归设置 attached 状态并触发生命周期钩子
@@ -232,17 +232,21 @@ end
 --------------------------------------------------
 
 function Widget:destroy()
+	if not self._valid then return end  -- 防止重复销毁
 	-- 先从活动树中分离（触发生命周期清理）
 	if self._attached then
 		self:_setAttached(false)
 	end
-	local temp_children = self.children
-	self:removeAllChildren()
+	local temp_children = {}
+	for _, child in ipairs(self.children) do
+		table.insert(temp_children, child)
+	end
 	for _, child in ipairs(temp_children) do
 		child:destroy()
 	end
 	if self.parent then
 		self.parent:removeChild(self)
+		-- removeChild 不调用 destroy，但我们已在上方递归销毁了子树
 	end
 	self._valid = false
 end
