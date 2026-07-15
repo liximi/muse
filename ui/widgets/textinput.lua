@@ -102,6 +102,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self._scroll_y = 0 -- 多行模式垂直滚动偏移（像素）
 	self._last_cursor_x = nil -- 上一次光标 X 坐标（用于检测光标移动，仅在移动时触发滚动跟随）
 	self._last_cursor_y = nil -- 上一次光标 Y 坐标
+	self._text_changed = false -- 文本内容变更标记（flushText 置位，onUpdate 消费）
 
 	-- 滚动条
 	self._scrollbar_w = 6
@@ -255,6 +256,7 @@ end
 function TextInput:flushText()
 	self:_invalidateWrapCache()
 	self.text:setText(table.concat(self.sections, "\n"))
+	self._text_changed = true
 end
 
 --------------------------------------------------
@@ -1324,17 +1326,19 @@ function TextInput:onUpdate(dt)
 	if self.height_adaptive then
 		self:refreshHeight()
 	end
-	-- 光标移动时自动跟随滚动（仅在光标坐标变化时触发，避免与滚轮/拖拽冲突）
+	-- 光标移动或文本变更时自动跟随滚动（事件驱动而非每帧轮询，避免与滚轮/拖拽冲突）
 	if self:isFocus() then
 		local cx = self.cursor._local_pos_cache[1]
 		local cy = self.cursor._local_pos_cache[2]
 		if self.single_line then
-			if cx ~= self._last_cursor_x then
+			if self._text_changed or cx ~= self._last_cursor_x then
+				self._text_changed = false
 				self._last_cursor_x = cx
 				self:_updateScroll()
 			end
 		else
-			if cy ~= self._last_cursor_y then
+			if self._text_changed or cy ~= self._last_cursor_y then
+				self._text_changed = false
 				self._last_cursor_y = cy
 				self:_updateScrollY()
 			end
