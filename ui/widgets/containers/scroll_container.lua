@@ -86,33 +86,12 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			anchor = {0, 0, 1, 1},
 			padding = {0, right_pad, 0, bottom_pad}
 		}))
-	function self.scroll_root.onDraw(_self)
-		local x, y, w, h, r = self.transform:getGlobalBounds()
-		love.graphics.push()
-		if r ~= 0 and r ~= Utils.TWO_PI then
-			local px, py = self.transform:getGlobalPosition()
-			love.graphics.translate(px, py)
-			love.graphics.rotate(r)
-			love.graphics.translate(-px, -py)
-		end
-		love.graphics.setScissor(x, y, w, h)
-		-- _clip_rect 向四周各扩展 CLIP_RECT_EPSILON 像素，确保 CPU 端裁剪
-		-- 不会比 GPU scissor 更激进，避免部分可见的元素被整棵子树跳过
-		_self._clip_rect = {
-			x - CLIP_RECT_EPSILON,
-			y - CLIP_RECT_EPSILON,
-			w + CLIP_RECT_EPSILON * 2,
-			h + CLIP_RECT_EPSILON * 2
-		}
-	end
-	function self.scroll_root.onPostDraw(_self)
-		love.graphics.setScissor()
-		_self._clip_rect = nil
-		love.graphics.pop()
-	end
 
-	-- 事件裁剪：鼠标事件仅当在 Scroll 可见区域内时才传播给内容子节点
-	-- 防止溢出容器边界的内容仍然响应鼠标事件
+	-- 裁剪：Scroll 自身的 onDraw/onPostDraw 管理 scissor
+	-- scroll_root 只负责布局，不碰 scissor
+	self._scissor_x, self._scissor_y, self._scissor_w, self._scissor_h = 0, 0, 0, 0
+
+	-- 事件裁剪：鼠标仅当在 Scroll 可见区域内时才传播给内容
 	local _widget_handleEvent = Widget.handleEvent
 	function self.scroll_root.handleEvent(_self, event_type, ...)
 		if event_type == "MousePressed" or event_type == "MouseMoved"
@@ -124,7 +103,6 @@ local Scroll = Class(Widget, function(self, datas, theme)
 				end
 			end
 		elseif event_type == "WheelMoved" then
-			-- WheelMoved 的 arg 是 (dx, dy)，不是坐标，用鼠标位置做判断
 			local mx, my = love.mouse.getPosition()
 			if not self:regionDetection(mx, my) then
 				return false
@@ -187,6 +165,39 @@ end)
 function Scroll:getMinimumSize()
 	local w, h = self.transform:getSize()
 	return w, h
+end
+
+function Scroll:onDraw()
+	-- 使用 scroll_root 的实际区域（排除滚动条空间）设置 scissor
+	local sx, sy, sw, sh = self.scroll_root.transform:getGlobalBounds()
+	love.graphics.push()
+	local r = self.transform:getGlobalRotation()
+	if r ~= 0 and r ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(r)
+		love.graphics.translate(-px, -py)
+	end
+	love.graphics.setScissor(sx, sy, sw, sh)
+	-- _clip_rect 设置到 scroll_root，通过 Widget:draw 传播给子控件
+	self.scroll_root._clip_rect = {
+		sx - CLIP_RECT_EPSILON,
+		sy - CLIP_RECT_EPSILON,
+		sw + CLIP_RECT_EPSILON * 2,
+		sh + CLIP_RECT_EPSILON * 2,
+	}
+end
+
+function Scroll:onPostDraw()
+	-- 恢复父级裁剪区域（而非直接清空，避免破坏外层 Scroll 的 scissor）
+	local pc = self._clip_rect
+	if pc then
+		love.graphics.setScissor(pc[1], pc[2], pc[3], pc[4])
+	else
+		love.graphics.setScissor()
+	end
+	self.scroll_root._clip_rect = nil
+	love.graphics.pop()
 end
 
 --- 设置要显示的内容
