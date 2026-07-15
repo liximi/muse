@@ -99,17 +99,47 @@ local Scroll = Class(Widget, function(self, datas, theme)
 			love.graphics.rotate(r)
 			love.graphics.translate(-px, -py)
 		end
-		love.graphics.setScissor(x, y, w, h)
-		_self._clip_rect = {
-			x - CLIP_RECT_EPSILON,
-			y - CLIP_RECT_EPSILON,
-			w + CLIP_RECT_EPSILON * 2,
-			h + CLIP_RECT_EPSILON * 2,
-		}
+		-- 保存外层 scissor，然后与外层求交集——love.graphics.setScissor() 是替换而非求交，
+		-- 必须手动取交集才能正确处理嵌套 Scroll 的裁剪
+		local prev_x, prev_y, prev_w, prev_h = love.graphics.getScissor()
+		_self._prev_scissor = {prev_x, prev_y, prev_w, prev_h}
+		if prev_w and prev_w > 0 then
+			local ix = math.max(x, prev_x)
+			local iy = math.max(y, prev_y)
+			local iw = math.min(x + w, prev_x + prev_w) - ix
+			local ih = math.min(y + h, prev_y + prev_h) - iy
+			if iw > 0 and ih > 0 then
+				love.graphics.setScissor(ix, iy, iw, ih)
+			else
+				love.graphics.setScissor(ix, iy, 0, 0)  -- 完全不可见，设为 0 区域
+			end
+			-- 同步 _clip_rect 取交集（CPU 端裁剪同样精确）
+			_self._clip_rect = {
+				ix - CLIP_RECT_EPSILON,
+				iy - CLIP_RECT_EPSILON,
+				iw + CLIP_RECT_EPSILON * 2,
+				ih + CLIP_RECT_EPSILON * 2,
+			}
+		else
+			love.graphics.setScissor(x, y, w, h)
+			_self._clip_rect = {
+				x - CLIP_RECT_EPSILON,
+				y - CLIP_RECT_EPSILON,
+				w + CLIP_RECT_EPSILON * 2,
+				h + CLIP_RECT_EPSILON * 2,
+			}
+		end
 	end
 	function self.scroll_root.onPostDraw(_self)
-		love.graphics.setScissor()
+		-- 恢复外层 scissor（可能是父 Scroll 或空）
+		local prev = _self._prev_scissor
+		if prev and prev[1] then
+			love.graphics.setScissor(unpack(prev))
+		else
+			love.graphics.setScissor()
+		end
 		_self._clip_rect = nil
+		_self._prev_scissor = nil
 		love.graphics.pop()
 	end
 
