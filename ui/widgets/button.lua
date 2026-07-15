@@ -59,20 +59,33 @@ function Button:setStateStyle(state, style)
 	self:setState(self.cur_state)
 end
 
---- 获取按钮在某个状态下的样式，会自动合并自定义样式、normal状态样式和主题样式
---- state_styles里对应状态的数据 > state_styles里normal状态的数据 > 主题里对应状态的数据 > 主题里normal状态的数据
+--- 获取按钮在某个状态下的样式，会自动合并自定义样式和主题样式
+--- 合并优先级（先到先得）：explicit state > theme state > explicit normal > theme normal
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 function Button:getStateStyle(state)
 	local style = {}
-	local t1 = {self.state_styles, self.theme.button}
-	local t2 = state == "normal" and {"normal"} or {state, "normal"}
-	for _, t in ipairs(t1) do
-		for _, s in ipairs(t2) do
-			if t[s] then
-				for k, v in pairs(t[s]) do
-					if not style[k] then
-						style[k] = v
-					end
+	if state == "normal" then
+		-- normal 状态：custom normal → theme normal
+		local sources = {self.state_styles.normal, self.theme.button and self.theme.button.normal}
+		for _, src in ipairs(sources) do
+			if src then
+				for k, v in pairs(src) do
+					if not style[k] then style[k] = v end
+				end
+			end
+		end
+	else
+		-- 非 normal 状态：custom state → theme state → custom normal → theme normal
+		local sources = {
+			self.state_styles[state],
+			self.theme.button and self.theme.button[state],
+			self.state_styles.normal,
+			self.theme.button and self.theme.button.normal,
+		}
+		for _, src in ipairs(sources) do
+			if src then
+				for k, v in pairs(src) do
+					if not style[k] then style[k] = v end
 				end
 			end
 		end

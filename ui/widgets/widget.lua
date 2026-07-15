@@ -52,11 +52,11 @@ local Widget = Class(function(self, name, datas, theme)
 		if datas.x or datas.y then
 			self.transform:setPosition(datas.x, datas.y)
 		end
-		if datas.padding then
-			self.transform:setPadding(unpack(datas.padding))
-		end
 		if datas.w or datas.h then
 			self.transform:setSize(datas.w, datas.h)
+		end
+		if datas.padding then
+			self.transform:setPadding(unpack(datas.padding))
 		end
 		if datas.sx or datas.sy then
 			self.transform:setScale(datas.sx, datas.sy)

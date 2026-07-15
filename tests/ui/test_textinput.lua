@@ -2,7 +2,7 @@ local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local TextInput = require "ui.widgets.textinput"
-local ListV = require "ui.widgets.containers.list_v_container"
+local List = require "ui.widgets.containers.list_container"
 local Utils = require "ui.utils"
 
 local test = {}
@@ -20,7 +20,8 @@ function test.create(parent)
 		padding = {0, 0, 0},
 	}))
 
-	local list = parent:addChild(ListV({
+	local list = parent:addChild(List({
+		orientation = Utils.ORIENTATION.VERTICAL,
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 28, 0},
 		space = 8,

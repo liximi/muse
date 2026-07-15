@@ -13,7 +13,7 @@ local Dropdown = require "ui.widgets.dropdown"
 local SliderBar = require "ui.widgets.sliderbar"
 local TabView = require "ui.widgets.tabview"
 local Scroll = require "ui.widgets.containers.scroll_container"
-local ListV = require "ui.widgets.containers.list_v_container"
+local List = require "ui.widgets.containers.list_container"
 local Utils = require "ui.utils"
 
 local uc = Utils.UI_COLORS
@@ -360,7 +360,8 @@ function test.create(parent)
 	table.insert(gfx_items, row)
 	setting_widgets.texture_quality = { widget = dd, type = "dropdown", default_idx = 2 }
 
-	local gfx_list = ListV({
+	local gfx_list = List({
+		orientation = Utils.ORIENTATION.VERTICAL,
 		anchor = {0, 0, 1, 0},
 		space = ROW_GAP,
 		items = gfx_items,
@@ -417,7 +418,8 @@ function test.create(parent)
 	table.insert(aud_items, row)
 	setting_widgets.mute_in_bg = { widget = cb, type = "toggle", default = false }
 
-	local aud_list = ListV({
+	local aud_list = List({
+		orientation = Utils.ORIENTATION.VERTICAL,
 		anchor = {0, 0, 1, 0},
 		space = ROW_GAP,
 		items = aud_items,
@@ -484,7 +486,8 @@ function test.create(parent)
 	table.insert(gp_items, row)
 	setting_widgets.crosshair = { widget = cb, type = "toggle", default = true }
 
-	local gp_list = ListV({
+	local gp_list = List({
+		orientation = Utils.ORIENTATION.VERTICAL,
 		anchor = {0, 0, 1, 0},
 		space = ROW_GAP,
 		items = gp_items,
@@ -539,7 +542,8 @@ function test.create(parent)
 	table.insert(acc_items, row)
 	setting_widgets.ui_scale = { widget = slider, type = "slider", default = 100 }
 
-	local acc_list = ListV({
+	local acc_list = List({
+		orientation = Utils.ORIENTATION.VERTICAL,
 		anchor = {0, 0, 1, 0},
 		space = ROW_GAP,
 		items = acc_items,

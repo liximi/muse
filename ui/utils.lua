@@ -162,6 +162,9 @@ end
 ---@param default any 非法时的回退值
 ---@param label string 调用方名称（用于警告信息）
 function Utils.validateEnum(value, enum, default, label)
+	if value == nil then
+		return default
+	end
 	for _, v in pairs(enum) do
 		if v == value then
 			return value
