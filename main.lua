@@ -52,13 +52,10 @@ local function DrawPerformanceInfo()
 	local window_w = love.graphics.getWidth()
 	local font = Fonts:getFont("default", 14)
 
-	local str = string.format("FPS: %d", FPS)
+	local str = string.format("FPS: %d  |  RAM: %.0f KB  |  Widgets: %d",
+		FPS, memo, UiManager:getWidgetCount())
 	local w = font:getWidth(str)
 	love.graphics.printf(str, font, window_w - w, -2, w)
-
-	str = string.format("RAM: %.2f kb", memo)
-	w = font:getWidth(str)
-	love.graphics.printf(str, font, window_w - w, 12, w)
 end
 function love.draw()
 	love.graphics.clear(unpack(UiUtils.UI_COLORS.BG))

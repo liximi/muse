@@ -8,6 +8,7 @@ local Manager = Class(function(self)
 	self._render_cache_dirty = true  -- 首帧强制重建渲染层缓存
 	self._layers_cache = {}
 	self._sorted_layers = {}
+	self._widget_count = 0  -- 活动 widget 总数
 end)
 
 function Manager:addWidget(widget)
@@ -39,6 +40,21 @@ end
 --- 标记渲染层缓存失效（Widget show/hide/render_layer 变更时调用）
 function Manager:invalidateRenderCache()
 	self._render_cache_dirty = true
+end
+
+--- 内部：widget 创建时计数（由 Widget:new 调用）
+function Manager:_onWidgetCreated()
+	self._widget_count = self._widget_count + 1
+end
+
+--- 内部：widget 销毁时计数（由 Widget:destroy 调用）
+function Manager:_onWidgetDestroyed()
+	self._widget_count = math.max(0, self._widget_count - 1)
+end
+
+--- 活动 widget 总数（用于性能诊断）
+function Manager:getWidgetCount()
+	return self._widget_count
 end
 
 --------------------------------------------------

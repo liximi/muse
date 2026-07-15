@@ -39,6 +39,8 @@ local Widget = Class(function(self, name, datas, theme)
 	self._attached = false  -- 生命周期：是否已加入 UiManager 活动树
 	self._debug = false
 
+	UiManager:_onWidgetCreated()
+
 	self.transform = Transform()
 	if datas then
 		if datas.pivot then
@@ -263,6 +265,7 @@ function Widget:destroy()
 		-- removeChild 不调用 destroy，但我们已在上方递归销毁了子树
 	end
 	self._valid = false
+	UiManager:_onWidgetDestroyed()
 end
 
 function Widget:isValid()
@@ -306,24 +309,6 @@ function Widget:invalidateCanvasCache()
 	-- 向上传播失效（父节点的 Canvas 包含此子树）
 	if self.parent then
 		self.parent:invalidateCanvasCache()
-	end
-end
-
---- 渲染当前 widget（不含 Canvas 缓存逻辑）供子类覆写的 Canvas 友好版本
-function Widget:_drawContent()
-	if self.onDraw then
-		self:onDraw()
-	end
-	for _, child in ipairs(self.children) do
-		if child.render_layer == self.render_layer then
-			local prev_clip = child._clip_rect
-			child._clip_rect = self._clip_rect or child._clip_rect
-			child:draw()
-			child._clip_rect = prev_clip
-		end
-	end
-	if self.onPostDraw then
-		self:onPostDraw()
 	end
 end
 
