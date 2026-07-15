@@ -179,6 +179,11 @@ function Scroll:onDraw()
 	love.graphics.setScissor(sx, sy, sw, sh)
 	if self._debug and not self._debug_printed then
 		print(string.format("[Scroll scissor] x=%.0f y=%.0f w=%.0f h=%.0f", sx, sy, sw, sh))
+		if self.item then
+			local ix, iy = self.item.transform:getGlobalPosition()
+			local iw, ih = self.item.transform:getSize()
+			print(string.format("[Scroll item]   x=%.0f y=%.0f w=%.0f h=%.0f", ix, iy, iw, ih))
+		end
 		self._debug_printed = true
 	end
 	self.scroll_root._clip_rect = {
