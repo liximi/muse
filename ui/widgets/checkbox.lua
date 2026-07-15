@@ -80,20 +80,20 @@ function Checkbox:toggle()
 	self:setChecked(not self._checked)
 end
 
--- 覆写：允许从 SELECTED/SELECTED_HOVER 状态按下（普通按钮只允许 NORMAL/HOVER）
-	-- 将点击检测限定在视觉范围内（box + label），而非整个 widget 宽度
-	function Checkbox:regionDetection(px, py)
-		if not Widget.regionDetection(self, px, py) then
-			return false
-		end
-		local lx = self.transform:screenToLocal(px, py)
-		local eff_w = self.style == "toggle" and (self.box_size * TOGGLE_WIDTH_RATIO) or self.box_size
-		if self.label then
-			eff_w = eff_w + LABEL_GAP + self.label:getDimensions()
-		end
-		return lx >= 0 and lx <= eff_w
+--- 将点击检测限定在视觉范围内（box + label），而非整个 widget 宽度
+function Checkbox:regionDetection(px, py)
+	if not Widget.regionDetection(self, px, py) then
+		return false
 	end
+	local lx = self.transform:screenToLocal(px, py)
+	local eff_w = self.style == "toggle" and (self.box_size * TOGGLE_WIDTH_RATIO) or self.box_size
+	if self.label then
+		eff_w = eff_w + LABEL_GAP + self.label:getDimensions()
+	end
+	return lx >= 0 and lx <= eff_w
+end
 
+-- 覆写：允许从 SELECTED/SELECTED_HOVER 状态按下（普通按钮只允许 NORMAL/HOVER）
 function Checkbox:onMousePressed(x, y, button)
 	if button == 1 and self:regionDetection(x, y) and (not self.fineRegionDetection or self:fineRegionDetection()) then
 		if self.cur_state ~= BTN_STATES.PRESSED and self.cur_state ~= BTN_STATES.DISABLED then

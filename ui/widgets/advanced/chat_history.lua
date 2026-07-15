@@ -1,8 +1,8 @@
 local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local Panel = require "ui.widgets.panel"
-local ListContainer = require "ui.widgets.containers.list_v_container"
-local ScrollContainer = require "ui.widgets.containers.scroll_container"
+local List = require "ui.widgets.containers.list_container"
+local Scroll = require "ui.widgets.containers.scroll_container"
 local Class = require "dependencies.classic"
 
 -- 伪常量
@@ -90,12 +90,13 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 	self.chatter_styles = {}
 	self.history = {}
 
-	self.list = ListContainer({
+	self.list = List({
+		orientation = "vertical",
 		space = datas and datas.space,
 		anchor = {0, 0, 1, 0},
 		padding = {0, CHAT_LIST_RIGHT_PAD, 0, 0}
 	})
-	self.scroll_container = self:addChild(ScrollContainer({
+	self.scroll_container = self:addChild(Scroll({
 		item = self.list,
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, 0, 0}
