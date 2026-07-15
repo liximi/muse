@@ -44,20 +44,31 @@ local obj = MyClass(arg1, arg2)
 - 将所有 LÖVE 事件（`update`, `draw`, `keypressed`, `mousemoved`, `mousepressed`, `mousereleased`, `wheelmoved`, `textinput`）分发给 widget 树
 - 事件从 hierarchy 末尾向前遍历（后添加的 widget 先收到事件），通过 `handleEvent` 递归进入子节点
 - Z 轴控制：`moveToTop` / `moveToBottom`
+- 渲染层缓存：`draw()` 缓存在 `_layers_cache`/`_sorted_layers`，仅在 `addWidget`/`removeWidget`/`show`/`hide` 或手动 `invalidateRenderCache()` 时重建
+- 生命周期：`addWidget`/`removeWidget` 通过 `_setAttached(true/false)` 递归触发子树的 `onAttached`/`onDetached`
+- Widget 计数：`_widget_count` 在 create/destroy 时增减，用于性能诊断
+- Tab 键焦点切换：`_handleTabFocus` 收集所有 `focusable` widget 循环切换
 
 获取方式：`require "ui.ui_manager":GetInstance()`
 
 **Widget** (`ui/widgets/widget.lua`) — 所有 UI 元素的基类。核心机制：
 - 持有 `Transform` 实例处理布局
 - 树形结构：`parent` / `children`，循环引用检测
-- 生命周期钩子：`onUpdate(dt)`, `onDraw()`, `onPostDraw()`, `onEnabled()`, `onDisabled()`, `onFocus()`, `onRemoveFocus()`
+- 生命周期钩子：
+  - **更新**: `onUpdate(dt)`
+  - **绘制**: `onDraw()`, `onPostDraw()`
+  - **状态**: `onEnabled()`, `onDisabled()`, `onFocus()`, `onRemoveFocus()`
+  - **活动树加入/离开**: `onAttached()`, `onDetached()`（由 UiManager 通过 `_setAttached` 递归调用，子类可覆写以管理全局资源）
 - 事件处理：事件通过 `handleEvent(event_type, ...)` 传播，**子节点先处理，然后才是自身**。如果子节点的 handler 返回 `true`，事件被拦截不再继续传播
 - 事件 handler 命名约定：LÖVE 事件名转 PascalCase 加 `on` 前缀，如 `KeyPressed` → `onKeyPressed`, `MouseMoved` → `onMouseMoved`
-- 状态标志：`enabled`, `shown`, `focus`, `_valid`
+- 状态标志：`enabled`, `shown`, `focus`, `_valid`, `_attached`（是否在 UiManager 活动树中）
+- Canvas 缓存 API：`enableCanvasCache()` / `invalidateCanvasCache()` — 适用于纯静态子树（注意：会破坏交互事件，谨慎使用）
 - `regionDetection(px, py)` — 检测屏幕坐标是否在 widget 包围盒内（考虑旋转，不考虑透明区域）
-- `enableDebug(true)` — 绘制包围盒（含 AABB 和旋转后的 bound）
+- `removeAllChildren()` — 摘除子节点，不销毁（TabView 切 tab 等需复用场景）
+- `clearChildren()` — 摘除并销毁子节点，释放 GPU 资源（场景切换等不再需要场景）
+- `enableDebug(true)` — 绘制包围盒（含 AABB 和旋转后的 bound）。**返回 self**，支持链式调用
 
-**Transform** (`ui/transform.lua`) — 每个 widget 持有一个 Transform 实例，实现类似 Unity UGUI 的 anchor-based 布局：
+**Transform** (`ui/transform.lua`) — 每个 widget 持有一个 Transform 实例（Class OOP，方法挂在 metatable 共享），实现类似 Unity UGUI 的 anchor-based 布局：
 - `anchor = {minx, miny, maxx, maxy}` — 锚点范围，0~1 百分比的父容器坐标
 - `pivot = {x, y}` — 支点，0~1 百分比的自尺寸坐标，旋转/缩放中心
 - `padding = {left, right, top, bottom}` — **唯一的真相源**（像素偏移），所有 setter 最终写入这里
@@ -72,6 +83,22 @@ local obj = MyClass(arg1, arg2)
 **Fonts** (`ui/fonts.lua`) — 字体注册表，按 key + size 懒加载并缓存 `love.graphics.Font` 对象。
 
 **Components** (`ui/components.lua`) — 可复用的行为组件，如 `addHoverState` 混入 hover 检测。
+
+### 枚举常量（`ui/utils.lua`）
+
+所有字符串枚举集中在 `Utils` 表中，避免魔法字符串拼写错误：
+
+| 常量表 | 可选值 | 使用位置 |
+|---|---|---|
+| `Utils.ORIENTATION` | `VERTICAL`, `HORIZONTAL` | List, Box, SliderBar, ProgressBar |
+| `Utils.H_ALIGN` | `LEFT`, `CENTER`, `RIGHT`, `JUSTIFY` | Text, TextInput |
+| `Utils.V_ALIGN` | `TOP`, `CENTER`, `BOTTOM` | Text, TextInput |
+| `Utils.CROSS_ALIGN` | `STRETCH`, `START`, `CENTER`, `END` | Box |
+| `Utils.CHECKBOX_STYLE` | `CHECKBOX`, `TOGGLE` | Checkbox |
+| `Utils.BTN_STATES` | `NORMAL`, `PRESSED`, `DISABLED`, `SELECTED`, `HOVER`, `SELECTED_HOVER` | ButtonBase |
+| `Utils.TEXT_WRAP_MODE` | `OFF`, `DEFAULT` | Text, TextInput |
+
+使用 `Utils.validateEnum(value, enum, default, label)` 校验输入，非法值时打印警告并回退为默认值。
 
 ### Widget 继承体系
 
@@ -91,10 +118,11 @@ Widget (基类)
 │   └── Checkbox — 复选框，继承六态 FSM，toggle 切换
 │       └── RadioButton — 单选框，覆写 onDraw 渲染圆形
 ├── TextInput — 文本输入框，光标控制、选区、剪贴板、撤销/重做
-├── Scroll — 滚动容器（ScrollContainer），含 scissor 裁剪 + 可选滑条
+├── Scroll — 滚动容器，含 scissor 裁剪 + 可选滑条
 ├── SliderBar — 滑块，支持水平/垂直，AXIS 抽象
-└── List — 列表容器（ListContainer），支持水平/垂直，脏标记布局
-    └── Box — Flexbox 式布局容器（BoxContainer），flex_grow/shrink 分配
+├── List — 列表容器，支持水平/垂直，脏标记布局 + updateItems diff 复用
+├── Box — Flexbox 式布局容器，flex_grow/shrink 分配
+├── Dropdown — 下拉选择，popup 通过 onAttached/onDetached 自动管理
 ```
 
 ### Transform 锚点模式与真相源
@@ -305,7 +333,7 @@ return MyClass
 - **`single_line` 只管 Enter 和粘贴，不管换行模式**：需显式调 `self.text:setWrapMode(Utils.TEXT_WRAP_MODE.OFF)` 才能真正阻止文字折行
 - **`height_adaptive` 的 `min_height` 应用顺序**：`max(min_height, text_h) + padding`，不是 `max(min_height, text_h + padding)`。`measure()` 必须和 `refreshHeight()` 用同一公式，否则 ListV 布局和实际渲染高度不一致
 - **失焦不会自动清选区**：`onRemoveFocus` 里需手动调 `_clearSelection()`，否则失焦后蓝色高亮残留
-- **`enableDebug(true)` 不支持方法链**：要链式调用的地方需要先取引用再调，或套一层包装
+- **getWrap 缓存**：`_getSectionWrap(i)` 缓存每段落的换行结果，`flushText` 时失效。避免每次光标移动都重算全文换行
 
 ### Scroll
 
@@ -314,8 +342,12 @@ return MyClass
 
 ### 通用
 
-- **`Widget:enableDebug()` 之前没有 `return self`**，`Widget({...}):enableDebug(true)` 返回 `nil`。需要链式调用时注意
+- **`Widget:enableDebug()` 返回 `self`**，`Widget({...}):enableDebug(true)` 支持链式调用
 - **事件传播是"子节点优先，兄弟间从后往前"**：后 `addChild` 的先收到事件。`handleEvent` 返回 `true` 才拦截，返回 `nil` 会继续传播
+- **`parent_should_update=false` 时跳过整棵子树**：隐藏/禁用祖先不再递归子节点的 transform 检测和 onUpdate。子节点自身禁用的仍传播给活跃孙节点
+- **`removeAllChildren` vs `clearChildren`**：前者只摘除不销毁（TabView 复用），后者调 `destroy()` 递归释放 GPU
+- **Widget 生命周期**：`onAttached`/`onDetached` 在 Widget 进入/离开 UiManager 活动树时触发。Dropdown 用此管理 popup；Tooltip 是无父节点的独立 widget，构造时直接自注册
 - **`regionDetection` 对 Text 使用 `Widget:getGlobalScaledSize()`（虚方法）**：Text 覆写返回文本实际尺寸，所以鼠标碰撞检测正常。但 Transform 本地的 `getGlobalBounds()` 对 Text 仍然返回 `w=0`，不要在用 debug 框判断 Text 尺寸时被误导
 - **`UiManager` 事件方法返回 `bool`**：外部可据此判断事件是否被 UI 消费（`true`=被处理/遮挡，`false`=穿透到空白）。`MousePressed` 的 `clearFocus` 不计入返回值
+- **FPS 与 Widget 数量正相关**：每个 widget 每帧执行 transform 脏检测 + draw call。预期 ~300fps@50 widgets。大批量时考虑虚拟滚动或减少可见 widget
 
