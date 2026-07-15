@@ -351,3 +351,7 @@ return MyClass
 - **`UiManager` 事件方法返回 `bool`**：外部可据此判断事件是否被 UI 消费（`true`=被处理/遮挡，`false`=穿透到空白）。`MousePressed` 的 `clearFocus` 不计入返回值
 - **FPS 与 Widget 数量正相关**：每个 widget 每帧执行 transform 脏检测 + draw call。预期 ~300fps@50 widgets。大批量时考虑虚拟滚动或减少可见 widget
 
+### 跨平台命令注意
+
+- **禁止使用 `>nul` / `2>nul` 重定向**：Windows bash（Git Bash / MSYS2）中 `nul` 不是空设备，会创建字面文件 `nul`。应使用 `>/dev/null` 或 `2>/dev/null`。
+
