@@ -142,7 +142,7 @@ function test.create(parent)
 		font_size = 11,
 		text_color = uc.SECONDARY_TEXT,
 	}))
-	vi_box:addChild(ProgressBar({
+	local vi_bar = vi_box:addChild(ProgressBar({
 		orientation = ORIENT.VERTICAL,
 		value = 0.5,
 		interactive = true,
@@ -152,6 +152,7 @@ function test.create(parent)
 			vi_label:setText(string.format("%.0f%%", val * 100))
 		end,
 	}))
+	vi_bar.v_size_flags = SZ.FILL + SZ.EXPAND  -- 占满 VBox 剩余高度
 
 	root:addChild(sec4)
 end
