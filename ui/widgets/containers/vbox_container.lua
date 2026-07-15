@@ -51,7 +51,7 @@ function VBoxContainer:getMinimumSize()
 		end
 	end
 
-	return max_w, total_h
+	return math.max(max_w, self.transform.w), math.max(total_h, self.transform.h)
 end
 
 function VBoxContainer:_sortChildren()

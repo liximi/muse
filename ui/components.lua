@@ -32,10 +32,8 @@ function Components.applyButtonTextStyle(button, new_style)
 	if not button.text then
 		return
 	end
-	local new_text = new_style.text
-	if new_text then
-		button.text:setText(new_text)
-	end
+	-- 注意：text 本身不在样式中管理 —— 按钮文字由 setText() / 构造参数控制，
+	-- 状态切换只改变颜色和字号，不改变文字内容。
 	local new_text_color = new_style.text_color
 	if new_text_color then
 		button.text:setTextColor(new_text_color)

@@ -55,6 +55,16 @@ function Button:getMinimumSize()
 	return tw + BUTTON_TEXT_PADDING * 2, th + BUTTON_TEXT_PADDING * 2
 end
 
+--- 设置按钮文字。文字不受状态切换影响。
+function Button:setText(t)
+	self.text:setText(t)
+end
+
+--- 获取按钮文字
+function Button:getText()
+	return self.text:getText(true)
+end
+
 --- 设置按钮在某个状态下的样式
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 ---@param style Utils.newButtonStateStyle 配置信息表 
@@ -69,34 +79,27 @@ end
 
 --- 获取按钮在某个状态下的样式，会自动合并自定义样式和主题样式
 --- 合并优先级（先到先得）：explicit state > theme state > explicit normal > theme normal
+--- 注意：text 字段不参与合并 —— 按钮文字由 setText() / 构造参数独立管理
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 function Button:getStateStyle(state)
+	local function mergeSource(style, src)
+		if not src then return end
+		for k, v in pairs(src) do
+			if k ~= "text" and not style[k] then  -- text 不参与样式合并
+				style[k] = v
+			end
+		end
+	end
+
 	local style = {}
 	if state == "normal" then
-		-- normal 状态：custom normal → theme normal
-		local sources = {self.state_styles.normal, self.theme.button and self.theme.button.normal}
-		for _, src in ipairs(sources) do
-			if src then
-				for k, v in pairs(src) do
-					if not style[k] then style[k] = v end
-				end
-			end
-		end
+		mergeSource(style, self.state_styles.normal)
+		mergeSource(style, self.theme.button and self.theme.button.normal)
 	else
-		-- 非 normal 状态：custom state → theme state → custom normal → theme normal
-		local sources = {
-			self.state_styles[state],
-			self.theme.button and self.theme.button[state],
-			self.state_styles.normal,
-			self.theme.button and self.theme.button.normal,
-		}
-		for _, src in ipairs(sources) do
-			if src then
-				for k, v in pairs(src) do
-					if not style[k] then style[k] = v end
-				end
-			end
-		end
+		mergeSource(style, self.state_styles[state])
+		mergeSource(style, self.theme.button and self.theme.button[state])
+		mergeSource(style, self.state_styles.normal)
+		mergeSource(style, self.theme.button and self.theme.button.normal)
 	end
 	return style
 end

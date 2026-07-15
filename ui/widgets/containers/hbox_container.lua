@@ -52,7 +52,7 @@ function HBoxContainer:getMinimumSize()
 		end
 	end
 
-	return total_w, max_h
+	return math.max(total_w, self.transform.w), math.max(max_h, self.transform.h)
 end
 
 function HBoxContainer:_sortChildren()
