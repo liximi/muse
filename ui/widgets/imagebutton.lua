@@ -71,6 +71,9 @@ function ImageButton:setStateStyle(state, style)
 		return
 	end
 	self.state_styles[state] = style
+	if style.text then
+		self:setText(style.text)
+	end
 	self:setState(self.cur_state)
 end
 

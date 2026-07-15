@@ -303,6 +303,7 @@ function Dropdown:select(index)
 	end
 	self.selected_index = index
 	self.trigger:setStateStyle("normal", Utils.newButtonStateStyle(self:_getDisplayText()))
+	self.trigger:setText(self:_getDisplayText())
 	-- 仅更新按钮高亮，不重建列表（保留滚动位置）
 	self:_updateItemStyles()
 	self:_close()
@@ -323,6 +324,7 @@ function Dropdown:setOptions(options, selected_index)
 	self.options = options or {}
 	self.selected_index = selected_index or 1
 	self.trigger:setStateStyle("normal", Utils.newButtonStateStyle(self:_getDisplayText()))
+	self.trigger:setText(self:_getDisplayText())
 	self:_buildItems()
 	if self._is_open then
 		self:_close()

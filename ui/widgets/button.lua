@@ -65,15 +65,19 @@ function Button:getText()
 	return self.text:getText(true)
 end
 
---- 设置按钮在某个状态下的样式
+--- 设置按钮在某个状态下的样式。如果样式中包含 text 字段，自动更新按钮文字。
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
----@param style Utils.newButtonStateStyle 配置信息表 
+---@param style Utils.newButtonStateStyle 配置信息表
 function Button:setStateStyle(state, style)
 	if not BTN_STATES[string.upper(state)] then
 		print("Button:setStateStyle|Invalid state:", state)
 		return
 	end
 	self.state_styles[state] = style
+	-- 样式中包含 text 时自动更新按钮文字（兼容 setStateStyle 改变文本的旧用法）
+	if style.text then
+		self:setText(style.text)
+	end
 	self:setState(self.cur_state)
 end
 
