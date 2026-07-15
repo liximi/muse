@@ -176,7 +176,21 @@ function Widget:removeChild(child)
 end
 
 function Widget:removeAllChildren()
-	-- 先复制再遍历（destroy 会修改 self.children）
+	for _, child in ipairs(self.children) do
+		if child._attached then
+			child:_setAttached(false)
+		end
+		child.parent = nil
+		child.transform:setParent()
+	end
+	self.children = {}
+end
+
+--- 移除并销毁所有子节点（释放 GPU 资源）。
+--- 与 removeAllChildren 不同，此方法会递归调用 destroy()，彻底清理。
+--- 仅用于不再需要子节点的场景（如测试切换、面板重建）。
+--- TabView/List 等需要复用内容的场景请用 removeAllChildren。
+function Widget:clearChildren()
 	local copy = {}
 	for _, child in ipairs(self.children) do
 		table.insert(copy, child)

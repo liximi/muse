@@ -6,6 +6,7 @@ local Scroll = require "ui.widgets.containers.scroll_container"
 local CollapsiblePanel = require "ui.widgets.advanced.collapsible_h_screen_edge_panel"
 local Tween = require "dependencies.tween"
 local UiUtils = require "ui.utils"
+local Tooltip = require "ui.widgets.tooltip"
 
 -- 加载所有测试模块
 local test_modules = {
@@ -159,6 +160,10 @@ local function Gallery(parent)
 		end
 		current_test = index
 		gallery_btns[index]:setSelected(true)
+
+		-- 销毁旧测试场景的所有 widget（释放 GPU 资源）
+		display_area:clearChildren()
+		Tooltip.destroyAll()
 
 		local mod = test_modules[index]
 		if mod and mod.create then
