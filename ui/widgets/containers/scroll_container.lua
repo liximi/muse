@@ -168,14 +168,10 @@ function Scroll:getMinimumSize()
 end
 
 function Scroll:onDraw()
-	-- scissor = Scroll 自身固定可见区域（排除滚动条空间），不随内容滚动
+	-- scissor = Scroll 自身固定可见区域，不随内容滚动
+	-- 不扣除滑条空间——滑条自身渲染在 Widget:draw 的 children 阶段，
+	-- 位于 onDraw 之后、onPostDraw 之前，需要在 scissor 范围内才能显示
 	local sx, sy, sw, sh, r = self.transform:getGlobalBounds()
-	if self.enable_scroll_v then
-		sw = sw - self._v_bar_w - DEFAULT_SCROLLBAR_GAP
-	end
-	if self.enable_scroll_h then
-		sh = sh - self._h_bar_h - DEFAULT_SCROLLBAR_GAP
-	end
 	love.graphics.push()
 	if r ~= 0 and r ~= Utils.TWO_PI then
 		local px, py = self.transform:getGlobalPosition()
