@@ -100,6 +100,15 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.single_line = datas.single_line == true
 	self._scroll_x = 0 -- 单行模式水平滚动偏移（像素）
 	self._scroll_y = 0 -- 多行模式垂直滚动偏移（像素）
+
+	-- 滚动条
+	self._scrollbar_w = 6
+	self._scrollbar_track_color = {0.15, 0.15, 0.15, 0.3}
+	self._scrollbar_thumb_color = {0.45, 0.45, 0.45, 0.65}
+	self._is_dragging_scrollbar = false
+	self._scrollbar_drag_start_y = 0
+	self._scrollbar_drag_start_offset = 0
+
 	self.onSubmit = datas.on_submit
 
 	if datas.bg then
@@ -1175,6 +1184,15 @@ function TextInput:onMousePressed(x, y, button)
 	end
 	local is_in_scope = self:regionDetection(x, y)
 	local is_focus = self:isFocus()
+
+	-- 滚动条优先：点击在滚动条区域内 → 处理滚动
+	if is_in_scope and self:_tryHandleScrollbarClick(x, y) then
+		if not is_focus then
+			self:setFocus()
+		end
+		return true
+	end
+
 	if is_in_scope then
 		self:_breakUndoGroup()
 		self:setCursorPosByScreenPos(x, y)
@@ -1192,7 +1210,66 @@ function TextInput:onMousePressed(x, y, button)
 	end
 end
 
+--- 尝试处理滚动条点击。返回 true 表示命中滚动条区域（应跳过文本选区逻辑）。
+function TextInput:_tryHandleScrollbarClick(x, y)
+	if self.single_line then return false end
+
+	local total_lines = self:_getTotalWrappedLines()
+	local font = self.text:getFont()
+	local line_h = font:getHeight() * font:getLineHeight()
+	local total_h = total_lines * line_h
+	local visible_h = self.transform.h - self._text_pad_top - self._text_pad_bottom
+	local max_scroll = math.max(0, total_h - visible_h)
+	if max_scroll <= 0 then return false end
+
+	local gx, gy, gw, gh = self.transform:getGlobalAABB()
+	local bar_x = gx + gw - self._scrollbar_w
+
+	-- 鼠标不在滚动条区域内
+	if x < bar_x or x > bar_x + self._scrollbar_w then return false end
+	if y < gy or y > gy + gh then return false end
+
+	local track_h = gh
+	local thumb_h = math.max(16, (visible_h / total_h) * track_h)
+	local thumb_y = gy + (self._scroll_y / max_scroll) * (track_h - thumb_h)
+
+	if y >= thumb_y and y <= thumb_y + thumb_h then
+		-- 命中滑块 → 开始拖拽
+		self._is_dragging_scrollbar = true
+		self._scrollbar_drag_start_y = y
+		self._scrollbar_drag_start_offset = self._scroll_y
+	else
+		-- 命中轨道空白区 → 跳转到该位置
+		local target_ratio = (y - gy - thumb_h / 2) / (track_h - thumb_h)
+		target_ratio = math.max(0, math.min(1, target_ratio))
+		self._scroll_y = target_ratio * max_scroll
+		self:_applyScroll()
+	end
+	return true
+end
+
 function TextInput:onMouseMoved(x, y, dx, dy)
+	-- 滚动条拖拽
+	if self._is_dragging_scrollbar then
+		local total_lines = self:_getTotalWrappedLines()
+		local font = self.text:getFont()
+		local line_h = font:getHeight() * font:getLineHeight()
+		local total_h = total_lines * line_h
+		local visible_h = self.transform.h - self._text_pad_top - self._text_pad_bottom
+		local max_scroll = math.max(0, total_h - visible_h)
+		if max_scroll > 0 then
+			local _, gy, _, gh = self.transform:getGlobalAABB()
+			local track_h = gh
+			local thumb_h = math.max(16, (visible_h / total_h) * track_h)
+			local dy_screen = y - self._scrollbar_drag_start_y
+			local dy_content = dy_screen / (track_h - thumb_h) * max_scroll
+			self._scroll_y = math.max(0, math.min(max_scroll,
+				self._scrollbar_drag_start_offset + dy_content))
+			self:_applyScroll()
+		end
+		return true
+	end
+	-- 文本选区拖拽
 	if self._is_dragging then
 		-- 将鼠标坐标钳制在 TextInput 包围盒内，拖出框外时光标仍能跟到边界
 		local gx, gy, gw, gh = self.transform:getGlobalAABB()
@@ -1206,6 +1283,7 @@ end
 function TextInput:onMouseReleased(x, y, button)
 	if button == 1 then
 		self._is_dragging = false
+		self._is_dragging_scrollbar = false
 	end
 end
 
@@ -1445,7 +1523,49 @@ function TextInput:onPostDraw()
 		love.graphics.line(top_x, top_y, top_x, bottom_y)
 		love.graphics.pop()
 	end
+	-- 绘制滚动条（多行模式，内容超出可见区域时）
+	self:_drawScrollbar()
+
 	love.graphics.setScissor()
+	love.graphics.pop()
+end
+
+--- 绘制垂直滚动条（轨道 + 滑块）
+function TextInput:_drawScrollbar()
+	if self.single_line then return end
+
+	local total_lines = self:_getTotalWrappedLines()
+	local font = self.text:getFont()
+	if not font then return end
+	local line_h = font:getHeight() * font:getLineHeight()
+	local total_h = total_lines * line_h
+	local visible_h = self.transform.h - self._text_pad_top - self._text_pad_bottom
+	local max_scroll = math.max(0, total_h - visible_h)
+	if max_scroll <= 0 then return end
+
+	local gx, gy, gw, gh, gr = self.transform:getGlobalBounds()
+
+	love.graphics.push()
+	if gr ~= 0 and gr ~= Utils.TWO_PI then
+		local px, py = self.transform:getGlobalPosition()
+		love.graphics.translate(px, py)
+		love.graphics.rotate(gr)
+		love.graphics.translate(-px, -py)
+	end
+
+	local track_x = gx + gw - self._scrollbar_w
+	local track_y = gy
+	local track_h = gh
+	local thumb_h = math.max(16, (visible_h / total_h) * track_h)
+	local thumb_y = track_y + (self._scroll_y / max_scroll) * (track_h - thumb_h)
+
+	-- 轨道
+	love.graphics.setColor(unpack(self._scrollbar_track_color))
+	love.graphics.rectangle("fill", track_x, track_y, self._scrollbar_w, track_h)
+	-- 滑块
+	love.graphics.setColor(unpack(self._scrollbar_thumb_color))
+	love.graphics.rectangle("fill", track_x, thumb_y, self._scrollbar_w, thumb_h)
+
 	love.graphics.pop()
 end
 
