@@ -1,6 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local Image = require "ui.widgets.image"
+local Panel = require "ui.widgets.panel"
 local NineSlice = require "ui.widgets.nineslice"
 local Utils = require "ui.utils"
 
@@ -9,6 +10,10 @@ test.name = "NineSlice"
 
 function test.create(parent)
 	parent:removeAllChildren()
+
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
+	}))
 
 	local tex = love.graphics.newImage("assets/example_image_128x128.png")
 	-- center_padding: 32px 的边框保持原始大小，中间 64×64 区域被拉伸

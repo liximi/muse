@@ -1,6 +1,6 @@
 --------------------------------------------------
 -- CenterContainer — 将所有子控件居中放置
--- 参考 Godot scene/gui/center_container.cpp
+-- scene/gui/center_container.cpp
 --
 -- 子控件保持在最小尺寸，水平和垂直均居中于容器内。
 --------------------------------------------------
@@ -30,7 +30,7 @@ function CenterContainer:getMinimumSize()
 end
 
 function CenterContainer:_sortChildren()
-	-- 参考 Godot center_container.cpp _notification(NOTIFICATION_SORT_CHILDREN)
+	-- center_container.cpp _notification(NOTIFICATION_SORT_CHILDREN)
 	for _, c in ipairs(self:_visibleChildren()) do
 		local mw, mh = c:getCombinedMinimumSize()
 		local w = self.transform.w

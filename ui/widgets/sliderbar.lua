@@ -145,6 +145,12 @@ local SliderBar = Class(Widget, function(self, datas, theme)
 	self:_updateBlockRounding()
 end)
 
+--- 报告最小尺寸（容器布局需要）
+function SliderBar:getMinimumSize()
+	local w, h = self.transform:getSize()
+	return w, h
+end
+
 function SliderBar:setValue(val)
 	updateValueInternal(self, val, false, true)
 end

@@ -1,5 +1,5 @@
 --------------------------------------------------
--- Container 基类 — 参考 Godot scene/gui/container.cpp
+-- Container 基类 — scene/gui/container.cpp
 --
 -- 核心契约：子控件进入 Container 后放弃自主定位权，
 -- 由容器的 _sortChildren() 统一管理位置和尺寸。
@@ -31,7 +31,7 @@ function Container:queueSort()
 end
 
 --- 将子控件放入给定的矩形区域内，根据其 size_flags 决定 Fill/Shrink 行为。
---- 参考 Godot container.cpp:130 fit_child_in_rect
+--- container.cpp:130 fit_child_in_rect
 ---@param child Widget
 ---@param x number 矩形左上角 X
 ---@param y number 矩形左上角 Y
@@ -69,7 +69,7 @@ function Container:fitChildInRect(child, x, y, w, h)
 end
 
 --- 返回可见且可排序的子控件列表（排除非 Control、隐藏、top_level）。
---- 参考 Godot container.cpp as_sortable_control
+--- container.cpp as_sortable_control
 ---@return Widget[]
 function Container:_visibleChildren()
 	local result = {}
@@ -82,7 +82,7 @@ function Container:_visibleChildren()
 end
 
 --- 子类覆写此方法实现具体布局逻辑。
---- 参考 Godot box_container.cpp _resort
+--- box_container.cpp _resort
 function Container:_sortChildren()
 	-- 子类覆写
 end

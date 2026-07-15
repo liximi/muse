@@ -1,6 +1,6 @@
 --------------------------------------------------
 -- MarginContainer — 在子控件四周附加像素边距
--- 参考 Godot scene/gui/margin_container.cpp
+-- scene/gui/margin_container.cpp
 --
 -- 最简单的容器：自身尺寸减去四边 margin 后，
 -- 把子控件放入剩余区域。
@@ -25,7 +25,7 @@ local MarginContainer = Class(Container, function(self, datas, theme)
 end)
 
 --- 最小尺寸 = 子控件最小尺寸 + 四边 margin
---- 参考 Godot margin_container.cpp get_minimum_size
+--- margin_container.cpp get_minimum_size
 function MarginContainer:getMinimumSize()
 	local mw, mh = 0, 0
 	for _, c in ipairs(self.children) do
@@ -40,7 +40,7 @@ function MarginContainer:getMinimumSize()
 end
 
 function MarginContainer:_sortChildren()
-	-- 参考 Godot margin_container.cpp _notification(NOTIFICATION_SORT_CHILDREN)
+	-- margin_container.cpp _notification(NOTIFICATION_SORT_CHILDREN)
 	local w = self.transform.w - self.margin_left - self.margin_right
 	local h = self.transform.h - self.margin_top - self.margin_bottom
 

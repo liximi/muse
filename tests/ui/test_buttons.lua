@@ -1,8 +1,18 @@
-local Widget = require "ui.widgets.widget"
+--------------------------------------------------
+-- Button / ImageButton 测试场景 — 使用容器布局
+--------------------------------------------------
+
+local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
 local ImageButton = require "ui.widgets.imagebutton"
+local Box = require "ui.widgets.containers.box_container"
+local Margin = require "ui.widgets.containers.margin_container"
 local Utils = require "ui.utils"
+
+local ORIENT = Utils.ORIENTATION
+local ALIGN = Utils.ALIGNMENT
+local uc = Utils.UI_COLORS
 
 local test = {}
 test.name = "Button / ImageButton"
@@ -10,156 +20,136 @@ test.name = "Button / ImageButton"
 function test.create(parent)
 	parent:removeAllChildren()
 
-	parent:addChild(Text({
-		text = "Buttons — 6 种状态 + 选中切换 + ImageButton",
-		font_size = 14, h = 20,
-		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
-		anchor = {0, 0, 1, 0}, padding = {0, 0, 0},
+	-- 背景
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
+	}))
+
+	local margin = parent:addChild(Margin({
+		anchor = {0, 0, 1, 1},
+		margin_left = 20, margin_right = 20,
+		margin_top = 16, margin_bottom = 16,
+	}))
+
+	local root = margin:addChild(Box({ separation = 14 }))
+
+	-- 辅助：创建带标签的 section
+	local function section(title)
+		local box = Box({ separation = 6 })
+		box:addChild(Text({
+			text = title,
+			font_size = 12,
+			text_color = uc.HINT,
+		}))
+		return box
+	end
+
+	--------------------------------------------------
+	-- 标题
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "Button / ImageButton — 6 种状态 + 选中切换",
+		font_size = 18,
 	}))
 
 	--------------------------------------------------
-	-- Row 1: 四种预设状态
+	-- 1. 四种预设状态
 	--------------------------------------------------
-	local row1 = parent:addChild(Widget({
-		anchor = {0, 0, 1, 0}, padding = {0, 0, 28, 0}, h = 36,
-	}))
+	local sec1 = section("四种预设状态")
+	local row1 = sec1:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 36, separation = 12 }))
 
-	-- Normal
 	row1:addChild(Button({
-		normal = Utils.newButtonStateStyle("Normal", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		anchor = {0, 0, 0.23, 1}, padding = {0, 2, 0, 0},
+		text = "Normal",
 		on_click = function() print("Normal clicked") end,
 	}))
 
-	-- Hover (preset to hover state)
 	local btn_hover = row1:addChild(Button({
-		normal = Utils.newButtonStateStyle("Hover", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, nil, nil, {0, -1}),
-		anchor = {0.25, 0, 0.48, 1}, padding = {0, 2, 0, 0},
+		text = "Hover",
+		hover = Utils.newButtonStateStyle(nil, nil, nil, uc.BTN_HOVER, nil, nil, {0, -1}),
 	}))
 	btn_hover:setState(Utils.BTN_STATES.HOVER)
 
-	-- Selected
-	local btn_sel = row1:addChild(Button({
-		normal = Utils.newButtonStateStyle("Selected", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		selected = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED, 1, Utils.UI_COLORS.ACCENT),
-		selected_hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
-		anchor = {0.5, 0, 0.73, 1}, padding = {0, 2, 0, 0},
-		on_click = function(_self)
-			local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
-			_self:setSelected(not is_sel)
-		end,
+	local btn_selected = row1:addChild(Button({
+		text = "Selected",
+		selected = Utils.newButtonStateStyle(nil, uc.TITLE, nil, uc.BTN_SELECTED, 1, uc.ACCENT),
+		selected_hover = Utils.newButtonStateStyle(nil, nil, nil, uc.BTN_SELECTED_HOVER, 1, uc.ACCENT_LIGHT),
 	}))
-	btn_sel:setSelected(true)
+	btn_selected:setState(Utils.BTN_STATES.SELECTED)
 
-	-- Disabled
-	local btn_dis = row1:addChild(Button({
-		normal = Utils.newButtonStateStyle("Disabled", Utils.UI_COLORS.SECONDARY_TEXT, nil, Utils.UI_COLORS.BTN_DISABLED, nil, nil, nil, nil, 4),
-		anchor = {0.75, 0, 1, 1}, padding = {0, 2, 0, 2},
+	local btn_disabled = row1:addChild(Button({
+		text = "Disabled",
+		normal = Utils.newButtonStateStyle("Disabled", uc.SECONDARY_TEXT, nil, uc.BTN_DISABLED, nil, nil, nil, nil, 4),
 	}))
-	btn_dis:disable()
+	btn_disabled:disable()
+
+	root:addChild(sec1)
 
 	--------------------------------------------------
-	-- Row 2: Toggle + 说明
+	-- 2. 切换按钮 (Toggle)
 	--------------------------------------------------
-	local row2 = parent:addChild(Widget({
-		anchor = {0, 0, 1, 0}, padding = {0, 0, 72, 0}, h = 36,
-	}))
+	local sec2 = section("切换按钮 (Toggle) — 点击切换选中状态")
+	local row2 = sec2:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 36, separation = 12 }))
 
-	local btn_toggle = row2:addChild(Button({
-		normal = Utils.newButtonStateStyle("Toggle: OFF", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		selected = Utils.newButtonStateStyle("Toggle: ON", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED, 1, Utils.UI_COLORS.ACCENT),
-		selected_hover = Utils.newButtonStateStyle("Toggle: ON", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_SELECTED_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
-		anchor = {0, 0, 0.5, 1}, padding = {0, 2, 0, 0},
+	local toggle_btn = row2:addChild(Button({
+		text = "Toggle: OFF",
+		selected = Utils.newButtonStateStyle("Toggle: ON", uc.TITLE, nil, uc.BTN_SELECTED, 1, uc.ACCENT),
+		selected_hover = Utils.newButtonStateStyle("Toggle: ON", uc.TITLE, nil, uc.BTN_SELECTED_HOVER, 1, uc.ACCENT_LIGHT),
 		on_click = function(_self)
 			local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
 			_self:setSelected(not is_sel)
 		end,
 	}))
 
-	row2:addChild(Text({
-		text = "← 点击切换 SELECTED 状态，再点切回",
-		font_size = 12, h = 14,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0.52, 0, 1, 0}, padding = {16, 0, 8, 0},
-		v_align = "center",
-	}))
+	root:addChild(sec2)
 
 	--------------------------------------------------
-	-- Row 3: 回调演示
+	-- 3. 事件回调
 	--------------------------------------------------
-	local row3 = parent:addChild(Widget({
-		anchor = {0, 0, 1, 0}, padding = {0, 0, 116, 0}, h = 36,
+	local sec3 = section("事件回调")
+	local row3 = sec3:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 36, separation = 12 }))
+
+	row3:addChild(Button({
+		text = "onClick → print",
+		on_click = function() print("Button onClick fired!") end,
 	}))
 
 	row3:addChild(Button({
-		normal = Utils.newButtonStateStyle("onClick → print", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		anchor = {0, 0, 0.45, 1}, padding = {0, 2, 0, 0},
-		on_click = function()
-			print("Button: onClick fired!")
-		end,
+		text = "onPressed → print",
+		on_pressed = function() print("Button onPressed fired!") end,
 	}))
 
-	row3:addChild(Button({
-		normal = Utils.newButtonStateStyle("onPressed → print", Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-		anchor = {0.5, 0, 1, 1}, padding = {0, 2, 0, 0},
-		on_pressed = function(_self, x, y)
-			print("Button: onPressed at", x, y)
-		end,
-	}))
+	root:addChild(sec3)
 
 	--------------------------------------------------
-	-- Row 4: ImageButton 演示
+	-- 4. ImageButton
 	--------------------------------------------------
-	local tex = love.graphics.newImage("assets/example_image_128x128.png")
+	local sec4 = section("ImageButton — 纯图标按钮")
+	local row4 = sec4:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 80, separation = 16, alignment = ALIGN.BEGIN }))
 
-	local row4 = parent:addChild(Widget({
-		anchor = {0, 0, 1, 0}, padding = {0, 0, 160, 0}, h = 80,
-	}))
+	-- 加载示例图片（如不可用则跳过）
+	local tex_path = "assets/example_image_128x128.png"
+	local tex = love.filesystem.getInfo(tex_path) and love.graphics.newImage(tex_path)
+	if tex then
+		row4:addChild(ImageButton({
+			h = 48,
+			normal = Utils.newImageButtonStateStyle(tex, nil, "Icon A"),
+			on_click = function() print("ImageButton A clicked") end,
+		}))
 
-	row4:addChild(Text({
-		text = "ImageButton：",
-		font_size = 12, h = 16,
-		text_color = Utils.UI_COLORS.PRIMARY_TEXT,
-		anchor = {0, 0, 1, 0},
-	}))
+		row4:addChild(ImageButton({
+			h = 48,
+			normal = Utils.newImageButtonStateStyle(tex, {1, 0.7, 0.5}, "Icon B"),
+			on_click = function() print("ImageButton B clicked") end,
+		}))
+	else
+		row4:addChild(Text({
+			text = "(示例图片不可用)",
+			font_size = 12,
+			text_color = uc.HINT,
+		}))
+	end
 
-	-- 带文字的 ImageButton
-	local ibtn1 = row4:addChild(ImageButton({
-		normal = Utils.newImageButtonStateStyle(tex, nil, "图片按钮"),
-		hover = Utils.newImageButtonStateStyle(tex, {0.7, 0.7, 1, 1}, "悬停中"),
-		pressed = Utils.newImageButtonStateStyle(tex, {0.5, 0.5, 0.8, 1}, "按下了!"),
-		anchor = {0, 0, 0, 0},
-		w = 160, h = 48,
-		padding = {0, 0, 20, 0},
-		on_click = function()
-			print("ImageButton (text) clicked!")
-		end,
-	}))
-	ibtn1:enableDebug(true)
-
-	-- 纯图片 ImageButton（无文字）
-	local ibtn2 = row4:addChild(ImageButton({
-		normal = Utils.newImageButtonStateStyle(tex, nil, nil),
-		hover = Utils.newImageButtonStateStyle(tex, {0.8, 0.8, 1, 1}, nil),
-		pressed = Utils.newImageButtonStateStyle(tex, {0.5, 0.5, 0.9, 1}, nil),
-		no_text = true,
-		anchor = {0, 0, 0, 0},
-		w = 48, h = 48,
-		padding = {175, 0, 20, 0},
-		on_click = function()
-			print("ImageButton (no text) clicked!")
-		end,
-	}))
-	ibtn2:enableDebug(true)
-
-	row4:addChild(Text({
-		text = "← 带文字  /  纯图片 →",
-		font_size = 11,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0, 0, 0, 0},
-		padding = {240, 0, 30, 0},
-	}))
+	root:addChild(sec4)
 end
 
 return test

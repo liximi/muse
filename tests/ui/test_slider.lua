@@ -1,7 +1,17 @@
-local Widget = require "ui.widgets.widget"
+--------------------------------------------------
+-- SliderBar 测试场景 — 使用容器布局
+--------------------------------------------------
+
+local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local SliderBar = require "ui.widgets.sliderbar"
+local Box = require "ui.widgets.containers.box_container"
+local Margin = require "ui.widgets.containers.margin_container"
 local Utils = require "ui.utils"
+
+local ORIENT = Utils.ORIENTATION
+local SZ = Utils.SIZE_FLAGS
+local uc = Utils.UI_COLORS
 
 local test = {}
 test.name = "SliderBar"
@@ -9,135 +19,146 @@ test.name = "SliderBar"
 function test.create(parent)
 	parent:removeAllChildren()
 
-	parent:addChild(Text({
-		text = "SliderBar — horizontal and vertical",
-		font_size = 14,
-		h = 20,
-		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 0},
+	-- 背景
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
 	}))
 
-	-- Horizontal
-	parent:addChild(SliderBar({
+	local margin = parent:addChild(Margin({
+		anchor = {0, 0, 1, 1},
+		margin_left = 20, margin_right = 20,
+		margin_top = 16, margin_bottom = 16,
+	}))
+
+	local root = margin:addChild(Box({ separation = 14 }))
+
+	-- 辅助：创建标签 + 滑块行
+	local function slider_row(label_text, slider_datas)
+		local box = Box({ separation = 2 })
+		local label = box:addChild(Text({
+			text = label_text,
+			font_size = 12,
+			text_color = uc.HINT,
+		}))
+		local slider = box:addChild(SliderBar(slider_datas))
+		return box, label, slider
+	end
+
+	-- 辅助：添加行到 root
+	local function add_slider_row(label_text, slider_datas)
+		local box, label, slider = slider_row(label_text, slider_datas)
+		root:addChild(box)
+		return label, slider
+	end
+
+	--------------------------------------------------
+	-- 标题
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "SliderBar — 水平 / 垂直 / 步长模式",
+		font_size = 18,
+	}))
+
+	--------------------------------------------------
+	-- 1. 基础水平滑块
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "基础水平滑块",
+		font_size = 12,
+		text_color = uc.HINT,
+	}))
+
+	local _, s1 = add_slider_row("50%", {
 		orientation = "horizontal",
 		value = 0.5,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 32, 0},
 		h = 16,
-	}))
-	parent:addChild(SliderBar({
+	})
+
+	local _, s2 = add_slider_row("25%", {
 		orientation = "horizontal",
 		value = 0.25,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 58, 0},
 		h = 16,
-	}))
+	})
 
-	-- Step mode
-	parent:addChild(Text({
-		text = "Step mode — integer / half-integer / multiple-of-5",
-		font_size = 14,
-		h = 20,
-		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 90, 0},
-	}))
-
-	-- Integer step (step = 1)
-	local int_label = parent:addChild(Text({
-		text = "Integer: 5",
+	--------------------------------------------------
+	-- 2. 步长模式
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "步长模式 — 整数 / 半整数 / 5的倍数",
 		font_size = 12,
-		h = 16,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 118, 0},
+		text_color = uc.HINT,
+		padding = {0, 0, 6, 0},
 	}))
-	parent:addChild(SliderBar({
+
+	local int_label, int_slider = add_slider_row("Integer: 5", {
 		orientation = "horizontal",
 		max_limit = 10,
 		step = 1,
 		value = 5,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 138, 0},
 		h = 16,
 		block_min_len = 15,
-		on_value_update = function(val)
-			int_label:setText("Integer: " .. tostring(val))
-		end,
-	}))
+	})
+	int_slider:setOnValueUpdateFn(function(val)
+		int_label:setText("Integer: " .. tostring(val))
+	end)
 
-	-- Half-integer step (step = 0.5)
-	local half_label = parent:addChild(Text({
-		text = "Half-integer: 3.5",
-		font_size = 12,
-		h = 16,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 168, 0},
-	}))
-	parent:addChild(SliderBar({
+	local half_label, half_slider = add_slider_row("Half-integer: 3.5", {
 		orientation = "horizontal",
 		max_limit = 10,
 		step = 0.5,
 		value = 3.5,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 188, 0},
 		h = 16,
 		block_min_len = 15,
-		on_value_update = function(val)
-			half_label:setText("Half-integer: " .. tostring(val))
-		end,
-	}))
+	})
+	half_slider:setOnValueUpdateFn(function(val)
+		half_label:setText("Half-integer: " .. tostring(val))
+	end)
 
-	-- Multiple-of-5 step (step = 5)
-	local multi_label = parent:addChild(Text({
-		text = "Multiple of 5: 50",
-		font_size = 12,
-		h = 16,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 218, 0},
-	}))
-	parent:addChild(SliderBar({
+	local multi_label, multi_slider = add_slider_row("Multiple of 5: 50", {
 		orientation = "horizontal",
 		max_limit = 100,
 		step = 5,
 		value = 50,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 238, 0},
 		h = 16,
 		block_min_len = 15,
-		on_value_update = function(val)
-			multi_label:setText("Multiple of 5: " .. tostring(val))
-		end,
+	})
+	multi_slider:setOnValueUpdateFn(function(val)
+		multi_label:setText("Multiple of 5: " .. tostring(val))
+	end)
+
+	--------------------------------------------------
+	-- 3. 垂直滑块
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "垂直滑块",
+		font_size = 12,
+		text_color = uc.HINT,
+		padding = {0, 0, 6, 0},
 	}))
 
-	-- Vertical
-	local v_row = parent:addChild(Widget({
-		anchor = {0, 0, 1, 1},
-		padding = {0, 0, 275, 0},
-	}))
-	v_row:addChild(SliderBar({
+	local vrow = Box({ orientation = ORIENT.HORIZONTAL,  separation = 30, h = 120 })
+	local v1 = vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.7,
-		anchor = {0, 0, 0, 1},
 		w = 16,
 	}))
-	v_row:addChild(SliderBar({
+	v1.h_size_flags = SZ.SHRINK_BEGIN
+
+	local v2 = vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.4,
-		anchor = {0, 0, 0, 1},
 		w = 16,
-		padding = {30, 0, 0, 0},
 	}))
-	v_row:addChild(SliderBar({
+	v2.h_size_flags = SZ.SHRINK_BEGIN
+
+	local v3 = vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.9,
-		anchor = {0, 0, 0, 1},
 		w = 16,
-		padding = {60, 0, 0, 0},
 	}))
+	v3.h_size_flags = SZ.SHRINK_BEGIN
+
+	root:addChild(vrow)
 end
 
 return test

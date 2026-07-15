@@ -1,5 +1,5 @@
 --------------------------------------------------
--- Godot 风格容器系统测试场景
+-- 容器系统测试场景
 -- 粉色框 = 容器边界，内部元素不画框
 --------------------------------------------------
 
@@ -18,7 +18,7 @@ local ALIGN = Utils.ALIGNMENT
 local SZ = Utils.SIZE_FLAGS
 
 local test = {}
-test.name = "Godot Containers"
+test.name = "Containers"
 
 function test.create(parent)
 	parent:removeAllChildren()
@@ -42,7 +42,7 @@ function test.create(parent)
 	scroll:enableDebug(true)
 
 	root_vbox:addChild(Text({
-		text = "Godot 风格容器系统测试  |  粉色框 = 容器边界",
+		text = "容器系统测试  |  粉色框 = 容器边界",
 		font_size = 18,
 	}))
 

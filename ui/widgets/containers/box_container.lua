@@ -1,6 +1,6 @@
 --------------------------------------------------
 -- BoxContainer — 线性排列子控件（水平 / 垂直）
--- 参考 Godot scene/gui/box_container.cpp BoxContainer::_resort
+-- scene/gui/box_container.cpp BoxContainer::_resort
 --
 -- HBoxContainer = BoxContainer({ orientation = "horizontal" })
 -- VBoxContainer = BoxContainer({ orientation = "vertical" })
@@ -40,7 +40,7 @@ local BoxContainer = Class(Container, function(self, datas, theme)
 end)
 
 --- 返回容器自身的最小尺寸（子控件推导 + 显式尺寸取 max）
---- 参考 Godot box_container.cpp get_minimum_size
+--- box_container.cpp get_minimum_size
 function BoxContainer:getMinimumSize()
 	local along, cross = 0, 0  -- 主轴总尺寸、交叉轴最大尺寸
 	local first = true
@@ -205,7 +205,7 @@ function BoxContainer:_hasStretched(cache)
 end
 
 --- 添加弹性占位符。后续子控件被推到主轴末端。
---- 参考 Godot BoxContainer::add_spacer
+--- BoxContainer::add_spacer
 function BoxContainer:addSpacer()
 	local Spacer = require "ui.widgets.spacer"
 	return self:addChild(Spacer())

@@ -10,6 +10,10 @@ test.name = "Image"
 function test.create(parent)
 	parent:removeAllChildren()
 
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
+	}))
+
 	local tex = love.graphics.newImage("assets/example_image_128x128.png")
 
 	parent:addChild(Text({

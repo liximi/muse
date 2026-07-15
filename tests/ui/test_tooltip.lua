@@ -1,55 +1,77 @@
-local Widget = require "ui.widgets.widget"
+--------------------------------------------------
+-- Tooltip 测试场景 — 使用容器布局
+--------------------------------------------------
+
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local TextInput = require "ui.widgets.textinput"
 local Button = require "ui.widgets.button"
 local Tooltip = require "ui.widgets.tooltip"
+local Box = require "ui.widgets.containers.box_container"
+local Margin = require "ui.widgets.containers.margin_container"
 local Utils = require "ui.utils"
+
+local ORIENT = Utils.ORIENTATION
+local uc = Utils.UI_COLORS
 
 local test = {}
 test.name = "Tooltip"
 
 function test.create(parent)
 	parent:removeAllChildren()
-	Tooltip.destroyAll()  -- Tooltip 是无父节点的独立 widget，需手动清理
+	Tooltip.destroyAll()
 
-	parent:addChild(Text({
-		text = "Tooltip — hover over widgets to see tooltips",
-		font_size = 14,
-		h = 20,
-		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
-		anchor = {0, 0, 1, 0},
-		padding = {0, 0, 0},
+	-- 背景
+	parent:addChild(Panel({
+		anchor = {0, 0, 1, 1},
 	}))
 
-	-- 一个带 tooltip 的按钮（Tooltip 自动注册到 UiManager，无需 parent:addChild）
-	local btn = parent:addChild(Button({
-		anchor = {0, 0, 0, 0},
-		x = 20,
-		y = 40,
-		w = 120,
-		h = 32,
-		normal = Utils.newButtonStateStyle("Hover me"),
+	local margin = parent:addChild(Margin({
+		anchor = {0, 0, 1, 1},
+		margin_left = 20, margin_right = 20,
+		margin_top = 16, margin_bottom = 16,
+	}))
+
+	local root = margin:addChild(Box({ separation = 14 }))
+
+	--------------------------------------------------
+	-- 标题
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "Tooltip — 悬停提示",
+		font_size = 18,
+	}))
+
+	root:addChild(Text({
+		text = "将鼠标悬停在下方控件上 0.5 秒查看 tooltip",
+		font_size = 12,
+		text_color = uc.HINT,
+	}))
+
+	--------------------------------------------------
+	-- 按钮 Tooltip
+	--------------------------------------------------
+	local row1 = root:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 36, separation = 12 }))
+
+	local btn = row1:addChild(Button({
+		text = "Hover me",
 	}))
 	Tooltip({
 		target = btn,
 		text = "This is a button tooltip.\nHover for 0.5s to see it.",
 	})
 
-	-- 一个 Panel 带 tooltip（长文本自动换行）
-	local info_panel = parent:addChild(Panel({
-		anchor = {0, 0, 0, 0},
-		x = 20,
-		y = 90,
+	-- Panel Tooltip（长文本自动换行）
+	local info_panel = row1:addChild(Panel({
 		w = 120,
-		h = 60,
+		h = 36,
 		bg_color = {0.15, 0.15, 0.2, 1},
 		rounding_radius = 4,
 		outline_width = 0,
 	}))
 	info_panel:addChild(Text({
 		text = "Panel",
-		text_color = Utils.UI_COLORS.TITLE,
+		text_color = uc.TITLE,
 		font_size = 14,
 		anchor = {0.5, 0.5, 0.5, 0.5},
 		pivot = {0.5, 0.5},
@@ -60,12 +82,10 @@ function test.create(parent)
 		max_width = 200,
 	})
 
-	-- 一个单行 TextInput 带 tooltip
-	local input = parent:addChild(TextInput({
-		anchor = {0, 0, 0, 0},
-		x = 20,
-		y = 170,
-		w = 200,
+	--------------------------------------------------
+	-- TextInput Tooltip
+	--------------------------------------------------
+	local input = root:addChild(TextInput({
 		h = 28,
 		single_line = true,
 		bg = Panel(),
@@ -77,14 +97,13 @@ function test.create(parent)
 		text = "Type something and press Enter to submit.",
 	})
 
-	-- 说明文字
-	parent:addChild(Text({
-		text = "Tooltips auto-register to UiManager.\nNo parent:addChild() needed.",
+	--------------------------------------------------
+	-- 底部说明
+	--------------------------------------------------
+	root:addChild(Text({
+		text = "Tooltip 自动注册到 UiManager，无需 parent:addChild()。",
 		font_size = 12,
-		h = 32,
-		text_color = Utils.UI_COLORS.HINT,
-		anchor = {0, 1, 1, 1},
-		padding = {0, 16, 8, 8},
+		text_color = uc.HINT,
 	}))
 end
 
