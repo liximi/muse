@@ -5,8 +5,8 @@
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local ProgressBar = require "ui.widgets.progressbar"
-local HBox = require "ui.widgets.containers.hbox_container"
-local VBox = require "ui.widgets.containers.vbox_container"
+local Box = require "ui.widgets.containers.box_container"
+local ORIENT = Utils.ORIENTATION
 local Margin = require "ui.widgets.containers.margin_container"
 local Utils = require "ui.utils"
 
@@ -33,11 +33,11 @@ function test.create(parent)
 		margin_top = 16, margin_bottom = 16,
 	}))
 
-	local root = margin:addChild(VBox({ separation = 20 }))
+	local root = margin:addChild(Box({  separation = 20 }))
 
 	-- 辅助：建一个带标签的 section
 	local function section(title)
-		local box = VBox({ separation = 6 })
+		local box = Box({  separation = 6 })
 		box:addChild(Text({
 			text = title,
 			font_size = 13,
@@ -59,7 +59,7 @@ function test.create(parent)
 	-- 2. 静态垂直进度条
 	--------------------------------------------------
 	local sec2 = section("Static Vertical")
-	local vhbox = sec2:addChild(HBox({ separation = 16, h = 100 }))
+	local vhbox = sec2:addChild(Box({ orientation = ORIENT.HORIZONTAL,  separation = 16, h = 100 }))
 	local vb1 = vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.6, w = 14 }))
 	vb1.h_size_flags = SZ.SHRINK_BEGIN  -- 保持14px宽度
 	local vb2 = vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.3, w = 14 }))
@@ -72,7 +72,7 @@ function test.create(parent)
 	local sec3 = section("Interactive Horizontal")
 
 	-- HP 条
-	local hp_row = sec3:addChild(VBox({ separation = 2 }))
+	local hp_row = sec3:addChild(Box({  separation = 2 }))
 	local hp_label = hp_row:addChild(Text({
 		text = "HP: 75%",
 		font_size = 12,
@@ -92,7 +92,7 @@ function test.create(parent)
 	}))
 
 	-- Volume 条
-	local vol_row = sec3:addChild(VBox({ separation = 2 }))
+	local vol_row = sec3:addChild(Box({  separation = 2 }))
 	local vol_label = vol_row:addChild(Text({
 		text = "Volume: 80%",
 		font_size = 12,
@@ -111,7 +111,7 @@ function test.create(parent)
 	}))
 
 	-- 自定义滑块
-	local custom_row = sec3:addChild(VBox({ separation = 2 }))
+	local custom_row = sec3:addChild(Box({  separation = 2 }))
 	custom_row:addChild(Text({
 		text = "Custom Thumb",
 		font_size = 12,
@@ -134,9 +134,9 @@ function test.create(parent)
 	-- 4. 交互式垂直进度条
 	--------------------------------------------------
 	local sec4 = section("Interactive Vertical")
-	local vi_hbox = sec4:addChild(HBox({ separation = 20, h = 160 }))
+	local vi_hbox = sec4:addChild(Box({ orientation = ORIENT.HORIZONTAL,  separation = 20, h = 160 }))
 
-	local vi_box = vi_hbox:addChild(VBox({ separation = 2 }))
+	local vi_box = vi_hbox:addChild(Box({  separation = 2 }))
 	local vi_label = vi_box:addChild(Text({
 		text = "50%",
 		font_size = 11,
