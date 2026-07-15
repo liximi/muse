@@ -543,6 +543,7 @@ end
 function TextInput:moveCursorDown()
 	local old_section = self.cursor.section
 	local old_idx = self.cursor.index
+	local font = self.text:getFont()
 	local wrappedtext = self:_getSectionWrap(old_section)
 	local lines = #wrappedtext
 	local x_cache = self.cursor._local_pos_cache[1]
