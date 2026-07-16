@@ -1303,7 +1303,7 @@ function TextInput:onHovered(hovered, x, y, dx, dy)
 	else
 		love.mouse.setCursor()
 	end
-	if self.bg.onHovered then
+	if self.bg and self.bg.onHovered then
 		self.bg:onHovered(hovered, x, y, dx, dy)
 	end
 end
