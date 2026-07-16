@@ -100,6 +100,7 @@ local TextInput = Class(Widget, function(self, datas, theme)
 	self.single_line = datas.single_line == true
 	self._scroll_x = 0 -- 单行模式水平滚动偏移（像素）
 	self._scroll_y = 0 -- 多行模式垂直滚动偏移（像素）
+	self._scroll_target_y = 0 -- 多行模式垂直滚动目标（平滑逼近用）
 	self._last_cursor_x = nil -- 上一次光标 X 坐标（用于检测光标移动，仅在移动时触发滚动跟随）
 	self._last_cursor_y = nil -- 上一次光标 Y 坐标
 	self._text_changed = false -- 文本内容变更标记（flushText 置位，onUpdate 消费）
@@ -1154,6 +1155,7 @@ function TextInput:onFocus()
 	-- 重置光标位置缓存，强制下一帧重新检测滚动
 	self._last_cursor_x = nil
 	self._last_cursor_y = nil
+	self._scroll_target_y = self._scroll_y
 	if self.single_line then
 		self:_updateScroll()
 	else
@@ -1326,7 +1328,7 @@ function TextInput:onUpdate(dt)
 	if self.height_adaptive then
 		self:refreshHeight()
 	end
-	-- 光标移动或文本变更时自动跟随滚动（事件驱动而非每帧轮询，避免与滚轮/拖拽冲突）
+	-- 光标移动或文本变更时自动跟随滚动
 	if self:isFocus() then
 		local cx = self.cursor._local_pos_cache[1]
 		local cy = self.cursor._local_pos_cache[2]
@@ -1337,11 +1339,14 @@ function TextInput:onUpdate(dt)
 				self:_updateScroll()
 			end
 		else
+			-- 光标变化时重新计算目标滚动位置
 			if self._text_changed or cy ~= self._last_cursor_y then
 				self._text_changed = false
 				self._last_cursor_y = cy
-				self:_updateScrollY()
+				self:_computeScrollTarget()
 			end
+			-- 每帧平滑逼近目标（即使光标没动也继续滚）
+			self:_smoothScrollStep(dt)
 		end
 	end
 end
@@ -1381,8 +1386,8 @@ function TextInput:_getTotalWrappedLines()
 	return math.max(1, total)
 end
 
---- 调整垂直滚动偏移，确保光标位于可见区域内（多行模式）
-function TextInput:_updateScrollY()
+--- 根据当前光标位置，计算目标滚动偏移（不直接修改 _scroll_y）
+function TextInput:_computeScrollTarget()
 	if self.single_line then return end
 
 	local font = self.text:getFont()
@@ -1393,24 +1398,45 @@ function TextInput:_updateScrollY()
 	local total_lines = self:_getTotalWrappedLines()
 	local total_h = total_lines * line_h
 
-	-- 可见高度 = TextInput 高度 - text padding（上下之和）
 	local pad = self.text.transform:getPadding()
 	local visible_h = self.transform.h - pad.top - pad.bottom
 	if visible_h <= 0 then return end
 
 	local max_scroll = math.max(0, total_h - visible_h)
-	local MARGIN = line_h -- 光标距边界至少一行高，防止帧间来回跳
+	local MARGIN = line_h / 2 -- 半行触发范围，防止误触边界自动滚动
 
-	-- 光标在可见区域上方 → 向上滚
+	local target = self._scroll_y
+
+	-- 光标在可见区域上方 → 需要向上滚
 	if cursor_y < self._scroll_y + MARGIN then
-		self._scroll_y = cursor_y - MARGIN
+		target = cursor_y - MARGIN
 	end
-	-- 光标在可见区域下方 → 向下滚
+	-- 光标在可见区域下方 → 需要向下滚
 	if cursor_y + line_h > self._scroll_y + visible_h - MARGIN then
-		self._scroll_y = cursor_y + line_h - visible_h + MARGIN
+		target = cursor_y + line_h - visible_h + MARGIN
 	end
 
-	self._scroll_y = math.max(0, math.min(max_scroll, self._scroll_y))
+	self._scroll_target_y = math.max(0, math.min(max_scroll, target))
+end
+
+--- 每帧平滑逼近 _scroll_target_y（限制速度，约每秒5行 = 每0.2秒一行）
+function TextInput:_smoothScrollStep(dt)
+	if self.single_line then return end
+	if self._scroll_target_y == nil or self._scroll_target_y == self._scroll_y then return end
+
+	local font = self.text:getFont()
+	local line_h = font:getHeight() * font:getLineHeight()
+	if line_h <= 0 then return end
+
+	local max_speed = line_h * 5 -- 每秒5行
+	local max_step = max_speed * (dt or 0.016)
+
+	if self._scroll_target_y > self._scroll_y then
+		self._scroll_y = math.min(self._scroll_target_y, self._scroll_y + max_step)
+	else
+		self._scroll_y = math.max(self._scroll_target_y, self._scroll_y - max_step)
+	end
+
 	self:_applyScroll()
 end
 
