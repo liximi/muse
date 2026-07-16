@@ -1,22 +1,32 @@
 --------------------------------------------------
 -- Canvas — 设计画布
--- 职责：承载目标 UI、拦截鼠标事件实现选中、绘制选中覆盖层
+-- 职责：承载目标 UI、拦截鼠标/键盘事件实现选中、绘制选中覆盖层
 --------------------------------------------------
 
-local Fonts = require "ui.fonts"
 local Widget = require "ui.widgets.widget"
 local Selection = require "ui_editor.editor.selection"
-local UiManager = require "ui.ui_manager":GetInstance()
 local Utils = require "ui.utils"
+local Fonts = require "ui.fonts"
+local UiManager = require "ui.ui_manager":GetInstance()
+
+--------------------------------------------------
+-- 设计模式下需要 Canvas 优先拦截的事件（其余事件走正常子节点优先传播）
+--------------------------------------------------
+local INTERCEPT_FIRST = {
+    KeyPressed     = true,
+    MousePressed   = true,
+    MouseReleased  = true,
+    MouseMoved     = true,
+}
 
 local Canvas = Class(Widget, function(self, datas)
     Widget.new(self, "Canvas", datas)
     self.raycast_target = true
 
     self.selection = Selection()
-    self._edited_root = nil    -- 被编辑的 UI 根节点
-    self._design_mode = true   -- 设计模式（true=选中, false=交互）
-    self.onSelectionChanged = nil -- 回调：选中变化时通知外部（如 Inspector）
+    self._edited_root = nil
+    self._design_mode = true
+    self.onSelectionChanged = nil
 end)
 
 --------------------------------------------------
@@ -37,16 +47,21 @@ function Canvas:getEditedRoot()
 end
 
 --------------------------------------------------
--- 事件拦截（设计模式下优先于子节点）
+-- 事件拦截
+--
+-- 设计模式：
+--   KeyPressed / Mouse* → Canvas 优先处理（选中/导航），未消耗才传给子节点
+--   TextInput / WheelMoved 等 → 正常子节点优先，Canvas 无 handler 则不拦截
+--   进入设计模式时清除焦点，确保被编辑 UI 不会收到文本输入
+-- 交互模式：
+--   完全正常传播，子节点优先
 --------------------------------------------------
 
 function Canvas:handleEvent(event_type, ...)
     if not self:isOperational() then return end
 
-    -- 设计模式：Canvas 自己的 handler 优先于子节点
-    if self._design_mode then
-        local handler_name = "on" .. event_type
-        local handler = self[handler_name]
+    if self._design_mode and INTERCEPT_FIRST[event_type] then
+        local handler = self["on" .. event_type]
         if handler and handler(self, ...) then
             return true
         end
@@ -59,12 +74,11 @@ function Canvas:handleEvent(event_type, ...)
         end
     end
 
-    -- 交互模式：正常流程（子节点优先，Canvas handler 兜底）
-    if not self._design_mode then
-        local handler_name = "on" .. event_type
-        local handler = self[handler_name]
-        if handler then
-            return handler(self, ...)
+    -- 未被优先拦截的事件 / 交互模式：Canvas handler 兜底
+    if not self._design_mode or not INTERCEPT_FIRST[event_type] then
+        local handler = self["on" .. event_type]
+        if handler and handler(self, ...) then
+            return true
         end
     end
 
@@ -75,7 +89,6 @@ end
 -- 命中检测
 --------------------------------------------------
 
--- 递归查找屏幕坐标下最深的 widget（子优先）
 function Canvas:_hitTest(widget, screen_x, screen_y)
     if not widget or not widget:isOperational() then
         return nil
@@ -104,15 +117,6 @@ function Canvas:_getParentInTree(widget)
 end
 
 --------------------------------------------------
--- 判断 widget 是否是 ancestor 的后代
-function Canvas:_isDescendantOf(widget, ancestor)
-	local current = widget
-	while current do
-		if current == ancestor then return true end
-		current = current.parent
-	end
-	return false
-end
 -- 键盘事件
 --------------------------------------------------
 
@@ -124,7 +128,6 @@ function Canvas:onKeyPressed(key, isrepeat)
             return true
         end
     elseif key == "p" then
-        -- 切换到父节点（替代 Tab，因 UiManager 拦截了 Tab）
         local current = self.selection.widget
         if current then
             local parent = self:_getParentInTree(current)
@@ -138,10 +141,13 @@ function Canvas:onKeyPressed(key, isrepeat)
         -- TODO: 删除选中 widget
         return true
     elseif key == "e" then
-        -- 切换设计/交互模式
         self._design_mode = not self._design_mode
-        if not self._design_mode then
+        if self._design_mode then
+            -- 进入设计模式时清除焦点，确保被编辑 UI 不会收到文本输入
+            UiManager:clearFocus()
+        else
             self.selection:deselect()
+            self:_notifySelection()
         end
         return true
     end
@@ -152,32 +158,17 @@ end
 -- 鼠标事件
 --------------------------------------------------
 
-function Canvas:onTextInput(text)
-	-- 设计模式下：仅当焦点在被编辑 UI 内部时才拦截文本输入
-	-- 否则放行（Inspector 等编辑器面板需要接收）
-	if self._design_mode then
-		local focus = UiManager:getFocus()
-		if focus and self._edited_root and self:_isDescendantOf(focus, self._edited_root) then
-			return true
-		end
-	end
-	return false
-end
-
 function Canvas:onMousePressed(x, y, button)
     if button ~= 1 then return end
     if not self:regionDetection(x, y) then return end
 
-    -- 检测是否命中拖拽手柄
     if self.selection:hasSelection() then
         local handle = self.selection:hitHandle(x, y)
         if handle then
-            -- TODO: 开始拖拽手柄
-            return true
+            return true  -- 拖拽手柄（后续实现）
         end
     end
 
-    -- 命中检测 → 选中
     local hit = self:_findWidgetAt(x, y)
     if hit then
         self.selection:select(hit)
@@ -203,23 +194,21 @@ end
 --------------------------------------------------
 
 function Canvas:onPostDraw()
-	-- 选中覆盖层
-	if self._design_mode and self.selection:hasSelection() then
-		self.selection:draw()
-	end
+    if self._design_mode and self.selection:hasSelection() then
+        self.selection:draw()
+    end
 
-	-- 模式提示
-	local prev_font = love.graphics.getFont()
-	local x, y = self.transform:getGlobalPosition()
-	local gh = love.graphics.getHeight()
-	local label = self._design_mode
-		and "[设计模式]  E=交互  P=父节点  Esc=取消选中"
-		or  "[交互模式]  E=返回设计"
-	local font = Fonts:getFont("default", 12)
-	love.graphics.setFont(font)
-	love.graphics.setColor(0.3, 0.6, 1.0, 0.55)
-	love.graphics.print(label, x + 4, gh - 20)
-	love.graphics.setFont(prev_font)
+    local prev_font = love.graphics.getFont()
+    local x, y = self.transform:getGlobalPosition()
+    local gh = love.graphics.getHeight()
+    local label = self._design_mode
+        and "[设计模式]  E=交互  P=父节点  Esc=取消选中"
+        or  "[交互模式]  E=返回设计"
+    local font = Fonts:getFont("default", 12)
+    love.graphics.setFont(font)
+    love.graphics.setColor(0.3, 0.6, 1.0, 0.55)
+    love.graphics.print(label, x + 4, gh - 20)
+    love.graphics.setFont(prev_font)
 end
 
 return Canvas

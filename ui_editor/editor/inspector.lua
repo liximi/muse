@@ -102,7 +102,9 @@ local function makeRow(label_text, value_str, on_change)
         padding = {12, 0, 0, 0},
     }))
 
-    local input = row:addChild(TextInput({
+    -- 先声明变量，再赋值，避免闭包内引用自身赋值语句的 forward reference
+    local input
+    input = row:addChild(TextInput({
         text = value_str,
         font_size = 11,
         text_color = uc.PRIMARY_TEXT,
