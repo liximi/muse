@@ -39,7 +39,7 @@ function Selection:_updateHandles()
         self._handles = {}
         return
     end
-    local ax, ay, aw, ah = self.widget:getCullAABB()
+    local ax, ay, aw, ah = self.widget.transform:getGlobalAABB()
     local half_h = HANDLE_SIZE / 2
 
     self._handles = {
@@ -62,7 +62,8 @@ function Selection:draw()
 
     self:_updateHandles()
 
-    local ax, ay, aw, ah = self.widget:getCullAABB()
+    -- 使用 transform 的布局包围盒，不用 getCullAABB（Text 等会覆写返回内容尺寸）
+    local ax, ay, aw, ah = self.widget.transform:getGlobalAABB()
 
     -- 选中框
     love.graphics.setColor(unpack(SELECTION_COLOR))
