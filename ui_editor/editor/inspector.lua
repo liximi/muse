@@ -148,31 +148,37 @@ function Inspector:_rebuild()
     local name = target._name or target._mui_id or target:__tostring()
     self._type_label:setText(name)
 
-    -- 读取当前 transform 值
-    local w, h = target.transform:getSize()
-    local am1, am2, am3, am4 = target.transform:getAnchor()
-    local pv1, pv2 = target.transform:getPivot()
-    local pad = target.transform:getPadding()
-
-    -- 定义属性行：label, getter, setter, formatter
+    -- 定义属性行：getter 每次从 widget 实时读取，setter 写回
     local fields = {
-        {label = "宽度", get = function() return fmt(w) end,
+        {label = "宽度",
+            get = function() return fmt(target.transform.w) end,
             set = function(v) target.transform:setSize(tonumber(v), nil) end},
-        {label = "高度", get = function() return fmt(h) end,
+        {label = "高度",
+            get = function() return fmt(target.transform.h) end,
             set = function(v) target.transform:setSize(nil, tonumber(v)) end},
-        {label = "锚点 X", get = function() return fmt(am1) .. ", " .. fmt(am3) end,
-            set = function(v) -- TODO: parse two numbers
-            end},
-        {label = "锚点 Y", get = function() return fmt(am2) .. ", " .. fmt(am4) end,
-            set = function(v) -- TODO: parse two numbers
-            end},
-        {label = "左间距", get = function() return fmt(pad.left) end,
+        {label = "锚点 X",
+            get = function()
+                local a1, _, a3 = target.transform:getAnchor()
+                return fmt(a1) .. ", " .. fmt(a3)
+            end,
+            set = function(v) end},
+        {label = "锚点 Y",
+            get = function()
+                local _, a2, _, a4 = target.transform:getAnchor()
+                return fmt(a2) .. ", " .. fmt(a4)
+            end,
+            set = function(v) end},
+        {label = "左间距",
+            get = function() return fmt(target.transform.left) end,
             set = function(v) target.transform:setPadding(tonumber(v), nil, nil, nil) end},
-        {label = "右间距", get = function() return fmt(pad.right) end,
+        {label = "右间距",
+            get = function() return fmt(target.transform.right) end,
             set = function(v) target.transform:setPadding(nil, tonumber(v), nil, nil) end},
-        {label = "上间距", get = function() return fmt(pad.top) end,
+        {label = "上间距",
+            get = function() return fmt(target.transform.top) end,
             set = function(v) target.transform:setPadding(nil, nil, tonumber(v), nil) end},
-        {label = "下间距", get = function() return fmt(pad.bottom) end,
+        {label = "下间距",
+            get = function() return fmt(target.transform.bottom) end,
             set = function(v) target.transform:setPadding(nil, nil, nil, tonumber(v)) end},
     }
 
