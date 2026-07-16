@@ -137,9 +137,6 @@ function Canvas:onKeyPressed(key, isrepeat)
             end
         end
         return true
-    elseif key == "delete" or key == "backspace" then
-        -- TODO: 删除选中 widget
-        return true
     elseif key == "e" then
         self._design_mode = not self._design_mode
         if self._design_mode then
