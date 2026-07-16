@@ -6,6 +6,7 @@
 local Fonts = require "ui.fonts"
 local Widget = require "ui.widgets.widget"
 local Selection = require "ui_editor.editor.selection"
+local UiManager = require "ui.ui_manager":GetInstance()
 local Utils = require "ui.utils"
 
 local Canvas = Class(Widget, function(self, datas)
@@ -103,6 +104,15 @@ function Canvas:_getParentInTree(widget)
 end
 
 --------------------------------------------------
+-- 判断 widget 是否是 ancestor 的后代
+function Canvas:_isDescendantOf(widget, ancestor)
+	local current = widget
+	while current do
+		if current == ancestor then return true end
+		current = current.parent
+	end
+	return false
+end
 -- 键盘事件
 --------------------------------------------------
 
@@ -143,8 +153,15 @@ end
 --------------------------------------------------
 
 function Canvas:onTextInput(text)
-	-- 设计模式下阻止文本输入传播到被编辑 UI
-	return true
+	-- 设计模式下：仅当焦点在被编辑 UI 内部时才拦截文本输入
+	-- 否则放行（Inspector 等编辑器面板需要接收）
+	if self._design_mode then
+		local focus = UiManager:getFocus()
+		if focus and self._edited_root and self:_isDescendantOf(focus, self._edited_root) then
+			return true
+		end
+	end
+	return false
 end
 
 function Canvas:onMousePressed(x, y, button)
