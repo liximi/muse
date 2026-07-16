@@ -1468,6 +1468,26 @@ function TextInput:onWheelMoved(x, y)
 	return true -- 拦截事件，防止冒泡到外层 Scroll
 end
 
+--- 为光标垂直位置添加 v_align 偏移（TextInput 内嵌 Text 的 vertical_align）
+function TextInput:_getCursorVAlignOffset(font)
+	local align = self.text.vertical_align
+	if align == "top" then return 0 end
+
+	local text_widget_h = self.text.transform.h
+	if self.single_line then
+		local content_h = font:getHeight()
+		if align == "center" then return (text_widget_h - content_h) / 2 end
+		if align == "bottom" then return text_widget_h - content_h end
+	else
+		local line_h = font:getHeight() * font:getLineHeight()
+		local total_lines = self:_getTotalWrappedLines()
+		local content_h = total_lines * line_h
+		if align == "center" then return (text_widget_h - content_h) / 2 end
+		if align == "bottom" then return text_widget_h - content_h end
+	end
+	return 0
+end
+
 --- 裁剪 TextInput 内容区域，防止文字溢出边框
 function TextInput:onDraw()
 	local x, y, w, h, r = self.transform:getGlobalBounds()
@@ -1554,8 +1574,11 @@ function TextInput:onPostDraw()
 
 	-- 绘制光标
 	if self.cursor.show and self.cursor_blinking then
-		local top_x, top_y = org_x + self.cursor._local_pos_cache[1], org_y + self.cursor._local_pos_cache[2]
-		local bottom_y = top_y + font:getHeight()
+		local font_h = font:getHeight()
+		local v_offset = self:_getCursorVAlignOffset(font)
+		local top_x = org_x + self.cursor._local_pos_cache[1]
+		local top_y = org_y + self.cursor._local_pos_cache[2] + v_offset
+		local bottom_y = top_y + font_h
 
 		love.graphics.push()
 		if r ~= 0 and r ~= Utils.TWO_PI then
