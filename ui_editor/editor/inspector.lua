@@ -18,6 +18,16 @@ local ROW_H = 28
 local LABEL_W = 72
 local GAP = 4
 
+-- 为输入框创建统一背景
+local function makeInputBg()
+	return Panel({
+		bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.6},
+		outline_width = 1,
+		outline_color = uc.LINE,
+		rounding_radius = 4,
+	})
+end
+
 local Inspector = Class(Widget, function(self, datas)
     Widget.new(self, "Inspector", datas)
     self.raycast_target = true
@@ -108,6 +118,7 @@ local function makeRow(label_text, value_str, on_change)
         font_size = 11,
         text_color = uc.PRIMARY_TEXT,
         single_line = true,
+        bg = makeInputBg(),
         anchor = {0, 0, 0, 0},
         w = 130,
         h = 22,
@@ -151,6 +162,7 @@ local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
         font_size = 11,
         text_color = uc.PRIMARY_TEXT,
         single_line = true,
+        bg = makeInputBg(),
         anchor = {0, 0, 0, 0},
         w = input_w,
         h = 22,
@@ -166,6 +178,7 @@ local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
         font_size = 11,
         text_color = uc.PRIMARY_TEXT,
         single_line = true,
+        bg = makeInputBg(),
         anchor = {0, 0, 0, 0},
         w = input_w,
         h = 22,
