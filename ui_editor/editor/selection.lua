@@ -34,12 +34,13 @@ function Selection:hasSelection()
 end
 
 -- 计算 8 个拖拽手柄的屏幕坐标
+-- 使用 transform:getGlobalAABB()（布局尺寸），而非 getCullAABB()（内容尺寸，Text 等控件会覆写）
 function Selection:_updateHandles()
     if not self.widget then
         self._handles = {}
         return
     end
-    local ax, ay, aw, ah = self.widget:getCullAABB()
+    local ax, ay, aw, ah = self.widget.transform:getGlobalAABB()
     local half_h = HANDLE_SIZE / 2
 
     self._handles = {
@@ -62,7 +63,7 @@ function Selection:draw()
 
     self:_updateHandles()
 
-    local ax, ay, aw, ah = self.widget:getCullAABB()
+    local ax, ay, aw, ah = self.widget.transform:getGlobalAABB()
 
     -- 选中框
     love.graphics.setColor(unpack(SELECTION_COLOR))

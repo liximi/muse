@@ -37,6 +37,9 @@ local Inspector = Class(Widget, function(self, datas)
     self._rows = {}        -- {label widget, input widget} 用于动态更新
     self._dirty = false    -- 需要重建控件
 
+    -- 回调：属性即将被 setter 修改时调用。function(target, prop_name)
+    self.onBeforePropertyChange = nil
+
     self:_buildUI()
 end)
 
@@ -58,7 +61,7 @@ function Inspector:_buildUI()
 
     -- 类型 + id 标签
     self._type_label = self:addChild(Text({
-        text = "无选中",
+        text = "No selection",
         font_size = 12,
         text_color = uc.SECONDARY_TEXT,
         h = 18,
@@ -93,6 +96,13 @@ function Inspector:inspect(widget)
 end
 
 --------------------------------------------------
+-- 校验：是否为合法数字
+local function isValidNumber(s)
+    if s == nil or s == "" then return false end
+    -- 允许: 整数、小数、负数、前导负号
+    return tonumber(s) ~= nil
+end
+
 -- 属性行工厂
 --------------------------------------------------
 
@@ -127,7 +137,11 @@ local function makeRow(label_text, value_str, on_change)
         h = 22,
         padding = {LABEL_W + 12, 0, (ROW_H - 22) / 2, 0},
         on_submit = function()
-            if on_change then on_change(input:getText()) end
+            local text = input:getText()
+            if on_change and isValidNumber(text) then
+                on_change(text)
+            end
+            -- invalid input: silently ignored, onUpdate reverts on blur
         end,
     }))
 
@@ -172,7 +186,10 @@ local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
         h = 22,
         padding = {x1, 0, y_off, 0},
         on_submit = function()
-            if on_change1 then on_change1(input1:getText()) end
+            local text = input1:getText()
+            if on_change1 and isValidNumber(text) then
+                on_change1(text)
+            end
         end,
     }))
 
@@ -189,7 +206,10 @@ local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
         h = 22,
         padding = {x2, 0, y_off, 0},
         on_submit = function()
-            if on_change2 then on_change2(input2:getText()) end
+            local text = input2:getText()
+            if on_change2 and isValidNumber(text) then
+                on_change2(text)
+            end
         end,
     }))
 
@@ -215,7 +235,7 @@ function Inspector:_rebuild()
     self._rows = {}
 
     if not self._target then
-        self._type_label:setText("无选中")
+        self._type_label:setText("No selection")
         return
     end
 
@@ -236,7 +256,7 @@ function Inspector:_rebuild()
     for _, f in ipairs(fields) do
         local row, input = makeRow(f.label, f.get(), f.set)
         self._form:addChild(row)
-        table.insert(self._rows, {input = input, getter = f.get, setter = f.set})
+        table.insert(self._rows, {input = input, getter = f.get, setter = f.set, numeric = true})
     end
 
     -- 锚点：四字段，双输入行
@@ -256,8 +276,8 @@ function Inspector:_rebuild()
     for _, af in ipairs(anchor_fields) do
         local row, inputs = makeRow2(af.label, af.get1(), af.get2(), af.set1, af.set2)
         self._form:addChild(row)
-        table.insert(self._rows, {input = inputs[1], getter = af.get1, setter = af.set1})
-        table.insert(self._rows, {input = inputs[2], getter = af.get2, setter = af.set2})
+        table.insert(self._rows, {input = inputs[1], getter = af.get1, setter = af.set1, numeric = true})
+        table.insert(self._rows, {input = inputs[2], getter = af.get2, setter = af.set2, numeric = true})
     end
 
     -- 间距：四字段
@@ -279,7 +299,7 @@ function Inspector:_rebuild()
     for _, f in ipairs(padding_fields) do
         local row, input = makeRow(f.label, f.get(), f.set)
         self._form:addChild(row)
-        table.insert(self._rows, {input = input, getter = f.get, setter = f.set})
+        table.insert(self._rows, {input = input, getter = f.get, setter = f.set, numeric = true})
     end
 end
 
@@ -302,8 +322,17 @@ function Inspector:onUpdate(dt)
             -- 失焦提交：焦点从有变无，且文本与当前值不同 → 触发 setter
             if was_focused and not is_focused then
                 local current = entry.getter()
-                if input:getText() ~= current then
-                    entry.setter(input:getText())
+                local text = input:getText()
+                if text ~= current then
+                    -- 数字字段：校验合法性，非法则回退
+                    if entry.numeric and not isValidNumber(text) then
+                        input:setText(current)
+                    else
+                        if self.onBeforePropertyChange then
+                            self:onBeforePropertyChange(self._target)
+                        end
+                        entry.setter(text)
+                    end
                 end
             end
 
