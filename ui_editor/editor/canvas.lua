@@ -15,6 +15,7 @@ local Canvas = Class(Widget, function(self, datas)
     self.selection = Selection()
     self._edited_root = nil    -- 被编辑的 UI 根节点
     self._design_mode = true   -- 设计模式（true=选中, false=交互）
+    self.onSelectionChanged = nil -- 回调：选中变化时通知外部（如 Inspector）
 end)
 
 --------------------------------------------------
@@ -109,6 +110,7 @@ function Canvas:onKeyPressed(key, isrepeat)
     if key == "escape" then
         if self.selection:hasSelection() then
             self.selection:deselect()
+            self:_notifySelection()
             return true
         end
     elseif key == "p" then
@@ -118,6 +120,7 @@ function Canvas:onKeyPressed(key, isrepeat)
             local parent = self:_getParentInTree(current)
             if parent then
                 self.selection:select(parent)
+                self:_notifySelection()
             end
         end
         return true
@@ -139,6 +142,11 @@ end
 -- 鼠标事件
 --------------------------------------------------
 
+nfunction Canvas:onTextInput(text)
+	-- 设计模式下阻止文本输入传播到被编辑 UI
+	return true
+end
+
 function Canvas:onMousePressed(x, y, button)
     if button ~= 1 then return end
     if not self:regionDetection(x, y) then return end
@@ -159,7 +167,18 @@ function Canvas:onMousePressed(x, y, button)
     else
         self.selection:deselect()
     end
+    self:_notifySelection()
     return true
+end
+
+--------------------------------------------------
+-- 内部
+--------------------------------------------------
+
+function Canvas:_notifySelection()
+    if self.onSelectionChanged then
+        self.onSelectionChanged(self.selection.widget)
+    end
 end
 
 --------------------------------------------------
@@ -167,21 +186,23 @@ end
 --------------------------------------------------
 
 function Canvas:onPostDraw()
-    -- 选中覆盖层
-    if self._design_mode and self.selection:hasSelection() then
-        self.selection:draw()
-    end
+	-- 选中覆盖层
+	if self._design_mode and self.selection:hasSelection() then
+		self.selection:draw()
+	end
 
-    -- 模式提示
-    local x, y = self.transform:getGlobalPosition()
-    local gh = love.graphics.getHeight()
-    local label = self._design_mode
-        and "[设计模式]  E=交互  P=父节点  Esc=取消选中"
-        or  "[交互模式]  E=返回设计"
+	-- 模式提示
+	local prev_font = love.graphics.getFont()
+	local x, y = self.transform:getGlobalPosition()
+	local gh = love.graphics.getHeight()
+	local label = self._design_mode
+		and "[设计模式]  E=交互  P=父节点  Esc=取消选中"
+		or  "[交互模式]  E=返回设计"
 	local font = Fonts:getFont("default", 12)
 	love.graphics.setFont(font)
-    love.graphics.setColor(0.3, 0.6, 1.0, 0.55)
-    love.graphics.print(label, x + 4, gh - 20)
+	love.graphics.setColor(0.3, 0.6, 1.0, 0.55)
+	love.graphics.print(label, x + 4, gh - 20)
+	love.graphics.setFont(prev_font)
 end
 
 return Canvas

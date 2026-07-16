@@ -1,21 +1,22 @@
 --------------------------------------------------
 -- EditorApp — 编辑器入口
--- 后续替换为三面板布局（Tree View + Canvas + Inspector）
--- 当前阶段：Canvas + Selection 验证
+-- 当前阶段：Canvas（中）+ Inspector（右）两面板布局
 --------------------------------------------------
 
 local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
-local Box = require "ui.widgets.containers.box_container"
 local Canvas = require "ui_editor.editor.canvas"
+local Inspector = require "ui_editor.editor.inspector"
 local Utils = require "ui.utils"
 
 local uc = Utils.UI_COLORS
 
+local INSPECTOR_W = 220
+
 --------------------------------------------------
--- 构建演示 UI（模拟被编辑的目标界面）
+-- 演示 UI
 --------------------------------------------------
 local function buildDemoUI()
     local root = Panel({
@@ -28,7 +29,6 @@ local function buildDemoUI()
         outline_color = uc.LINE,
         rounding_radius = 8,
     })
-    -- 给个名字方便 Tree View 显示
     root._name = "Panel (root)"
 
     local title = root:addChild(Text({
@@ -68,11 +68,37 @@ end
 -- 编辑器入口
 --------------------------------------------------
 local function EditorApp(parent)
-    -- 画布（填满整个窗口）
+    -- 右侧 Inspector
+    local inspector = parent:addChild(Inspector({
+        anchor = {1, 0, 1, 1},
+        pivot = {1, 0},
+        padding = {-INSPECTOR_W, 0, 0, 0},
+        w = INSPECTOR_W,
+    }))
+
+    -- 左侧面板背景（视觉分隔）
+    parent:addChild(Panel({
+        bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.4},
+        outline_width = 1,
+        outline_color = uc.LINE,
+        rounding_radius = 0,
+        anchor = {1, 0, 1, 1},
+        pivot = {1, 0},
+        padding = {-INSPECTOR_W, 0, 0, 0},
+        w = 1,
+        h = 0,  -- 0 = 被 anchor 撑满
+    }))
+
+    -- 左侧画布
     local canvas = parent:addChild(Canvas({
         anchor = {0, 0, 1, 1},
-        padding = {0, 0, 0, 0},
+        padding = {0, INSPECTOR_W + 1, 0, 0},
     }))
+
+    -- 连线：Canvas 选中变化 → Inspector 刷新
+    canvas.onSelectionChanged = function(widget)
+        inspector:inspect(widget)
+    end
 
     -- 注入演示 UI
     canvas:setEditedRoot(buildDemoUI())
