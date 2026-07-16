@@ -142,7 +142,7 @@ end
 -- 鼠标事件
 --------------------------------------------------
 
-nfunction Canvas:onTextInput(text)
+function Canvas:onTextInput(text)
 	-- 设计模式下阻止文本输入传播到被编辑 UI
 	return true
 end
