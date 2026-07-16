@@ -185,7 +185,7 @@ function Inspector:_rebuild()
     for _, f in ipairs(fields) do
         local row, input = makeRow(f.label, f.get(), f.set)
         self._form:addChild(row)
-        table.insert(self._rows, {input = input, getter = f.get})
+        table.insert(self._rows, {input = input, getter = f.get, setter = f.set})
     end
 end
 
@@ -199,14 +199,27 @@ function Inspector:onUpdate(dt)
         self._dirty = false
     end
 
-    -- 持续刷新显示值（部分属性可能被外部修改）
     if self._target then
         for _, entry in ipairs(self._rows) do
-            local current = entry.getter()
-            if entry.input:getText() ~= current then
-                -- 只在输入框未聚焦时刷新，避免覆盖用户正在编辑的内容
-                if not entry.input:isFocus() then
-                    entry.input:setText(current)
+            local input = entry.input
+            local was_focused = entry._was_focused
+            local is_focused = input:isFocus()
+
+            -- 失焦提交：焦点从有变无，且文本与当前值不同 → 触发 setter
+            if was_focused and not is_focused then
+                local current = entry.getter()
+                if input:getText() ~= current then
+                    entry.setter(input:getText())
+                end
+            end
+
+            entry._was_focused = is_focused
+
+            -- 无焦点时刷新显示值（外部变更同步）
+            if not is_focused then
+                local current = entry.getter()
+                if input:getText() ~= current then
+                    input:setText(current)
                 end
             end
         end
