@@ -1,6 +1,6 @@
 --------------------------------------------------
 -- EditorApp — 编辑器入口
--- 当前阶段：Canvas（中）+ Inspector（右）两面板布局
+-- 三面板布局：Tree View（左）+ Canvas（中）+ Inspector（右）
 --------------------------------------------------
 
 local Widget = require "ui.widgets.widget"
@@ -9,10 +9,12 @@ local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
 local Canvas = require "ui_editor.editor.canvas"
 local Inspector = require "ui_editor.editor.inspector"
+local TreeView = require "ui_editor.editor.tree_view"
 local Utils = require "ui.utils"
 
 local uc = Utils.UI_COLORS
 
+local TREE_W = 160
 local INSPECTOR_W = 220
 
 --------------------------------------------------
@@ -76,32 +78,57 @@ local function EditorApp(parent)
         w = INSPECTOR_W,
     }))
 
-    -- 左侧面板背景（视觉分隔）
+    -- 右侧分隔线
     parent:addChild(Panel({
-        bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.4},
-        outline_width = 1,
-        outline_color = uc.LINE,
+        bg_color = uc.LINE,
         rounding_radius = 0,
         anchor = {1, 0, 1, 1},
         pivot = {1, 0},
-        padding = {-INSPECTOR_W, 0, 0, 0},
+        padding = {-INSPECTOR_W - 1, 0, 0, 0},
         w = 1,
-        h = 0,  -- 0 = 被 anchor 撑满
+        h = 0,
     }))
 
-    -- 左侧画布
+    -- 左侧 TreeView
+    local tree = parent:addChild(TreeView({
+        anchor = {0, 0, 0, 1},
+        padding = {0, 0, 0, 0},
+        w = TREE_W,
+    }))
+
+    -- 左侧分隔线
+    parent:addChild(Panel({
+        bg_color = uc.LINE,
+        rounding_radius = 0,
+        anchor = {0, 0, 0, 1},
+        padding = {TREE_W, 0, 0, 0},
+        w = 1,
+        h = 0,
+    }))
+
+    -- 中央 Canvas
     local canvas = parent:addChild(Canvas({
         anchor = {0, 0, 1, 1},
-        padding = {0, INSPECTOR_W + 1, 0, 0},
+        padding = {TREE_W + 1, INSPECTOR_W + 1, 0, 0},
     }))
 
-    -- 连线：Canvas 选中变化 → Inspector 刷新
+    -- 注入演示 UI
+    local demo = buildDemoUI()
+    canvas:setEditedRoot(demo)
+    tree:setEditedRoot(demo)
+
+    -- 连线：Canvas 选中 → Inspector + TreeView
     canvas.onSelectionChanged = function(widget)
         inspector:inspect(widget)
+        tree:selectWidget(widget)
+        tree._dirty = true
     end
 
-    -- 注入演示 UI
-    canvas:setEditedRoot(buildDemoUI())
+    -- 连线：TreeView 选中 → Canvas
+    tree.onNodeSelected = function(widget)
+        canvas.selection:select(widget)
+        inspector:inspect(widget)
+    end
 end
 
 return EditorApp
