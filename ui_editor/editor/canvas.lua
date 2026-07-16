@@ -3,6 +3,7 @@
 -- 职责：承载目标 UI、拦截鼠标事件实现选中、绘制选中覆盖层
 --------------------------------------------------
 
+local Fonts = require "ui.fonts"
 local Widget = require "ui.widgets.widget"
 local Selection = require "ui_editor.editor.selection"
 local Utils = require "ui.utils"
@@ -177,6 +178,8 @@ function Canvas:onPostDraw()
     local label = self._design_mode
         and "[设计模式]  E=交互  P=父节点  Esc=取消选中"
         or  "[交互模式]  E=返回设计"
+	local font = Fonts:getFont("default", 12)
+	love.graphics.setFont(font)
     love.graphics.setColor(0.3, 0.6, 1.0, 0.55)
     love.graphics.print(label, x + 4, gh - 20)
 end
