@@ -7,7 +7,33 @@ local UiUtils = require "ui.utils"
 local Fonts = require "ui.fonts"
 
 local Widget = require "ui.widgets.widget"
-local Gallery = require "tests.gallery"
+
+-- 应用入口（按需加载）
+local function loadGallery()
+	local Gallery = require "tests.gallery"
+	return Gallery
+end
+
+local function loadEditor()
+	local EditorApp = require "ui_editor.editor.editor_app"
+	return EditorApp
+end
+
+-- 解析命令行参数
+-- love .          → 编辑器（默认）
+-- love . gallery  → Gallery 测试工具
+-- love . --editor → 编辑器（显式）
+local args = {}
+if arg then
+	for i = 1, #arg do
+		local a = arg[i]
+		if a:sub(1, 2) == "--" then
+			args[a:sub(3)] = true
+		else
+			args[a] = true
+		end
+	end
+end
 
 local languages = {"zh-cn"}
 
@@ -26,7 +52,12 @@ function love.load()
 		padding = {0, 0, 0, 0}
 	}))
 
-	Gallery(ui_root)
+	-- 路由：gallery 显式触发；默认进编辑器
+	if args.gallery then
+		loadGallery()(ui_root)
+	else
+		loadEditor()(ui_root)
+	end
 end
 
 local FPS = 0
