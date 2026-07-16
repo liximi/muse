@@ -1508,6 +1508,7 @@ function TextInput:onPostDraw()
 
 	-- 绘制选区高亮
 	if self:_hasSelection() then
+		local v_sel_offset = self:_getCursorVAlignOffset(font)
 		local s_section, s_idx, e_section, e_idx = self:_getOrderedSelection()
 		local current_line = 0
 		for i, section in ipairs(self.sections) do
@@ -1549,7 +1550,7 @@ function TextInput:onPostDraw()
 							end
 							local x_off = font:getWidth(prefix)
 							local sel_w = font:getWidth(sel_text)
-							local y_pos = org_y + (current_line + l - 1) * line_height
+							local y_pos = org_y + (current_line + l - 1) * line_height + v_sel_offset
 
 							love.graphics.push()
 							if r ~= 0 and r ~= Utils.TWO_PI then
