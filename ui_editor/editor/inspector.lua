@@ -15,8 +15,10 @@ local Utils = require "ui.utils"
 local uc = Utils.UI_COLORS
 
 local ROW_H = 28
-local LABEL_W = 72
+local LABEL_W = 68
 local GAP = 4
+local INPUT_W = 120   -- 输入框宽度（适配 Inspector 220px - 边距 - 滚动条）
+local INPUT2_W = 56   -- 双输入框各宽度
 
 -- 为输入框创建统一背景
 local function makeInputBg()
@@ -120,7 +122,7 @@ local function makeRow(label_text, value_str, on_change)
         single_line = true,
         bg = makeInputBg(),
         anchor = {0, 0, 0, 0},
-        w = 130,
+        w = INPUT_W,
         h = 22,
         padding = {LABEL_W + 12, 0, (ROW_H - 22) / 2, 0},
         on_submit = function()
@@ -150,7 +152,7 @@ local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
         padding = {12, 0, 0, 0},
     }))
 
-    local input_w = 58
+    local input_w = INPUT2_W
     local gap = 4
     local x1 = LABEL_W + 12
     local x2 = x1 + input_w + gap
