@@ -1250,6 +1250,7 @@ function TextInput:_tryHandleScrollbarClick(x, y)
 		local target_ratio = (y - gy - thumb_h / 2) / (track_h - thumb_h)
 		target_ratio = math.max(0, math.min(1, target_ratio))
 		self._scroll_y = target_ratio * max_scroll
+		self._scroll_target_y = self._scroll_y -- 同步目标，防止平滑滚动拉回
 		self:_applyScroll()
 	end
 	return true
@@ -1272,6 +1273,7 @@ function TextInput:onMouseMoved(x, y, dx, dy)
 			local dy_content = dy_screen / (track_h - thumb_h) * max_scroll
 			self._scroll_y = math.max(0, math.min(max_scroll,
 				self._scrollbar_drag_start_offset + dy_content))
+			self._scroll_target_y = self._scroll_y -- 同步目标，防止平滑滚动拉回
 			self:_applyScroll()
 		end
 		return true
@@ -1461,6 +1463,7 @@ function TextInput:onWheelMoved(x, y)
 	-- 每格滚轮滚动 3 行
 	self._scroll_y = self._scroll_y - y * line_h * 3
 	self._scroll_y = math.max(0, math.min(max_scroll, self._scroll_y))
+	self._scroll_target_y = self._scroll_y -- 同步目标，防止平滑滚动拉回
 	self:_applyScroll()
 	return true -- 拦截事件，防止冒泡到外层 Scroll
 end
