@@ -260,14 +260,13 @@ function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
 		padding = {swatch_x + swatch_w + 6, 0, 0, 0},
 	}))
 
-	-- TODO: 点击色块 → 弹出选色器（交互未调通，暂禁用）
-	-- function swatch.onMousePressed(self, mx, my, btn)
-	-- 	if btn == 1 then
-	-- 		ColorPicker.showPicker(swatch, getter, setter, onChangeHook)
-	-- 		return true
-	-- 	end
-	-- 	return false
-	-- end
+	function swatch.onMousePressed(self, mx, my, btn)
+		if btn == 1 and self:regionDetection(mx, my) then
+			ColorPicker.showPicker(swatch, getter, setter, onChangeHook)
+			return true
+		end
+		return false
+	end
 
 	-- 初始化 + 每帧同步
 	local function refreshDisplay()

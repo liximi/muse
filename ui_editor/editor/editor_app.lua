@@ -18,6 +18,8 @@ local Scaffold = require "ui_editor.editor.lua_scaffold"
 local LEAF_TYPES = require "ui_editor.editor.widget_meta"
 local BoxContainer = require "ui.widgets.containers.box_container"
 local Utils = require "ui.utils"
+local FileUtils = require "ui_editor.editor.file_utils"
+local ProjectDialog = require "ui_editor.editor.project_dialog"
 
 local uc = Utils.UI_COLORS
 
@@ -109,9 +111,11 @@ end
 local function EditorApp(parent)
     -- === 状态 ===
     local state = {
-        current_file = nil,
+        current_file = nil,       -- 当前编辑的 .mui 文件名
+        project_dir = nil,        -- 项目根目录
         class_name = nil,
         undo_mgr = UndoManager(50),
+        project_selected = false, -- 用户是否已选择项目
     }
 
     -- === 右侧 Inspector ===
@@ -198,12 +202,21 @@ local function EditorApp(parent)
         h = TOOLBAR_H,
     }))
 
-    -- === 注入演示 UI ===
-    local currentRoot = buildDemoUI()
+    -- === 创建空 UI（等待项目选择后填充）===
+    local currentRoot = createEmptyRoot("Untitled")
     canvas:setEditedRoot(currentRoot)
     tree:setEditedRoot(currentRoot)
-    state.class_name = "DemoUI"
+    state.class_name = "Untitled"
     state.undo_mgr:pushSnapshot(currentRoot)
+
+    -- === 显示项目选择对话框 ===
+    ProjectDialog.show(function(project_dir)
+        state.project_dir = project_dir
+        state.project_selected = true
+        state.current_file = nil
+        print("[Editor] Project: " .. project_dir)
+        -- 可以选择打开已有文件或开始新建
+    end)
 
     -- === 连线：选中联动 ===
 
@@ -310,10 +323,24 @@ local function EditorApp(parent)
     local function doSave()
         local root = canvas:getEditedRoot()
         if not root then return end
-        local savePath = state.current_file or "untitled.mui"
-        if Serializer.save(root, savePath) then
-            state.current_file = savePath
-            print("[Editor] Saved: " .. savePath)
+
+        if state.current_file then
+            local savePath = FileUtils.joinPath(state.project_dir or ".", state.current_file)
+            if Serializer.save(root, savePath) then
+                print("[Editor] Saved: " .. savePath)
+            end
+        else
+            local start_dir = state.project_dir or "."
+            local path = FileUtils.nativeSaveFile(start_dir,
+                (state.class_name or "untitled") .. ".mui")
+            if path then
+                if Serializer.save(root, path) then
+                    state.project_dir = FileUtils.getParentPath(path)
+                    state.current_file = FileUtils.getFileName(path)
+                    ProjectDialog.addRecentProject(state.project_dir)
+                    print("[Editor] Saved: " .. path)
+                end
+            end
         end
     end
 
@@ -321,25 +348,56 @@ local function EditorApp(parent)
         local root = canvas:getEditedRoot()
         if not root then return end
         local className = state.class_name or "Untitled"
-        local muiPath = state.current_file or "untitled.mui"
+
         if not state.current_file then
+            local path = FileUtils.nativeSaveFile(
+                state.project_dir or ".",
+                (className or "untitled") .. ".mui")
+            if path then
+                if Serializer.save(root, path) then
+                    state.project_dir = FileUtils.getParentPath(path)
+                    state.current_file = FileUtils.getFileName(path)
+                    ProjectDialog.addRecentProject(state.project_dir)
+                    local luaPath = path:gsub("%.mui$", ".lua")
+                    if Scaffold.save(root, className, path, luaPath) then
+                        print("[Editor] Exported: " .. path .. " + " .. luaPath)
+                    end
+                end
+            end
+        else
+            local muiPath = FileUtils.joinPath(state.project_dir or ".", state.current_file)
             Serializer.save(root, muiPath)
-            state.current_file = muiPath
-        end
-        local luaPath = muiPath:gsub("%.mui$", ".lua")
-        if Scaffold.save(root, className, muiPath, luaPath) then
-            print("[Editor] Exported: " .. muiPath .. " + " .. luaPath)
+            local luaPath = muiPath:gsub("%.mui$", ".lua")
+            if Scaffold.save(root, className, muiPath, luaPath) then
+                print("[Editor] Exported: " .. muiPath .. " + " .. luaPath)
+            end
         end
     end
 
     local function doOpen()
-        local path = "untitled.mui"
+        local start_dir = state.project_dir or "."
+        local path = FileUtils.nativeOpenFile(start_dir)
+        if not path then return end
+
         local Runtime = require("ui_editor.runtime.muse_editor_runtime"):getInstance()
         Runtime:clearCache()
-        local tree_data = Runtime:loadMui(path)
-        if tree_data then
-            print("[Editor] Loaded: " .. path)
-            state.current_file = path
+        local root = Runtime:buildRoot(path)
+        if root then
+            state.project_dir = FileUtils.getParentPath(path)
+            state.current_file = FileUtils.getFileName(path)
+            ProjectDialog.addRecentProject(state.project_dir)
+
+            local baseName = state.current_file:gsub("%.mui$", "")
+            state.class_name = baseName:gsub("^%l", string.upper)
+
+            canvas:setEditedRoot(root)
+            tree:setEditedRoot(root)
+            inspector:inspect(nil)
+            canvas.selection:deselect()
+            canvas:_notifySelection()
+            state.undo_mgr:clear()
+            state.undo_mgr:pushSnapshot(root)
+            print("[Editor] Opened: " .. path)
         end
     end
 

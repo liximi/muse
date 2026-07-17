@@ -102,11 +102,12 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 	local px = math.min(swx, love.graphics.getWidth() - pw - 8)
 	local py = math.min(swy + swh + 4, love.graphics.getHeight() - ph - 8)
 
-	-- 面板背景
-	popup:addChild(Panel({
+	-- 面板背景（须关闭 raycast，否则会拦截 popup 层的鼠标事件）
+	local bg_panel = popup:addChild(Panel({
 		bg_color={0.14,0.14,0.17,1}, outline_width=1, outline_color=uc.LINE,
 		rounding_radius=6, anchor={0,0,0,0}, padding={px,0,py,0}, w=pw, h=ph,
 	}))
+	bg_panel.raycast_target = false
 
 	-- 预览色块
 	local by = py + 8 + SV_SIZE + 4 + ALPHA_H + 4
@@ -114,6 +115,7 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 		bg_color={cr,cg,cb_,ca}, outline_width=1, outline_color=uc.LINE,
 		rounding_radius=3, anchor={0,0,0,0}, padding={px+8,0,by,0}, w=24, h=24,
 	}))
+	preview.raycast_target = false
 	local hex = popup:addChild(Text({
 		text="", font_size=11, text_color=uc.PRIMARY_TEXT,
 		anchor={0,0,0,0}, padding={px+8+24+6,0,by+4,0},
@@ -157,6 +159,7 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 	end
 
 	-- === 绘制层（纯显示，不参与事件）===
+	-- 纯绘制层：不参与事件（raycast_target 已关闭）
 	local draw_layer = popup:addChild(Widget({ anchor={0,0,0,0}, padding={0,0,0,0}, w=0, h=0 }))
 	draw_layer.raycast_target = false
 

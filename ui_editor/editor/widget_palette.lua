@@ -422,8 +422,8 @@ function Palette:_makeRow(widgetName)
 	label.raycast_target = false
 
 	-- 点击
-	row.onMousePressed = function(_, mx, my, btn)
-		if btn == 1 and self.onWidgetCreate then
+	row.onMousePressed = function(r, mx, my, btn)
+		if btn == 1 and r:regionDetection(mx, my) and self.onWidgetCreate then
 			self.onWidgetCreate(widgetName)
 			return true
 		end

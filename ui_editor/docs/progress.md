@@ -24,7 +24,7 @@ love . gallery  # Gallery 测试工具
 |------|------|------|
 | mui_serializer | `editor/mui_serializer.lua` | Widget 树 → .mui JSON 导出，默认值省略，类型映射（HBox→BoxContainer+orientation） |
 | lua_scaffold | `editor/lua_scaffold.lua` | .lua 骨架生成：Class → Runtime:build → find 绑定 → onReady |
-| MuseEditorRuntime | `runtime/muse_editor_runtime.lua` | 单例，loadMui/build/findOf，类型注册表 15+ 种 |
+| MuseEditorRuntime | `runtime/muse_editor_runtime.lua` | 单例，loadMui/build/buildRoot/findOf，类型注册表 15+ 种 |
 | JSON | `runtime/json.lua` | 编解码器，serializer 和 Runtime 共用 |
 
 ### 共享数据
@@ -63,7 +63,7 @@ love . gallery  # Gallery 测试工具
 | # | 功能 | 状态 |
 |---|------|------|
 | 5 | **文本属性** | ✅ text、font_size、text_color、h_align、v_align |
-| 6 | **颜色属性** | ⚠️ HSV 选色器已实现但交互未调通，暂展示色块+#RRGGBB |
+| 6 | **颜色属性** | ✅ HSV 选色器，支持 SV 渐变区、色相条、Alpha 条拖拽取色 （2026-07 修复） |
 | 7 | **枚举属性** | ✅ orientation / alignment / h_align / v_align / size_flags → Dropdown |
 | 8 | **容器属性** | ✅ separation / orientation / alignment / auto_size / stretch_ratio |
 | - | **属性分组** | ✅ 布局 / 容器标志 / 外观 / 文本 / 容器 分区标题 |
@@ -75,19 +75,29 @@ love . gallery  # Gallery 测试工具
 - `inspector.lua` → ~140 行（类定义 + onUpdate 同步）
 - `inspector/rows.lua` → ~420 行（行工厂：文本域/颜色/Dropdown/Checkbox/分区标题/拖拽柄）
 - `inspector/fields.lua` → ~380 行（`populateFields` — 按 `_mui_type` 分发 §1~§6 属性段）
-- `inspector/color_picker.lua` → ~250 行（⚠️ HSV 选色器，交互未调通）
+- `inspector/color_picker.lua` → ~250 行（✅ HSV 选色器，已修复）
 
-**已知遗留**：
-- HSV 选色器弹出后无交互。尝试了 Widget 子节点+raycast / popup 统一事件分发两种方案，均未调通，需排查事件传播
-- 颜色属性点击色块当前无反应
+### 新增模块（2026-07）
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| 文件工具 | `editor/file_utils.lua` | 跨平台文件系统操作：目录枚举、路径拼接、原生系统对话框（PowerShell/zenity） |
+| 项目对话框 | `editor/project_dialog.lua` | 启动时项目选择：最近项目列表持久化、浏览目录、新建项目 |
+| 文件对话框 | `editor/file_dialog.lua` | 自制文件浏览弹窗（已弃用，保留备用） |
 
-### P2 — 工作流完善
-| # | 功能 | 说明 |
+### 框架修复（2026-07 追加）
+- `json.lua`: `encodeTable` 作用域 bug — `local function` 遮蔽了上层 `local encodeTable` 声明，导致 `attempt to call nil`
+- `widget_palette.lua`: 列表行 `onMousePressed` 缺少 `regionDetection` 命中检测，点击任意行都触发最后一行（Spacer）
+- `color_picker.lua`: 子 Panel 默认 `raycast_target=true` 截获 popup 层事件
+- `rows.lua`: 色块 `onMousePressed` 缺少 `regionDetection` 导致点击其他行也触发取色器
+- `fields.lua`: `间距` 重命名为 `边距`
+
+### P2 — 工作流完善 ✅ 进行中（2026-07）
+| # | 功能 | 状态 |
 |---|------|------|
-| 9 | **文件对话框** | 新建（输入类名）/ 打开（浏览 .mui）/ 另存为 |
-| 10 | **multi-widget 支持** | 编辑器不限于单一 demo UI，可创建任意类型根节点 |
-| 11 | **键盘快捷键完善** | Delete 键删除、方向键微调位置 |
-| 12 | **撤销粒度** | Inspector 每次 setter 调前自动 pushSnapshot（已实现 onChange 回调，需连线） |
+| 9 | **项目 & 文件对话框** | ✅ 启动项目选择 + 原生系统对话框（PowerShell/.NET WinForms）打开/保存 .mui + 最近项目持久化 |
+| 10 | **multi-widget 支持** | — |
+| 11 | **键盘快捷键完善** | — Delete 键删除、方向键微调位置 |
+| 12 | **撤销粒度** | — Inspector 每次 setter 前自动 pushSnapshot（`onBeforePropertyChange` 已连线到 UndoManager） |
 
 ### P3 — 体验优化
 | # | 功能 | 说明 |

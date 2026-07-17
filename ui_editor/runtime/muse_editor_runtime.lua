@@ -187,6 +187,22 @@ local function buildNode(nodeDef, entry)
 	return widget
 end
 
+--- 构建并返回 .mui 的根 Widget（不依附父容器）
+--- 供编辑器等需要拿到根节点引用的场景使用
+---@param path string .mui 文件路径
+---@return Widget|nil
+function MuseEditorRuntime:buildRoot(path)
+	local tree = self:loadMui(path)
+	if not tree or not tree.root then return nil end
+
+	local entry = {
+		_path = path,
+		_rt = self,
+	}
+
+	return buildNode(tree.root, entry)
+end
+
 --- 在 parent 下递归构建整棵 .mui 树
 ---@param parent Widget 父容器（通常是 self，即开发者自定义的 Widget 子类实例）
 ---@param path string .mui 文件路径

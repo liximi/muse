@@ -77,15 +77,15 @@ local function populateFields(inspector, target)
 		getter = function() return fmt(select(4, target.transform:getAnchor())) end,
 		setter = function(v) target.transform:setAnchor(nil, nil, nil, tonumber(v)) end, numeric = true})
 
-	-- 间距
+	-- 边距
 	local pad_fields = {
-		{label = "左间距", get = function() return fmt(target.transform.left) end,
+		{label = "左边距", get = function() return fmt(target.transform.left) end,
 			set = function(v) target.transform:setPadding(tonumber(v), nil, nil, nil) end},
-		{label = "右间距", get = function() return fmt(target.transform.right) end,
+		{label = "右边距", get = function() return fmt(target.transform.right) end,
 			set = function(v) target.transform:setPadding(nil, tonumber(v), nil, nil) end},
-		{label = "上间距", get = function() return fmt(target.transform.top) end,
+		{label = "上边距", get = function() return fmt(target.transform.top) end,
 			set = function(v) target.transform:setPadding(nil, nil, tonumber(v), nil) end},
-		{label = "下间距", get = function() return fmt(target.transform.bottom) end,
+		{label = "下边距", get = function() return fmt(target.transform.bottom) end,
 			set = function(v) target.transform:setPadding(nil, nil, nil, tonumber(v)) end},
 	}
 	for _, f in ipairs(pad_fields) do

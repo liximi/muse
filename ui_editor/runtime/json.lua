@@ -47,7 +47,7 @@ local function isArray(t)
 	return true
 end
 
-local function encodeTable(t, indent, level, pretty)
+function encodeTable(t, indent, level, pretty)
 	if not pretty then
 		if isArray(t) then
 			local parts = {}
