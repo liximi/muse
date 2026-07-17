@@ -448,23 +448,45 @@ end
 -- 绘制
 --------------------------------------------------
 
+function Canvas:onDraw()
+    local cx, cy, cw, ch = self.transform:getGlobalBounds()
+
+    -- 画布背景（比编辑器底色略深，区分画布区域）
+    love.graphics.setColor(0.06, 0.06, 0.09, 1)
+    love.graphics.rectangle("fill", cx, cy, cw, ch)
+
+    -- 画布边框
+    love.graphics.setColor(0.18, 0.18, 0.22, 1)
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle("line", cx + 0.5, cy + 0.5, cw - 1, ch - 1)
+
+    -- 裁剪：防止子控件绘制溢出到侧边栏 / 工具栏
+    love.graphics.push("all")
+    love.graphics.setScissor(cx, cy, cw, ch)
+    self._clip_rect = {cx, cy, cw, ch}
+end
+
 function Canvas:onPostDraw()
+    -- 恢复裁剪
+    love.graphics.pop()
+    self._clip_rect = nil
+
+    -- 选中框 + 锚点 gizmo（在裁剪之外绘制，确保手柄始终可见）
     if self._design_mode and self.selection:hasSelection() then
         self.selection:draw()
         self:_drawAnchorGizmo()
     end
 
+    -- 底部模式指示标签
     local prev_font = love.graphics.getFont()
-    local x, _ = self.transform:getGlobalPosition()
-    -- Canvas 底部内侧绘制，避开底部 Toolbar
-    local _, cy, _, ch = self.transform:getGlobalBounds()
+    local cx, cy, cw, ch = self.transform:getGlobalBounds()
     local label = self._design_mode
         and "[Design]  E=Play  P=Parent  Esc=Deselect"
         or  "[Play]  E=Design"
     local font = Fonts:getFont("default", 11)
     love.graphics.setFont(font)
     love.graphics.setColor(0.3, 0.6, 1.0, 0.5)
-    love.graphics.print(label, x + 6, cy + ch - 16)
+    love.graphics.print(label, cx + 6, cy + ch - 16)
     love.graphics.setFont(prev_font)
 end
 

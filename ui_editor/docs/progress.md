@@ -38,6 +38,8 @@ love . gallery  # Gallery 测试工具
 - `textinput.lua`: `onTextInput` 单行模式下过滤 `\r?\n`
 - `textinput.lua`: onHovered 判空 self.bg
 - `textinput.lua`: 光标 + 选区绘制跟随 v_align 垂直偏移
+- `canvas.lua`: 增加 scissor 裁剪 + 画布背景色 + 边框，防止子控件绘制溢出到侧边栏/工具栏
+- `canvas.lua`: `onDraw` 设 `_clip_rect` 传播给子节点做 culling 优化
 
 ### 已知限制
 - **撤销不支持结构变更**：快照式 UndoManager 只记录现有 widget 属性，addChild/removeChild 后撤销可能错位。需升级为命令模式。
@@ -57,13 +59,28 @@ love . gallery  # Gallery 测试工具
 | - | **TreeView 横向滚动** | ✅ 根据嵌套深度自动扩宽内容 + Scroll 双轴滚动 |
 | - | **布局修正** | ✅ 拉伸锚点面板 bottom padding 正数化，不再溢出窗口 |
 
-### P1 — 属性编辑完善
-| # | 功能 | 说明 |
+### P1 — 属性编辑完善 ✅ 已完成（2026-07-17）
+| # | 功能 | 状态 |
 |---|------|------|
-| 5 | **文本属性** | Inspector 支持编辑 text、font_size、text_color、h_align、v_align |
-| 6 | **颜色属性** | bg_color、outline_color 色块 + 取色器 |
-| 7 | **枚举属性** | orientation、alignment 等 → Dropdown |
-| 8 | **容器属性** | separation、h_size_flags / v_size_flags 复选框 |
+| 5 | **文本属性** | ✅ text、font_size、text_color、h_align、v_align |
+| 6 | **颜色属性** | ✅ bg_color / outline_color / text_color 色块 + RGBA 0-255 数字输入 |
+| 7 | **枚举属性** | ✅ orientation / alignment / h_align / v_align / size_flags → Dropdown |
+| 8 | **容器属性** | ✅ separation / orientation / alignment / auto_size / stretch_ratio |
+| - | **属性分组** | ✅ 布局 / 容器标志 / 外观 / 文本 / 容器 分区标题 |
+| - | **类型感知** | ✅ Inspector 根据 `_mui_type` 动态展示对应属性组 |
+| - | **布尔属性** | ✅ Checkbox 行（auto_size、single_line、checked） |
+
+**实现细节**：
+- `makeColorRow` — 标签 + 色块 + R/G/B/A 4 个 TextInput（0-255），失焦自动同步
+- `makeDropdownRow` — 使用 Dropdown 组件，修复了 `self:onSelect` 冒号语法导致的参数偏移（`_self, idx, val`）
+- `makeCheckboxRow` — 行级点击切换，Checkbox 仅作视觉指示（raycast_target=false）
+- `isInsideContainer` — 检测父节点是否有 `_sortChildren`，动态显示 size_flags 行
+- Button 属性走 `state_styles.normal` + `setState()` 刷新，所有 getter nil-safe
+
+**代码拆分**（2026-07-17）：
+- `inspector.lua` → ~140 行（类定义 + onUpdate 同步）
+- `inspector/rows.lua` → ~380 行（行工厂：文本/颜色/Dropdown/Checkbox/分区标题）
+- `inspector/fields.lua` → ~380 行（`populateFields` — 按 `_mui_type` 分发 §1~§6 属性段）
 
 ### P2 — 工作流完善
 | # | 功能 | 说明 |

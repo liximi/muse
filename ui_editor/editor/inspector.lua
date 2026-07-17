@@ -1,46 +1,36 @@
 --------------------------------------------------
 -- Inspector — 属性面板
 -- 职责：显示选中 widget 的属性，实时编辑
+--
+-- 模块拆分：
+--   inspector/rows.lua   — 行工厂（文本/颜色/Dropdown/Checkbox）
+--   inspector/fields.lua — _rebuild 属性字段映射
 --------------------------------------------------
 
 local Widget = require "ui.widgets.widget"
-local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
-local TextInput = require "ui.widgets.textinput"
-local Button = require "ui.widgets.button"
-local Box = require "ui.widgets.containers.box_container"
+local BoxContainer = require "ui.widgets.containers.box_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local Utils = require "ui.utils"
 
+local Rows = require "ui_editor.editor.inspector.rows"
+local populateFields = require "ui_editor.editor.inspector.fields"
+
 local uc = Utils.UI_COLORS
+local isValidNumber = Rows.isValidNumber
 
-local ROW_H = 28
-local LABEL_W = 68
-local GAP = 4
-local INPUT_W = 120   -- 输入框宽度（适配 Inspector 220px - 边距 - 滚动条）
-local INPUT2_W = 56   -- 双输入框各宽度
-
--- 为输入框创建统一背景
-local function makeInputBg()
-	return Panel({
-		bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.6},
-		outline_width = 1,
-		outline_color = uc.LINE,
-		rounding_radius = 4,
-	})
-end
+--------------------------------------------------
+-- Inspector 主类
+--------------------------------------------------
 
 local Inspector = Class(Widget, function(self, datas)
-    Widget.new(self, "Inspector", datas)
-    self.raycast_target = true
-    self._target = nil     -- 当前被检视的 widget
-    self._rows = {}        -- {label widget, input widget} 用于动态更新
-    self._dirty = false    -- 需要重建控件
-
-    -- 回调：属性即将被 setter 修改时调用。function(target, prop_name)
-    self.onBeforePropertyChange = nil
-
-    self:_buildUI()
+	Widget.new(self, "Inspector", datas)
+	self.raycast_target = true
+	self._target = nil
+	self._rows = {}
+	self._dirty = false
+	self.onBeforePropertyChange = nil
+	self:_buildUI()
 end)
 
 --------------------------------------------------
@@ -48,305 +38,131 @@ end)
 --------------------------------------------------
 
 function Inspector:_buildUI()
-    -- 标题
-    self._header = self:addChild(Text({
-        text = "Inspector",
-        font_size = 13,
-        font_key = "default_bold",
-        text_color = uc.HINT,
-        h = 24,
-        anchor = {0, 0, 1, 0},
-        padding = {12, 12, 8, 0},
-    }))
+	self._header = self:addChild(Text({
+		text = "Inspector",
+		font_size = 13,
+		font_key = "default_bold",
+		text_color = uc.HINT,
+		h = 24,
+		anchor = {0, 0, 1, 0},
+		padding = {12, 12, 8, 0},
+	}))
 
-    -- 类型 + id 标签
-    self._type_label = self:addChild(Text({
-        text = "No selection",
-        font_size = 12,
-        text_color = uc.SECONDARY_TEXT,
-        h = 18,
-        anchor = {0, 0, 1, 0},
-        padding = {12, 12, 36, 0},
-    }))
+	self._type_label = self:addChild(Text({
+		text = "No selection",
+		font_size = 12,
+		text_color = uc.SECONDARY_TEXT,
+		h = 18,
+		anchor = {0, 0, 1, 0},
+		padding = {12, 12, 36, 0},
+	}))
 
-    -- 可滚动属性列表
-    self._scroll = self:addChild(Scroll({
-        anchor = {0, 0, 1, 1},
-        padding = {4, 4, 58, 4},
-        enable_scroll_h = false,
-    }))
+	self._scroll = self:addChild(Scroll({
+		anchor = {0, 0, 1, 1},
+		padding = {4, 4, 58, 4},
+		enable_scroll_h = false,
+	}))
 
-    self._form = Box({
-        auto_size = true,
-        anchor = {0, 0, 1, 0},
-        separation = GAP,
-    })
-    self._scroll:setItem(self._form)
-    self._scroll:setScrollableH(0)
+	self._form = BoxContainer({
+		auto_size = true,
+		anchor = {0, 0, 1, 0},
+		separation = 4,
+	})
+	self._scroll:setItem(self._form)
+	self._scroll:setScrollableH(0)
 end
 
 --------------------------------------------------
 -- 检视目标
 --------------------------------------------------
 
--- 设置检视目标 widget，nil 表示清空
 function Inspector:inspect(widget)
-    self._target = widget
-    self._dirty = true
+	self._target = widget
+	self._dirty = true
 end
 
 --------------------------------------------------
--- 校验：是否为合法数字
-local function isValidNumber(s)
-    if s == nil or s == "" then return false end
-    -- 允许: 整数、小数、负数、前导负号
-    return tonumber(s) ~= nil
-end
-
--- 属性行工厂
+-- 通知变更（触发撤销快照）
 --------------------------------------------------
-
-local function makeRow(label_text, value_str, on_change)
-    local row = Widget({
-        anchor = {0, 0, 1, 0},
-        h = ROW_H,
-    })
-    row:setCustomMinimumSize(nil, ROW_H)
-
-    local lbl = row:addChild(Text({
-        text = label_text,
-        font_size = 11,
-        text_color = uc.SECONDARY_TEXT,
-        v_align = "center",
-        anchor = {0, 0, 0, 0},
-        w = LABEL_W,
-        h = ROW_H,
-        padding = {12, 0, 0, 0},
-    }))
-
-    local input
-    input = row:addChild(TextInput({
-        text = value_str,
-        font_size = 11,
-        text_color = uc.PRIMARY_TEXT,
-        single_line = true,
-        v_align = "center",
-        bg = makeInputBg(),
-        anchor = {0, 0, 0, 0},
-        w = INPUT_W,
-        h = 22,
-        padding = {LABEL_W + 12, 0, (ROW_H - 22) / 2, 0},
-        on_submit = function()
-            local text = input:getText()
-            if on_change and isValidNumber(text) then
-                on_change(text)
-            end
-            -- invalid input: silently ignored, onUpdate reverts on blur
-        end,
-    }))
-
-    return row, input
-end
-
--- 双输入行：两个小输入框（如锚点 min / max）
-local function makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
-    local row = Widget({
-        anchor = {0, 0, 1, 0},
-        h = ROW_H,
-    })
-    row:setCustomMinimumSize(nil, ROW_H)
-
-    local lbl = row:addChild(Text({
-        text = label_text,
-        font_size = 11,
-        text_color = uc.SECONDARY_TEXT,
-        v_align = "center",
-        anchor = {0, 0, 0, 0},
-        w = LABEL_W,
-        h = ROW_H,
-        padding = {12, 0, 0, 0},
-    }))
-
-    local input_w = INPUT2_W
-    local gap = 4
-    local x1 = LABEL_W + 12
-    local x2 = x1 + input_w + gap
-    local y_off = (ROW_H - 22) / 2
-
-    local input1
-    input1 = row:addChild(TextInput({
-        text = val1_str,
-        font_size = 11,
-        text_color = uc.PRIMARY_TEXT,
-        single_line = true,
-        v_align = "center",
-        bg = makeInputBg(),
-        anchor = {0, 0, 0, 0},
-        w = input_w,
-        h = 22,
-        padding = {x1, 0, y_off, 0},
-        on_submit = function()
-            local text = input1:getText()
-            if on_change1 and isValidNumber(text) then
-                on_change1(text)
-            end
-        end,
-    }))
-
-    local input2
-    input2 = row:addChild(TextInput({
-        text = val2_str,
-        font_size = 11,
-        text_color = uc.PRIMARY_TEXT,
-        single_line = true,
-        v_align = "center",
-        bg = makeInputBg(),
-        anchor = {0, 0, 0, 0},
-        w = input_w,
-        h = 22,
-        padding = {x2, 0, y_off, 0},
-        on_submit = function()
-            local text = input2:getText()
-            if on_change2 and isValidNumber(text) then
-                on_change2(text)
-            end
-        end,
-    }))
-
-    return row, {input1, input2}
-end
-
--- 将数字四舍五入到 2 位小数显示
-local function fmt(n)
-    if n == nil then return "" end
-    if type(n) == "number" then
-        if n == math.floor(n) then return tostring(n) end
-        return string.format("%.2f", n)
-    end
-    return tostring(n)
+function Inspector:_notifyChange()
+	if self.onBeforePropertyChange then
+		self.onBeforePropertyChange(self._target)
+	end
 end
 
 --------------------------------------------------
--- 重建属性行
+-- 重建属性行（委托给 fields 模块）
 --------------------------------------------------
-
 function Inspector:_rebuild()
-    self._form:clearChildren()
-    self._rows = {}
-
-    if not self._target then
-        self._type_label:setText("No selection")
-        return
-    end
-
-    local target = self._target
-    local name = target._name or target._mui_id or target:__tostring()
-    self._type_label:setText(name)
-
-    -- 定义属性行：getter 每次从 widget 实时读取，setter 写回
-    local fields = {
-        {label = "宽度",
-            get = function() return fmt(target.transform.w) end,
-            set = function(v) target.transform:setSize(tonumber(v), nil) end},
-        {label = "高度",
-            get = function() return fmt(target.transform.h) end,
-            set = function(v) target.transform:setSize(nil, tonumber(v)) end},
-    }
-
-    for _, f in ipairs(fields) do
-        local row, input = makeRow(f.label, f.get(), f.set)
-        self._form:addChild(row)
-        table.insert(self._rows, {input = input, getter = f.get, setter = f.set, numeric = true})
-    end
-
-    -- 锚点：四字段，双输入行
-    local anchor_fields = {
-        {label = "锚点 X",
-            get1 = function() local a1 = select(1, target.transform:getAnchor()); return fmt(a1) end,
-            get2 = function() local a3 = select(3, target.transform:getAnchor()); return fmt(a3) end,
-            set1 = function(v) target.transform:setAnchor(tonumber(v), nil, nil, nil) end,
-            set2 = function(v) target.transform:setAnchor(nil, nil, tonumber(v), nil) end},
-        {label = "锚点 Y",
-            get1 = function() local a2 = select(2, target.transform:getAnchor()); return fmt(a2) end,
-            get2 = function() local a4 = select(4, target.transform:getAnchor()); return fmt(a4) end,
-            set1 = function(v) target.transform:setAnchor(nil, tonumber(v), nil, nil) end,
-            set2 = function(v) target.transform:setAnchor(nil, nil, nil, tonumber(v)) end},
-    }
-
-    for _, af in ipairs(anchor_fields) do
-        local row, inputs = makeRow2(af.label, af.get1(), af.get2(), af.set1, af.set2)
-        self._form:addChild(row)
-        table.insert(self._rows, {input = inputs[1], getter = af.get1, setter = af.set1, numeric = true})
-        table.insert(self._rows, {input = inputs[2], getter = af.get2, setter = af.set2, numeric = true})
-    end
-
-    -- 间距：四字段
-    local padding_fields = {
-        {label = "左间距",
-            get = function() return fmt(target.transform.left) end,
-            set = function(v) target.transform:setPadding(tonumber(v), nil, nil, nil) end},
-        {label = "右间距",
-            get = function() return fmt(target.transform.right) end,
-            set = function(v) target.transform:setPadding(nil, tonumber(v), nil, nil) end},
-        {label = "上间距",
-            get = function() return fmt(target.transform.top) end,
-            set = function(v) target.transform:setPadding(nil, nil, tonumber(v), nil) end},
-        {label = "下间距",
-            get = function() return fmt(target.transform.bottom) end,
-            set = function(v) target.transform:setPadding(nil, nil, nil, tonumber(v)) end},
-    }
-
-    for _, f in ipairs(padding_fields) do
-        local row, input = makeRow(f.label, f.get(), f.set)
-        self._form:addChild(row)
-        table.insert(self._rows, {input = input, getter = f.get, setter = f.set, numeric = true})
-    end
+	populateFields(self, self._target)
 end
 
 --------------------------------------------------
--- 更新
+-- 每帧同步：失焦提交 + 外部变更回显
 --------------------------------------------------
-
 function Inspector:onUpdate(dt)
-    if self._dirty then
-        self:_rebuild()
-        self._dirty = false
-    end
+	if self._dirty then
+		self:_rebuild()
+		self._dirty = false
+	end
 
-    if self._target then
-        for _, entry in ipairs(self._rows) do
-            local input = entry.input
-            local was_focused = entry._was_focused
-            local is_focused = input:isFocus()
+	if not self._target then return end
 
-            -- 失焦提交：焦点从有变无，且文本与当前值不同 → 触发 setter
-            if was_focused and not is_focused then
-                local current = entry.getter()
-                local text = input:getText()
-                if text ~= current then
-                    -- 数字字段：校验合法性，非法则回退
-                    if entry.numeric and not isValidNumber(text) then
-                        input:setText(current)
-                    else
-                        if self.onBeforePropertyChange then
-                            self:onBeforePropertyChange(self._target)
-                        end
-                        entry.setter(text)
-                    end
-                end
-            end
+	for _, entry in ipairs(self._rows) do
+		-- 颜色行：同步色块和 RGBA 输入
+		if entry.type == "color" then
+			local data = entry.data
+			local c = data.getter and data.getter()
+			if c then
+				data.swatch.bg_color = {c[1], c[2], c[3], c[4] or 1}
+				-- 仅在无焦点时同步 RGBA 输入
+				local all_unfocused = true
+				for i = 1, 4 do
+					if data.inputs[i]:isFocus() then
+						all_unfocused = false
+						break
+					end
+				end
+				if all_unfocused then
+					for i = 1, 4 do
+						local v255 = math.floor((c[i] or 0) * 255 + 0.5)
+						local expected_str = tostring(v255)
+						if data.inputs[i]:getText() ~= expected_str then
+							data.inputs[i]:setText(expected_str)
+						end
+					end
+				end
+			end
 
-            entry._was_focused = is_focused
+		-- 文本/数字行：失焦提交 + 同步
+		elseif entry.input then
+			local input = entry.input
+			local was_focused = entry._was_focused
+			local is_focused = input:isFocus()
 
-            -- 无焦点时刷新显示值（外部变更同步）
-            if not is_focused then
-                local current = entry.getter()
-                if input:getText() ~= current then
-                    input:setText(current)
-                end
-            end
-        end
-    end
+			if was_focused and not is_focused then
+				local current = entry.getter()
+				local text = input:getText()
+				if text ~= current then
+					if entry.numeric and not isValidNumber(text) then
+						input:setText(current)
+					else
+						self:_notifyChange()
+						entry.setter(text)
+					end
+				end
+			end
+
+			entry._was_focused = is_focused
+
+			if not is_focused then
+				local current = entry.getter()
+				if input:getText() ~= current then
+					input:setText(current)
+				end
+			end
+		end
+	end
 end
 
 return Inspector
