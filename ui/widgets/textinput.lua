@@ -828,15 +828,19 @@ function TextInput:_deleteSelection()
 	if e_section <= #self.sections then
 		second_part = splitText(self.sections[e_section], e_idx, "second")
 	end
-
-	-- 删除中间段落（从后往前删）
-	for i = e_section, s_section, -1 do
-		self:removeSection(i)
-	end
-
-	-- 插入合并后的段落
 	local merged = first_part .. second_part
-	self:insertNewSection(s_section, merged)
+
+	-- 直接操作 sections 数组，绕过 removeSection 的 appendNewSection 副作用。
+	-- removeSection 在 sections 变空时会自动插入一个 "" 段，
+	-- 紧接着 insertNewSection 又会插入合并段 → 得到两个段 → flushText 用 \n 连接。
+	for i = e_section, s_section, -1 do
+		table.remove(self.sections, i)
+	end
+	if #self.sections == 0 then
+		self.sections[1] = merged
+	else
+		table.insert(self.sections, s_section, merged)
+	end
 
 	-- 清除选区，光标移到删除位置
 	self:_clearSelection()
@@ -1123,6 +1127,10 @@ end
 function TextInput:onTextInput(text)
 	if not self:isFocus() then
 		return
+	end
+	if self.single_line then
+		text = string.gsub(text, "\r?\n", "")
+		if text == "" then return end
 	end
 	self:_preMutation("input")
 	if self:_hasSelection() then
