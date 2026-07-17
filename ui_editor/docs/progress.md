@@ -59,28 +59,27 @@ love . gallery  # Gallery 测试工具
 | - | **TreeView 横向滚动** | ✅ 根据嵌套深度自动扩宽内容 + Scroll 双轴滚动 |
 | - | **布局修正** | ✅ 拉伸锚点面板 bottom padding 正数化，不再溢出窗口 |
 
-### P1 — 属性编辑完善 ✅ 已完成（2026-07-17）
+### P1 — 属性编辑完善 ✅ 基本完成（2026-07-17）
 | # | 功能 | 状态 |
 |---|------|------|
 | 5 | **文本属性** | ✅ text、font_size、text_color、h_align、v_align |
-| 6 | **颜色属性** | ✅ bg_color / outline_color / text_color 色块 + RGBA 0-255 数字输入 |
+| 6 | **颜色属性** | ⚠️ HSV 选色器已实现但交互未调通，暂展示色块+#RRGGBB |
 | 7 | **枚举属性** | ✅ orientation / alignment / h_align / v_align / size_flags → Dropdown |
 | 8 | **容器属性** | ✅ separation / orientation / alignment / auto_size / stretch_ratio |
 | - | **属性分组** | ✅ 布局 / 容器标志 / 外观 / 文本 / 容器 分区标题 |
 | - | **类型感知** | ✅ Inspector 根据 `_mui_type` 动态展示对应属性组 |
 | - | **布尔属性** | ✅ Checkbox 行（auto_size、single_line、checked） |
+| - | **文本域** | ✅ 上下布局、多行、可拖拽调节高度（32~200px）、底部拖拽柄 |
 
-**实现细节**：
-- `makeColorRow` — 标签 + 色块 + R/G/B/A 4 个 TextInput（0-255），失焦自动同步
-- `makeDropdownRow` — 使用 Dropdown 组件，修复了 `self:onSelect` 冒号语法导致的参数偏移（`_self, idx, val`）
-- `makeCheckboxRow` — 行级点击切换，Checkbox 仅作视觉指示（raycast_target=false）
-- `isInsideContainer` — 检测父节点是否有 `_sortChildren`，动态显示 size_flags 行
-- Button 属性走 `state_styles.normal` + `setState()` 刷新，所有 getter nil-safe
-
-**代码拆分**（2026-07-17）：
+**代码拆分**：
 - `inspector.lua` → ~140 行（类定义 + onUpdate 同步）
-- `inspector/rows.lua` → ~380 行（行工厂：文本/颜色/Dropdown/Checkbox/分区标题）
+- `inspector/rows.lua` → ~420 行（行工厂：文本域/颜色/Dropdown/Checkbox/分区标题/拖拽柄）
 - `inspector/fields.lua` → ~380 行（`populateFields` — 按 `_mui_type` 分发 §1~§6 属性段）
+- `inspector/color_picker.lua` → ~250 行（⚠️ HSV 选色器，交互未调通）
+
+**已知遗留**：
+- HSV 选色器弹出后无交互。尝试了 Widget 子节点+raycast / popup 统一事件分发两种方案，均未调通，需排查事件传播
+- 颜色属性点击色块当前无反应
 
 ### P2 — 工作流完善
 | # | 功能 | 说明 |
