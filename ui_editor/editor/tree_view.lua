@@ -166,7 +166,8 @@ function TreeView:_rebuild()
     local root_mui = self._edited_root._mui_type or self._edited_root._name
     local root_leaf = root_mui and LEAF_TYPES[root_mui]
     local max_depth = _maxDepth(self._edited_root, 0, root_leaf)
-    local content_w = math.max(self.transform.w + 50, max_depth * INDENT + 200)
+    local viewport_w = self.transform.w - 4
+    local content_w = math.max(viewport_w, max_depth * INDENT + 100)
     self._list.transform:setSize(content_w, nil)
     self._scroll:setScrollableW(content_w)
 

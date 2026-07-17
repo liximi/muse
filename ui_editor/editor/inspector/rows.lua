@@ -208,37 +208,11 @@ function Rows.makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
 end
 
 --------------------------------------------------
--- 色板预设颜色（8 列 × 5 行 = 40 色）
---------------------------------------------------
-local PALETTE_COLS = 8
-local PALETTE_CELL = 20
-local PALETTE_GAP = 1
-local PALETTE_H = 5 * (PALETTE_CELL + PALETTE_GAP) + 4
-
-local PALETTE_COLORS = {
-	-- 灰度
-	{1,1,1,1}, {0.88,0.88,0.88,1}, {0.72,0.72,0.72,1}, {0.56,0.56,0.56,1}, {0.4,0.4,0.4,1}, {0.26,0.26,0.26,1}, {0.13,0.13,0.13,1}, {0,0,0,1},
-	-- 红/橙/黄
-	{1,0.15,0.15,1}, {1,0.35,0.1,1}, {1,0.55,0.1,1}, {1,0.75,0.1,1}, {1,0.9,0.1,1}, {0.85,1,0.1,1}, {0.65,1,0.1,1}, {0.45,1,0.1,1},
-	-- 绿/青
-	{0.15,1,0.15,1}, {0.1,1,0.5,1}, {0.1,1,0.8,1}, {0.1,0.8,1,1}, {0.1,0.5,1,1}, {0.1,0.2,1,1}, {0.5,0.1,1,1}, {0.8,0.1,1,1},
-	-- 紫/粉/棕
-	{1,0.1,1,1}, {1,0.1,0.5,1}, {0.95,0.5,0.5,1}, {0.6,0.3,0.05,1}, {0.8,0.6,0.15,1}, {0.45,0.35,0.25,1}, {0.25,0.5,0.6,1}, {0.2,0.6,0.4,1},
-	-- Muse 主题色
-	{uc.BG[1], uc.BG[2], uc.BG[3], uc.BG[4]},
-	{uc.SURFACE[1], uc.SURFACE[2], uc.SURFACE[3], uc.SURFACE[4]},
-	{uc.LINE[1], uc.LINE[2], uc.LINE[3], uc.LINE[4]},
-	{uc.TITLE[1], uc.TITLE[2], uc.TITLE[3], uc.TITLE[4]},
-	{uc.PRIMARY_TEXT[1], uc.PRIMARY_TEXT[2], uc.PRIMARY_TEXT[3], uc.PRIMARY_TEXT[4]},
-	{uc.SECONDARY_TEXT[1], uc.SECONDARY_TEXT[2], uc.SECONDARY_TEXT[3], uc.SECONDARY_TEXT[4]},
-	{uc.ACCENT[1], uc.ACCENT[2], uc.ACCENT[3], uc.ACCENT[4]},
-	{uc.WARNING[1], uc.WARNING[2], uc.WARNING[3], uc.WARNING[4]},
-}
-
---------------------------------------------------
--- 颜色行（swatch + 点击展开色板）
+-- 颜色行（swatch + 点击弹出 HSV 选色器）
 --------------------------------------------------
 function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
+	local ColorPicker = require "ui_editor.editor.inspector.color_picker"
+
 	local row = Widget({
 		anchor = {0, 0, 1, 0},
 		h = ROW_H,
@@ -286,80 +260,16 @@ function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
 		padding = {swatch_x + swatch_w + 6, 0, 0, 0},
 	}))
 
-	-- 色板区域（初始隐藏）
-	local palette_y = ROW_H + 2
-	local palette = row:addChild(Widget({
-		anchor = {0, 0, 1, 0},
-		padding = {12, 12, palette_y, 0},
-		h = PALETTE_H,
-	}))
-
-	-- 构建色板格子
-	local palette_cells = {}
-	for idx, color in ipairs(PALETTE_COLORS) do
-		local col = (idx - 1) % PALETTE_COLS
-		local row_i = math.floor((idx - 1) / PALETTE_COLS)
-		local cx = col * (PALETTE_CELL + PALETTE_GAP)
-		local cy = row_i * (PALETTE_CELL + PALETTE_GAP)
-
-		local cell = palette:addChild(Panel({
-			bg_color = {color[1], color[2], color[3], color[4]},
-			outline_width = 1,
-			outline_color = {uc.LINE[1], uc.LINE[2], uc.LINE[3], 0.4},
-			rounding_radius = 2,
-			anchor = {0, 0, 0, 0},
-			padding = {cx, 0, cy, 0},
-			w = PALETTE_CELL,
-			h = PALETTE_CELL,
-		}))
-		cell.raycast_target = true
-		cell._palette_color = {color[1], color[2], color[3], color[4]}
-
-		function cell.onMousePressed(self, mx, my, btn)
-			if btn == 1 then
-				if onChangeHook then onChangeHook() end
-				setter(self._palette_color)
-				-- 关闭色板
-				palette:hide()
-				row._palette_open = false
-				row.transform:setSize(nil, ROW_H)
-				row:setCustomMinimumSize(nil, ROW_H)
-				if row.parent and row.parent.queueSort then
-					row.parent:queueSort()
-				end
-				return true
-			end
-			return false
-		end
-
-		table.insert(palette_cells, cell)
-	end
-	palette:hide()
-
-	-- 色板展开/收起
-	row._palette_open = false
+	-- 点击色块 → 弹出选色器
 	function swatch.onMousePressed(self, mx, my, btn)
 		if btn == 1 then
-			row._palette_open = not row._palette_open
-			if row._palette_open then
-				palette:show()
-				local new_h = ROW_H + PALETTE_H + 4
-				row.transform:setSize(nil, new_h)
-				row:setCustomMinimumSize(nil, new_h)
-			else
-				palette:hide()
-				row.transform:setSize(nil, ROW_H)
-				row:setCustomMinimumSize(nil, ROW_H)
-			end
-			if row.parent and row.parent.queueSort then
-				row.parent:queueSort()
-			end
+			ColorPicker.showPicker(swatch, getter, setter, onChangeHook)
 			return true
 		end
 		return false
 	end
 
-	-- 初始化
+	-- 初始化 + 每帧同步
 	local function refreshDisplay()
 		local c = getter and getter()
 		if c then
