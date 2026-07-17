@@ -467,11 +467,7 @@ function Canvas:onDraw()
 end
 
 function Canvas:onPostDraw()
-    -- 恢复裁剪
-    love.graphics.pop()
-    self._clip_rect = nil
-
-    -- 选中框 + 锚点 gizmo（在裁剪之外绘制，确保手柄始终可见）
+    -- 选中框 + 锚点 gizmo（scissor 内，不溢出）
     if self._design_mode and self.selection:hasSelection() then
         self.selection:draw()
         self:_drawAnchorGizmo()
@@ -488,6 +484,10 @@ function Canvas:onPostDraw()
     love.graphics.setColor(0.3, 0.6, 1.0, 0.5)
     love.graphics.print(label, cx + 6, cy + ch - 16)
     love.graphics.setFont(prev_font)
+
+    -- 恢复裁剪
+    love.graphics.pop()
+    self._clip_rect = nil
 end
 
 return Canvas
