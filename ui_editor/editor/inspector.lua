@@ -109,29 +109,11 @@ function Inspector:onUpdate(dt)
 	if not self._target then return end
 
 	for _, entry in ipairs(self._rows) do
-		-- 颜色行：同步色块和 RGBA 输入
+		-- 颜色行：同步色块 + hex 显示
 		if entry.type == "color" then
 			local data = entry.data
-			local c = data.getter and data.getter()
-			if c then
-				data.swatch.bg_color = {c[1], c[2], c[3], c[4] or 1}
-				-- 仅在无焦点时同步 RGBA 输入
-				local all_unfocused = true
-				for i = 1, 4 do
-					if data.inputs[i]:isFocus() then
-						all_unfocused = false
-						break
-					end
-				end
-				if all_unfocused then
-					for i = 1, 4 do
-						local v255 = math.floor((c[i] or 0) * 255 + 0.5)
-						local expected_str = tostring(v255)
-						if data.inputs[i]:getText() ~= expected_str then
-							data.inputs[i]:setText(expected_str)
-						end
-					end
-				end
+			if data.refreshDisplay then
+				data.refreshDisplay()
 			end
 
 		-- 文本/数字行：失焦提交 + 同步

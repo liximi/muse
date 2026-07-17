@@ -28,16 +28,6 @@ local TEXTAREA_LABEL_H = 16
 local TEXTAREA_MARGIN = 20  -- 底部拖拽容差
 
 --------------------------------------------------
--- 颜色工具：0-1 ↔ 0-255
---------------------------------------------------
-local function to255(v) return math.floor(v * 255 + 0.5) end
-local function to01(v)  return v / 255 end
-
-local function fmt255(n)
-	if n == nil then return "0" end
-	return tostring(math.floor(n + 0.5))
-end
-
 -- 将数字四舍五入到 2 位小数显示
 local function fmt(n)
 	if n == nil then return "" end
@@ -218,27 +208,41 @@ function Rows.makeRow2(label_text, val1_str, val2_str, on_change1, on_change2)
 end
 
 --------------------------------------------------
--- 内部：从 RGBA 输入框重建颜色
+-- 色板预设颜色（8 列 × 5 行 = 40 色）
 --------------------------------------------------
-local function updateColorFromInputs(inputs, getter, setter, swatch)
-	local r = tonumber(inputs[1]:getText()) or 0
-	local g = tonumber(inputs[2]:getText()) or 0
-	local b = tonumber(inputs[3]:getText()) or 0
-	local a = tonumber(inputs[4]:getText()) or 255
-	local new_color = {to01(r), to01(g), to01(b), to01(a)}
-	if setter then setter(new_color) end
-	if swatch then
-		swatch.bg_color = {new_color[1], new_color[2], new_color[3], new_color[4]}
-	end
-end
+local PALETTE_COLS = 8
+local PALETTE_CELL = 20
+local PALETTE_GAP = 1
+local PALETTE_H = 5 * (PALETTE_CELL + PALETTE_GAP) + 4
+
+local PALETTE_COLORS = {
+	-- 灰度
+	{1,1,1,1}, {0.88,0.88,0.88,1}, {0.72,0.72,0.72,1}, {0.56,0.56,0.56,1}, {0.4,0.4,0.4,1}, {0.26,0.26,0.26,1}, {0.13,0.13,0.13,1}, {0,0,0,1},
+	-- 红/橙/黄
+	{1,0.15,0.15,1}, {1,0.35,0.1,1}, {1,0.55,0.1,1}, {1,0.75,0.1,1}, {1,0.9,0.1,1}, {0.85,1,0.1,1}, {0.65,1,0.1,1}, {0.45,1,0.1,1},
+	-- 绿/青
+	{0.15,1,0.15,1}, {0.1,1,0.5,1}, {0.1,1,0.8,1}, {0.1,0.8,1,1}, {0.1,0.5,1,1}, {0.1,0.2,1,1}, {0.5,0.1,1,1}, {0.8,0.1,1,1},
+	-- 紫/粉/棕
+	{1,0.1,1,1}, {1,0.1,0.5,1}, {0.95,0.5,0.5,1}, {0.6,0.3,0.05,1}, {0.8,0.6,0.15,1}, {0.45,0.35,0.25,1}, {0.25,0.5,0.6,1}, {0.2,0.6,0.4,1},
+	-- Muse 主题色
+	{uc.BG[1], uc.BG[2], uc.BG[3], uc.BG[4]},
+	{uc.SURFACE[1], uc.SURFACE[2], uc.SURFACE[3], uc.SURFACE[4]},
+	{uc.LINE[1], uc.LINE[2], uc.LINE[3], uc.LINE[4]},
+	{uc.TITLE[1], uc.TITLE[2], uc.TITLE[3], uc.TITLE[4]},
+	{uc.PRIMARY_TEXT[1], uc.PRIMARY_TEXT[2], uc.PRIMARY_TEXT[3], uc.PRIMARY_TEXT[4]},
+	{uc.SECONDARY_TEXT[1], uc.SECONDARY_TEXT[2], uc.SECONDARY_TEXT[3], uc.SECONDARY_TEXT[4]},
+	{uc.ACCENT[1], uc.ACCENT[2], uc.ACCENT[3], uc.ACCENT[4]},
+	{uc.WARNING[1], uc.WARNING[2], uc.WARNING[3], uc.WARNING[4]},
+}
 
 --------------------------------------------------
--- 颜色行（swatch + RGBA 数字输入）
+-- 颜色行（swatch + 点击展开色板）
 --------------------------------------------------
 function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
 	local row = Widget({
 		anchor = {0, 0, 1, 0},
 		h = ROW_H,
+		raycast_target = true,
 	})
 	row:setCustomMinimumSize(nil, ROW_H)
 
@@ -253,7 +257,7 @@ function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
 		padding = {12, 0, 0, 0},
 	}))
 
-	local swatch_w = 18
+	local swatch_w = 20
 	local swatch_h = 18
 	local swatch_y = (ROW_H - swatch_h) / 2
 	local swatch_x = LABEL_W + 12
@@ -268,54 +272,107 @@ function Rows.makeColorRow(label_text, getter, setter, onChangeHook)
 		w = swatch_w,
 		h = swatch_h,
 	}))
-	swatch.raycast_target = false
+	swatch.raycast_target = true
 
-	local input_w = 25
-	local total_w = swatch_x + swatch_w + 2
-	local field_gap = 1
-	local inputs = {}
+	-- 当前颜色 hex 显示
+	local hex_label = row:addChild(Text({
+		text = "#AAAAAA",
+		font_size = 10,
+		text_color = uc.PRIMARY_TEXT,
+		v_align = "center",
+		anchor = {0, 0, 0, 0},
+		w = 70,
+		h = ROW_H,
+		padding = {swatch_x + swatch_w + 6, 0, 0, 0},
+	}))
 
-	local initial = getter and getter() or {0.5, 0.5, 0.5, 1}
-	if not initial then initial = {0.5, 0.5, 0.5, 1} end
+	-- 色板区域（初始隐藏）
+	local palette_y = ROW_H + 2
+	local palette = row:addChild(Widget({
+		anchor = {0, 0, 1, 0},
+		padding = {12, 12, palette_y, 0},
+		h = PALETTE_H,
+	}))
 
-	for i = 1, 4 do
-		local x_off = total_w + (i - 1) * (input_w + field_gap)
-		local val = to255(initial[i] or 0)
+	-- 构建色板格子
+	local palette_cells = {}
+	for idx, color in ipairs(PALETTE_COLORS) do
+		local col = (idx - 1) % PALETTE_COLS
+		local row_i = math.floor((idx - 1) / PALETTE_COLS)
+		local cx = col * (PALETTE_CELL + PALETTE_GAP)
+		local cy = row_i * (PALETTE_CELL + PALETTE_GAP)
 
-		local inp
-		inp = row:addChild(TextInput({
-			text = fmt255(val),
-			font_size = 10,
-			text_color = uc.PRIMARY_TEXT,
-			single_line = true,
-			v_align = "center",
-			h_align = "center",
-			bg = makeInputBg(),
+		local cell = palette:addChild(Panel({
+			bg_color = {color[1], color[2], color[3], color[4]},
+			outline_width = 1,
+			outline_color = {uc.LINE[1], uc.LINE[2], uc.LINE[3], 0.4},
+			rounding_radius = 2,
 			anchor = {0, 0, 0, 0},
-			w = input_w,
-			h = 20,
-			padding = {x_off, 0, (ROW_H - 20) / 2, 0},
-			on_submit = function()
-				local txt = inp:getText()
-				if isValidNumber(txt) then
-					if onChangeHook then onChangeHook() end
-					updateColorFromInputs(inputs, getter, setter, swatch)
-				end
-			end,
+			padding = {cx, 0, cy, 0},
+			w = PALETTE_CELL,
+			h = PALETTE_CELL,
 		}))
-		inputs[i] = inp
+		cell.raycast_target = true
+		cell._palette_color = {color[1], color[2], color[3], color[4]}
+
+		function cell.onMousePressed(self, mx, my, btn)
+			if btn == 1 then
+				if onChangeHook then onChangeHook() end
+				setter(self._palette_color)
+				-- 关闭色板
+				palette:hide()
+				row._palette_open = false
+				row.transform:setSize(nil, ROW_H)
+				row:setCustomMinimumSize(nil, ROW_H)
+				if row.parent and row.parent.queueSort then
+					row.parent:queueSort()
+				end
+				return true
+			end
+			return false
+		end
+
+		table.insert(palette_cells, cell)
+	end
+	palette:hide()
+
+	-- 色板展开/收起
+	row._palette_open = false
+	function swatch.onMousePressed(self, mx, my, btn)
+		if btn == 1 then
+			row._palette_open = not row._palette_open
+			if row._palette_open then
+				palette:show()
+				local new_h = ROW_H + PALETTE_H + 4
+				row.transform:setSize(nil, new_h)
+				row:setCustomMinimumSize(nil, new_h)
+			else
+				palette:hide()
+				row.transform:setSize(nil, ROW_H)
+				row:setCustomMinimumSize(nil, ROW_H)
+			end
+			if row.parent and row.parent.queueSort then
+				row.parent:queueSort()
+			end
+			return true
+		end
+		return false
 	end
 
-	-- 初始化 swatch
-	local function refreshSwatch()
+	-- 初始化
+	local function refreshDisplay()
 		local c = getter and getter()
 		if c then
 			swatch.bg_color = {c[1], c[2], c[3], c[4] or 1}
+			local rh = math.floor((c[1] or 0) * 255 + 0.5)
+			local rg = math.floor((c[2] or 0) * 255 + 0.5)
+			local rb = math.floor((c[3] or 0) * 255 + 0.5)
+			hex_label:setText(string.format("#%02X%02X%02X", rh, rg, rb))
 		end
 	end
-	refreshSwatch()
+	refreshDisplay()
 
-	return row, {swatch = swatch, inputs = inputs, getter = getter, setter = setter, refreshSwatch = refreshSwatch}
+	return row, {swatch = swatch, getter = getter, setter = setter, refreshDisplay = refreshDisplay}
 end
 
 --------------------------------------------------
