@@ -267,7 +267,7 @@ local function populateFields(inspector, target)
 		local txt_setter = function(v)
 			if target.setText then target:setText(v) end
 		end
-		local txt_row, txt_input = Rows.makeTextRow("文字", txt_getter(), txt_setter, false)
+		local txt_row, txt_input = Rows.makeTextAreaRow("文字", txt_getter(), txt_setter)
 		form:addChild(txt_row)
 		table.insert(inspector._rows, {input = txt_input, getter = txt_getter, setter = txt_setter, numeric = false})
 	end

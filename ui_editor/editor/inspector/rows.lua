@@ -19,6 +19,14 @@ local LABEL_W = 64
 local INPUT_W = 122
 local INPUT2_W = 56
 
+-- 文本域常量
+local TEXTAREA_DEFAULT_H = 56
+local TEXTAREA_MIN_H = 32
+local TEXTAREA_MAX_H = 200
+local GRIP_H = 6
+local TEXTAREA_LABEL_H = 16
+local TEXTAREA_MARGIN = 20  -- 底部拖拽容差
+
 --------------------------------------------------
 -- 颜色工具：0-1 ↔ 0-255
 --------------------------------------------------
@@ -407,6 +415,126 @@ function Rows.makeCheckboxRow(label_text, current_val, on_change, onChangeHook)
 	end
 
 	return row, cb
+end
+
+--------------------------------------------------
+-- 文本域行（多行输入，可拖拽调节高度，上下布局）
+--------------------------------------------------
+function Rows.makeTextAreaRow(label_text, value_str, on_change, initial_h)
+	local area_h = initial_h or TEXTAREA_DEFAULT_H
+	-- 布局: 上边距(4) + 标签(16) + 间距(2) + 文本域(area_h) + 间距(2) + 拖拽柄(6) + 底部容差(20)
+	local total_h = 4 + TEXTAREA_LABEL_H + 2 + area_h + 2 + GRIP_H + TEXTAREA_MARGIN
+
+	local row = Widget({
+		anchor = {0, 0, 1, 0},
+		h = total_h,
+		raycast_target = true,
+	})
+	row:setCustomMinimumSize(nil, total_h)
+
+	-- 标签（顶部左对齐）
+	row:addChild(Text({
+		text = label_text,
+		font_size = 11,
+		text_color = uc.SECONDARY_TEXT,
+		anchor = {0, 0, 1, 0},
+		h = TEXTAREA_LABEL_H,
+		padding = {12, 12, 4, 0},
+	}))
+
+	-- 多行文本输入
+	local input
+	input = row:addChild(TextInput({
+		text = value_str,
+		font_size = 11,
+		text_color = uc.PRIMARY_TEXT,
+		single_line = false,
+		height_adaptive = false,
+		bg = makeInputBg(),
+		anchor = {0, 0, 1, 0},
+		h = area_h,
+		padding = {12, 12, 4 + TEXTAREA_LABEL_H + 2, 0},
+	}))
+
+	-- 拖拽柄（底部细条，带视觉指示）
+	local grip_y = 4 + TEXTAREA_LABEL_H + 2 + area_h + 2
+	local grip = row:addChild(Panel({
+		bg_color = {uc.BG[1], uc.BG[2], uc.BG[3], 0.3},
+		rounding_radius = 2,
+		anchor = {0, 0, 1, 0},
+		padding = {12, 12, grip_y, 0},
+		h = GRIP_H,
+	}))
+	grip.raycast_target = false
+	-- 拖拽柄上画三条短线
+	local _grip = grip
+	function grip.onDraw(self)
+		local gx, gy, gw, gh = self.transform:getGlobalBounds()
+		local cx = gx + gw / 2
+		local cy = gy + gh / 2
+		love.graphics.setColor(0.4, 0.4, 0.45, 0.8)
+		local line_w = 20
+		for i = -1, 1 do
+			love.graphics.line(cx - line_w / 2, cy + i * 3, cx + line_w / 2, cy + i * 3)
+		end
+	end
+
+	-- 拖拽状态
+	row._area_h = area_h
+	row._area_input = input
+	row._area_grip = grip
+	row._grip_dragging = false
+	row._grip_start_y = 0
+	row._grip_start_h = 0
+
+	-- 鼠标按下：检测是否在拖拽柄区域
+	function row.onMousePressed(r, mx, my, btn)
+		if btn ~= 1 then return false end
+		local lx, ly = r.transform:screenToLocal(mx, my)
+		local grip_top = 4 + TEXTAREA_LABEL_H + 2 + r._area_h
+		if ly >= grip_top and ly <= grip_top + GRIP_H + 4 then
+			r._grip_dragging = true
+			r._grip_start_y = my
+			r._grip_start_h = r._area_h
+			return true
+		end
+		return false
+	end
+
+	-- 拖拽移动
+	function row.onMouseMoved(r, mx, my, dx, dy)
+		if not r._grip_dragging then return false end
+		local new_h = r._grip_start_h + (my - r._grip_start_y)
+		new_h = math.max(TEXTAREA_MIN_H, math.min(TEXTAREA_MAX_H, new_h))
+		if new_h ~= r._area_h then
+			r._area_h = new_h
+			-- 更新文本域高度
+			r._area_input.transform:setSize(nil, new_h)
+			-- 更新拖拽柄 top padding（第三个参数是 top）
+			local new_grip_y = 4 + TEXTAREA_LABEL_H + 2 + new_h + 2
+			r._area_grip.transform:setPadding(nil, nil, new_grip_y, nil)
+			-- 更新行高
+			local new_total = 4 + TEXTAREA_LABEL_H + 2 + new_h + 2 + GRIP_H + TEXTAREA_MARGIN
+			r.transform:setSize(nil, new_total)
+			r:setCustomMinimumSize(nil, new_total)
+			-- 通知父容器重排
+			if r.parent and r.parent.queueSort then
+				r.parent:queueSort()
+			end
+		end
+		return true
+	end
+
+	-- 释放
+	function row.onMouseReleased(r, mx, my, btn)
+		if r._grip_dragging then
+			r._grip_dragging = false
+			return true
+		end
+		return false
+	end
+
+	return row, input
 end
 
 --------------------------------------------------
