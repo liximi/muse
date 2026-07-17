@@ -195,6 +195,15 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 		love.graphics.line(axp-1, ay-2, axp-1, ay+ah+2); love.graphics.line(axp+1, ay-2, axp+1, ay+ah+2)
 	end
 
+	-- === 关闭逻辑（必须在 onMousePressed 之前定义！）===
+	popup._closed = false
+	local function close()
+		if popup._closed then return end
+		popup._closed = true
+		setter({st.cr, st.cg, st.cb, st.ca})
+		popup:hide(); popup._destroy = true
+	end
+
 	-- === 统一鼠标处理（在 popup 层，子 widget 不参与事件）===
 	function popup.onMousePressed(self, mx, my, btn)
 		if btn ~= 1 then return false end
@@ -227,15 +236,6 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 
 	-- === 初始化 ===
 	updateColor()
-
-	-- === 关闭 ===
-	popup._closed = false
-	local function close()
-		if popup._closed then return end
-		popup._closed = true
-		setter({st.cr, st.cg, st.cb, st.ca})
-		popup:hide(); popup._destroy = true
-	end
 
 	function popup.onUpdate(self, dt)
 		if self._destroy then UiManager:GetInstance():removeWidget(self) end
