@@ -153,6 +153,7 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 	-- === SV 方形 ===
 	local sv_img = popup:addChild(Widget({
 		anchor = {0,0,0,0}, padding = {px+8,0,py+8,0}, w = SV_SIZE, h = SV_SIZE,
+		raycast_target = true,
 	}))
 	st._sv_img = sv_img
 
@@ -177,6 +178,7 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 	-- === 色相条 ===
 	local hue_img = popup:addChild(Widget({
 		anchor = {0,0,0,0}, padding = {px+8+SV_SIZE+4,0,py+8,0}, w = HUE_W, h = SV_SIZE,
+		raycast_target = true,
 	}))
 	st._hue_img = hue_img
 
@@ -201,6 +203,7 @@ local function showPicker(swatch_widget, getter, setter, onChangeHook)
 	local alpha_img = popup:addChild(Widget({
 		anchor = {0,0,0,0}, padding = {px+8,0,py+8+SV_SIZE+4,0},
 		w = SV_SIZE + HUE_W + 4, h = ALPHA_H,
+		raycast_target = true,
 	}))
 	st._alpha_img = alpha_img
 
