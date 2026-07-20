@@ -107,7 +107,9 @@ end
 --------------------------------------------------
 
 function Tooltip:onUpdate(dt)
-	if not self.target or not self.target:isOperational() then
+	-- 只检查 target 是否存活+可见，不检查 enabled
+	-- 禁用的按钮仍然应该在 hover 时显示 Tooltip
+	if not self.target or not self.target._valid or not self.target.shown then
 		if self._active then
 			self._active = false
 			self:hide()
