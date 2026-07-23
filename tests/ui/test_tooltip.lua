@@ -69,6 +69,7 @@ function test.create(parent)
 		rounding_radius = 4,
 		outline_width = 0,
 	}))
+	info_panel:setCustomMinimumSize(120, 36)
 	info_panel:addChild(Text({
 		text = "Panel",
 		text_color = uc.TITLE,

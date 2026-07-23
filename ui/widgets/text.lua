@@ -197,28 +197,20 @@ function Text:getGlobalScaledSize()
 	return self:getGlobalScaledDimensions()
 end
 
---- 覆写 getGlobalBounds：pivot 偏移使用 transform 尺寸（与 getGlobalPosition 一致），
---- 但返回的 w/h 使用文本实际尺寸。
---- 避免当 transform.w=0（点锚点）时，文本尺寸被 pivot 错误偏移。
-function Text:getGlobalBounds()
+--- 覆写 Widget 的裁剪 AABB，使用文本实际尺寸而非 transform.w/h（后者默认为 0）。
+--- 避免 Text 在 Scroll 容器中被过早裁剪。
+---
+--- pivot 偏移基于文本尺寸（而非 transform 尺寸）：
+--- 对于中心锚点 + pivot=0.5 的 Text，这确保文本以锚点居中；
+--- 对于左锚点 Text，应配合 pivot={0, 0.5} 使用，避免文本被意外偏移。
+function Text:getCullAABB()
 	local x, y = self.transform:getGlobalPosition()
-	local sw, sh = self:getGlobalScaledSize()
+	local w, h = self:getGlobalScaledSize()
 	local px, py = self.transform:getPivot()
 	local r = self.transform:getGlobalRotation()
 
-	local sx, sy = self:getGlobalScale()
-	local tw = self.transform.w * sx
-	local th = self.transform.h * sy
-	return x - tw * px, y - th * py, sw, sh, r
-end
-
---- 覆写 Widget 的裁剪 AABB，使用文本实际尺寸而非 transform.w/h（后者默认为 0）
---- 避免 Text 在 Scroll 容器中被过早裁剪。
-function Text:getCullAABB()
-	local x, y, w, h, r = self:getGlobalBounds()
-
 	if r == 0 or r == Utils.TWO_PI then
-		return x, y, w, h
+		return x - w * px, y - h * py, w, h
 	end
 	-- 旋转情况回退到 Transform 计算（少见场景）
 	return self.transform:getGlobalAABB()

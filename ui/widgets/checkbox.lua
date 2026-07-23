@@ -59,6 +59,7 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 			text_color = datas.label_color or self.theme.checkbox.label_color,
 			font_size = datas.label_font_size,
 			anchor = {0, 0, 0, 1},
+			pivot = {0, 0.5},
 			padding = {vis_w + LABEL_GAP, 0, 0, 0}
 		}))
 		self.label.raycast_target = false -- 标签文字不阻断射线，让复选框处理点击

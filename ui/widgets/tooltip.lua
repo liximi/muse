@@ -176,6 +176,10 @@ function Tooltip:_updatePosition(mx, my)
 
 	self.transform:setPosition(pos_x, pos_y)
 	self.bg.transform:setSize(pw, ph)
+	-- bg 尺寸刚更新，label 的 transform 还没重算；
+	-- 强制刷新使 label 立即用新宽度换行，避免等下一帧
+	self.label.transform:onUpdate(true)
+	self.label:updateTextLayout()
 end
 
 return Tooltip
