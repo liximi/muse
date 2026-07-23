@@ -70,7 +70,6 @@ function test.create(parent)
 		outline_width = 0,
 	}))
 	info_panel:setCustomMinimumSize(120, 36)
-	info_panel:enableDebug(true)
 	local panel_text = info_panel:addChild(Text({
 		text = "Panel",
 		text_color = uc.TITLE,
@@ -79,7 +78,6 @@ function test.create(parent)
 		h_align = "center",
 		v_align = "center",
 	}))
-	panel_text:enableDebug(true)
 	Tooltip({
 		target = info_panel,
 		text = "This tooltip has a very long text that should wrap to multiple lines automatically.",
