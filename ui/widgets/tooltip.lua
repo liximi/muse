@@ -57,6 +57,7 @@ local Tooltip = Class(Widget, function(self, datas, theme)
 		text = datas.text or "",
 		text_color = TOOLTIP_TEXT_COLOR,
 		font_size = DEFAULT_FONT_SIZE,
+		wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
 		anchor = {0, 0, 1, 1},
 		pivot = {0, 0},
 		padding = {PADDING_X, PADDING_X, PADDING_Y, PADDING_Y},

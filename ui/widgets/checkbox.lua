@@ -52,12 +52,14 @@ local Checkbox = Class(ButtonBase, function(self, datas, theme, widget_name)
 	-- 可选标签
 	if datas and datas.label then
 		local Text = require "ui.widgets.text"
+		-- toggle 的轨道比 checkbox 宽（1.8x），label 需要相应偏移
+		local vis_w = self.style == "toggle" and (self.box_size * TOGGLE_WIDTH_RATIO) or self.box_size
 		self.label = self:addChild(Text({
 			text = datas.label,
 			text_color = datas.label_color or self.theme.checkbox.label_color,
 			font_size = datas.label_font_size,
 			anchor = {0, 0, 0, 1},
-			padding = {self.box_size + LABEL_GAP, 0, 0, 0}
+			padding = {vis_w + LABEL_GAP, 0, 0, 0}
 		}))
 		self.label.raycast_target = false -- 标签文字不阻断射线，让复选框处理点击
 	end

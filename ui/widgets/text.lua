@@ -27,7 +27,7 @@ local Text = Class(Widget, function(self, datas, theme)
 
 	self.text = datas and datas.text or "" -- 也支持coloredtext：一个包含颜色和字符串的表格，这些颜色和字符串将添加到该对象中，格式为 {color1, string1, color2, string2, ...}。
 
-	self.wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
+	self.wrap_mode = Utils.TEXT_WRAP_MODE.OFF
 	self.overflow_mode = Utils.TEXT_OVERFLOW_MODE.NONE
 	self.overflow_ellipsis_char = "…"
 	self.horizontal_align = Utils.validateEnum(
@@ -131,23 +131,45 @@ function Text:getDimensions()
 	return w, h
 end
 
---- 返回文本自身的最小自然尺寸（不换行时的完整尺寸）。
+--- 返回文本自身的最小自然尺寸。
+--- 参照 Godot Label::get_minimum_size：
+--- - 换行关闭时：返回不换行的完整文本宽度（不可压缩）。
+--- - 换行开启时：宽度返回 1（"我可以缩小到几乎任意宽度"），高度返回当前整形后的实际行高。
+---   容器据此知道该文本可以压缩，从而在有限空间内触发换行。
 function Text:getMinimumSize()
+	-- 空文本参照 Godot：返回 (0, 行高)，保证至少有一行高度
 	if self.text == "" or self.text == nil then
-		return 0, 0
+		local font = self:getFont()
+		return 0, font:getHeight() * font:getLineHeight()
 	end
 	local font = self:getFont()
-	local text = self:getText(true)
 	local line_h = font:getHeight() * font:getLineHeight()
-	-- 取不换行的完整宽度
-	local w = font:getWidth(text)
-	local h = line_h
-	return w, h
+
+	if self.wrap_mode == Utils.TEXT_WRAP_MODE.DEFAULT then
+		-- 换行开启：参照 Godot，宽度 = 1（可压缩），高度 = 当前整形后的高度
+		local _, h = self:getDimensions()
+		return 1, math.max(h, line_h)
+	else
+		-- 不换行：完整文本宽度
+		local text = self:getText(true)
+		local w = font:getWidth(text)
+		return w, line_h
+	end
 end
 
---- 文本的期望尺寸 = 完整文本宽度（不换行）。和最小尺寸相同。
---- 将来如果需要「文本在有多余空间时自然伸展到完整宽度」，这里可以返回更长的 unwrapped 宽度。
+--- 文本的期望尺寸。
+--- 参照 Godot Label::get_desired_size：
+--- - 换行关闭时：等于最小尺寸（完整文本宽度）。
+--- - 换行开启时：返回当前整形后的实际尺寸（由容器分配的宽度决定）。
+---   容器据此在「第二趟分配」中为文本争取接近实际所需的宽度。
 function Text:getDesiredSize()
+	if self.wrap_mode == Utils.TEXT_WRAP_MODE.DEFAULT then
+		-- 期望尺寸 = 当前整形后的实际尺寸，让容器尽量分配接近所需的宽度
+		local w, h = self:getDimensions()
+		local font = self:getFont()
+		local line_h = font:getHeight() * font:getLineHeight()
+		return math.max(w, 1), math.max(h, line_h)
+	end
 	return self:getMinimumSize()
 end
 
@@ -175,16 +197,28 @@ function Text:getGlobalScaledSize()
 	return self:getGlobalScaledDimensions()
 end
 
---- 覆写 Widget 的裁剪 AABB，使用文本实际尺寸而非 transform.w/h（后者默认为 0）
---- 避免 Text 在 Scroll 容器中被过早裁剪
-function Text:getCullAABB()
+--- 覆写 getGlobalBounds：pivot 偏移使用 transform 尺寸（与 getGlobalPosition 一致），
+--- 但返回的 w/h 使用文本实际尺寸。
+--- 避免当 transform.w=0（点锚点）时，文本尺寸被 pivot 错误偏移。
+function Text:getGlobalBounds()
 	local x, y = self.transform:getGlobalPosition()
-	local w, h = self:getGlobalScaledSize()
+	local sw, sh = self:getGlobalScaledSize()
 	local px, py = self.transform:getPivot()
 	local r = self.transform:getGlobalRotation()
 
+	local sx, sy = self:getGlobalScale()
+	local tw = self.transform.w * sx
+	local th = self.transform.h * sy
+	return x - tw * px, y - th * py, sw, sh, r
+end
+
+--- 覆写 Widget 的裁剪 AABB，使用文本实际尺寸而非 transform.w/h（后者默认为 0）
+--- 避免 Text 在 Scroll 容器中被过早裁剪。
+function Text:getCullAABB()
+	local x, y, w, h, r = self:getGlobalBounds()
+
 	if r == 0 or r == Utils.TWO_PI then
-		return x - w * px, y - h * py, w, h
+		return x, y, w, h
 	end
 	-- 旋转情况回退到 Transform 计算（少见场景）
 	return self.transform:getGlobalAABB()
@@ -223,7 +257,14 @@ function Text:updateTextLayout()
 		local width = self.__text:getFont():getWidth(self:getText(true))
 		self.__text:setf(self.text, width, self.horizontal_align)
 	else
-		self.__text:setf(self.text, self.transform.w, self.horizontal_align)
+		-- 换行模式：使用当前控件宽度作为换行宽度。
+		-- 若尚未分配宽度（w <= 0），使用完整文本宽度（此时文本不换行），
+		-- 避免零宽度整形。容器在下一帧分配实际宽度后会触发 onSizeChanged 重排。
+		local wrap_w = self.transform.w
+		if wrap_w <= 0 then
+			wrap_w = self.__text:getFont():getWidth(self:getText(true))
+		end
+		self.__text:setf(self.text, wrap_w, self.horizontal_align)
 	end
 end
 

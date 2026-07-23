@@ -161,7 +161,8 @@ local TextInput = Class(Widget, function(self, datas, theme)
 		font_size = datas.font_size or self.theme.textinput.font_size,
 		text_color = datas.text_color or self.theme.textinput.text_color,
 		h_align = datas.h_align,
-		v_align = datas.v_align
+		v_align = datas.v_align,
+		wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT
 	}))
 	self.text.raycast_target = false -- 文字不阻断射线，让输入框处理点击
 	-- 保存原始 padding，滚动时在此基础上叠加偏移，失焦时用此值复位
