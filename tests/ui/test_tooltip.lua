@@ -74,8 +74,9 @@ function test.create(parent)
 		text = "Panel",
 		text_color = uc.TITLE,
 		font_size = 14,
-		anchor = {0.5, 0.5, 0.5, 0.5},
-		pivot = {0.5, 0.5},
+		anchor = {0, 0, 1, 1},
+		h_align = "center",
+		v_align = "center",
 	}))
 	Tooltip({
 		target = info_panel,
