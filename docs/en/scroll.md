@@ -15,6 +15,7 @@ A scroll container providing a clipped scrollable view with support for horizont
     sensitivity = number,             -- mouse wheel sensitivity (pixels), default 100
     scrollable_w = number,            -- horizontal scrollable width (pixels)
     scrollable_h = number,            -- vertical scrollable height (pixels)
+    auto_track = boolean,             -- auto-track content size changes and update scrollable range, default true
 
     show_slider_bar = boolean,        -- whether to show scrollbars, default true
     hide_slider_when_cannot_scroll = boolean,  -- hide scrollbars when not scrollable, default false
@@ -42,6 +43,12 @@ A scroll container providing a clipped scrollable view with support for horizont
 | `setScrollableH(h)` | Set vertical scrollable height |
 | `updateHBlockLengthPercent()` | Update horizontal thumb length ratio |
 | `updateVBlockLengthPercent()` | Update vertical thumb length ratio |
+| `getMinimumSize()` | Returns own transform size |
+
+## auto_track (Auto-Track Content Size)
+
+Enabled by default. `onUpdate` polls `item`'s `transform.w/h` each frame, auto-updating `scrollable_w/h` + thumb ratios.
+Content shrinking auto-corrects out-of-bounds offsets. Set to `false` to fall back to manual `setScrollableW/H`.
 
 ## Scrollbar Minimum Size Constraint
 

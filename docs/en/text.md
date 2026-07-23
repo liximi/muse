@@ -33,6 +33,8 @@ A text rendering component with support for coloredtext, automatic word wrap, an
 | `setVAlign(align)` | Set vertical alignment |
 | `setWrapMode(mode)` | Set wrap mode: `"off"` or `"default"` |
 | `getDimensions()` | Get rendered text dimensions `w, h` |
+| `getMinimumSize()` | Returns the minimum natural text size (unwrapped full width × one line height) |
+| `getDesiredSize()` | Same as `getMinimumSize()` (desired natural width = unwrapped full width) |
 | `getScaledDimensions()` | Get locally scaled dimensions |
 | `getGlobalScaledDimensions()` | Get globally scaled dimensions |
 | `getSize()` | Same as `getDimensions()` |

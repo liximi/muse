@@ -26,7 +26,6 @@
 | `getSelectedIndex()` | 获取当前选中索引 |
 | `getSelectedValue()` | 获取当前选中文本 |
 | `setOptions(options, selected_index)` | 替换选项列表 |
-| `destroyPopup()` | 销毁弹出层（从 UiManager 移除） |
 
 ## 静态方法
 

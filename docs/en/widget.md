@@ -43,6 +43,7 @@ Widget exposes Transform's core operations as convenience methods:
 | `addChild(child)` | Add a child widget (auto-detects cycles, auto-removes from old parent) |
 | `removeChild(child)` | Remove a child widget |
 | `removeAllChildren()` | Remove all child widgets |
+| `clearChildren()` | Remove and **destroy** all children (releases GPU resources). Use only when children are no longer needed |
 
 ## Lifecycle
 
@@ -50,12 +51,23 @@ Widget exposes Transform's core operations as convenience methods:
 |--------|-------------|
 | `destroy()` | Recursively destroy self and all descendants, remove from parent |
 | `isValid()` | Check whether the widget is valid (not destroyed) |
+| `onAttached()` | Called when added to UiManager's active tree (override to register global resources) |
+| `onDetached()` | Called when removed from active tree (override to release global resources) |
+| `_preChildrenUpdate(dt)` | Hook called before children update. Container overrides this to sort before children receive sizes |
 
 ## Size Measurement
 
 | Method | Description |
 |--------|-------------|
 | `measure(max_w, max_h)` | Query natural (content) size, returns `{w, h}`. Defaults to current transform size |
+| `getMinimumSize()` | Return the minimum natural size `w, h` of the content. Override in subclasses to report content-based size (e.g. Text returns text dimensions, Button returns text + padding) |
+| `getCombinedMinimumSize()` | `max(getMinimumSize(), custom_minimum)`, the value containers actually use |
+| `setCustomMinimumSize(w, h)` | Override minimum size with a custom value (nil = no restriction) |
+| `getDesiredSize()` | Desired natural size, defaults to minimum. Text overrides for full unwrapped width |
+
+> **Note**: A plain Widget with `h = 40` but no `getMinimumSize` override gets 0 height from containers.
+> Call `setCustomMinimumSize(nil, 40)` or override `getMinimumSize`.
+> Button, Text, Image etc. already override this — no extra handling needed.
 
 ## Visibility Control
 
@@ -161,6 +173,31 @@ Subclasses override the following methods to respond to events (naming rule: `on
 Text overrides this method using `getGlobalScaledSize()` (actual text dimensions) to avoid premature culling in Scroll.
 Culling uses a 1px tolerance; subtrees are skipped only when they have **zero overlap** with the clip region.
 
+## SizeFlags — Layout Behavior in Containers
+
+Each Widget holds these properties, read by parent containers:
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `h_size_flags` | number | `FILL` (1) | Horizontal SizeFlags bitmask |
+| `v_size_flags` | number | `FILL` (1) | Vertical SizeFlags bitmask |
+| `stretch_ratio` | number | `1.0` | Weight when dividing space (with EXPAND) |
+
+SizeFlags bitmask (`Utils.SIZE_FLAGS`):
+
+| Flag | Value | Meaning |
+|------|-------|---------|
+| `SHRINK_BEGIN` | 0 | Keep minimum size, align start |
+| `FILL` | 1 | Fill allocated area |
+| `EXPAND` | 2 | Grab remaining space |
+| `SHRINK_CENTER` | 4 | Center within area (disable FILL first) |
+| `SHRINK_END` | 8 | Align end within area (disable FILL first) |
+
+```lua
+child.h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
+child.stretch_ratio = 2.0
+```
+
 ## Properties
 
 | Property | Type | Description |
@@ -176,4 +213,5 @@ Culling uses a 1px tolerance; subtrees are skipped only when they have **zero ov
 | `raycast_target` | boolean | Raycast toggle. When `true`, mouse events are blocked even without an explicit handler if the cursor falls within the widget's bounds. Visual controls default to `true`, containers to `false` |
 | `render_layer` | number | Render layer (0=BASE, 50=OVERLAY, 80=DROPDOWN, 100=TOOLTIP) |
 | `always_draw` | boolean | Whether to skip visibility culling |
+| `_clip_rect` | table/nil | Clip rect (internal, set by Scroll etc.), passed to children for AABB culling |
 | `_name` | string | Widget name (for debugging) |
