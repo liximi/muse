@@ -246,7 +246,12 @@ end
 function Text:updateTextLayout()
 	self.__text:clear()
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.OFF then
-		local width = self.__text:getFont():getWidth(self:getText(true))
+		-- 使用控件实际宽度（若已分配）使 h_align 在控件范围内生效；
+		-- 若尚未分配宽度，退而使用文本自然宽度
+		local width = self.transform.w
+		if width <= 0 then
+			width = self.__text:getFont():getWidth(self:getText(true))
+		end
 		self.__text:setf(self.text, width, self.horizontal_align)
 	else
 		-- 换行模式：使用当前控件宽度作为换行宽度。
@@ -305,6 +310,11 @@ function Text:onDebugDraw()
 		x = x + w - textw
 	elseif self.horizontal_align == "center" then
 		x = x + (w - textw) * ALIGN_CENTER
+	end
+	if self.vertical_align == "bottom" then
+		y = y + h - texth
+	elseif self.vertical_align == "center" then
+		y = y + (h - texth) * ALIGN_CENTER
 	end
 	love.graphics.setColor(unpack(Utils.UI_COLORS.WHITE))
 	if self.horizontal_align == "justify" then
