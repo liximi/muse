@@ -191,10 +191,10 @@ function VirtualList:_bindVisibleItems()
 		if dataIndex >= 0 and dataIndex < self._dataCount then
 			local data = self._getData(dataIndex)
 			widget:bindData(data, dataIndex)
-			widget:setVisible(true)
+			widget:show()
 		else
 			widget:bindData(nil, dataIndex)
-			widget:setVisible(false)
+			widget:hide()
 		end
 	end
 end
