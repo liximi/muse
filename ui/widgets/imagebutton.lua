@@ -62,6 +62,11 @@ local ImageButton = Class(ButtonBase, function(self, datas, theme)
 	end
 end)
 
+--- 按钮最小尺寸 = 内部图片最小尺寸
+function ImageButton:getMinimumSize()
+	return self.image:getMinimumSize()
+end
+
 --- 设置按钮文字（no_text 模式下静默忽略）
 function ImageButton:setText(t)
 	if self.text then
@@ -86,6 +91,7 @@ end
 
 --- 获取按钮在某个状态下的样式，会自动合并自定义样式、normal状态样式和主题样式
 --- state_styles里对应状态的数据 > state_styles里normal状态的数据 > 主题里对应状态的数据 > 主题里normal状态的数据
+--- 注意：text 字段不参与合并 —— 按钮文字由 setText() / 构造参数独立管理
 ---@param state "normal"|"pressed"|"disabled"|"selected"|"hover"|"seleted_hover"
 function ImageButton:getStateStyle(state)
 	local style = {}
@@ -95,7 +101,7 @@ function ImageButton:getStateStyle(state)
 		for _, s in ipairs(t2) do
 			if t[s] then
 				for k, v in pairs(t[s]) do
-					if not style[k] then
+					if k ~= "text" and not style[k] then
 						style[k] = v
 					end
 				end
@@ -110,6 +116,12 @@ function ImageButton:onSetState(old_state, new_state)
 	local new_style = self:getStateStyle(new_state)
 	Components.applyButtonTextStyle(self, new_style)
 	Components.applyButtonTransform(self, old_style, new_style)
+
+	-- 兼容旧写法：state style 中带 text 时自动更新按钮文字
+	local explicit_style = self.state_styles[new_state]
+	if explicit_style and explicit_style.text then
+		self:setText(explicit_style.text)
+	end
 
 	local new_texture = new_style.texture
 	if new_texture then

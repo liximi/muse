@@ -138,12 +138,16 @@ function test.create(parent)
 		row4:addChild(ImageButton({
 			h = 48,
 			normal = Utils.newImageButtonStateStyle(tex, nil, "Icon A"),
+			hover = Utils.newImageButtonStateStyle(tex, {0.85, 0.85, 0.85}, "Icon A"),
+			pressed = Utils.newImageButtonStateStyle(tex, {0.7, 0.7, 0.7}, "Icon A"),
 			on_click = function() print("ImageButton A clicked") end,
 		}))
 
 		row4:addChild(ImageButton({
 			h = 48,
 			normal = Utils.newImageButtonStateStyle(tex, {1, 0.7, 0.5}, "Icon B"),
+			hover = Utils.newImageButtonStateStyle(tex, {1, 0.55, 0.35}, "Icon B"),
+			pressed = Utils.newImageButtonStateStyle(tex, {0.8, 0.4, 0.2}, "Icon B"),
 			on_click = function() print("ImageButton B clicked") end,
 		}))
 	else
