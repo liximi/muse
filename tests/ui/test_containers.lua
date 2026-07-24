@@ -240,29 +240,31 @@ function test.create(parent)
 
 	-- 15. ScrollMode 演示
 	root_vbox:addChild(Text({
-		text = "16. ScrollMode — SHOW_ALWAYS（始终显示滚动条）vs AUTO（默认）",
+		text = "15. ScrollMode — SHOW_ALWAYS（始终显示滚动条）vs AUTO（自动隐藏）",
 		font_size = 14,
 	}))
 	do
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 120, separation = 12 }))
 
-		-- SHOW_ALWAYS
+		-- SHOW_ALWAYS — 8 项超出，始终显示滚动条
 		local s1 = hbox:addChild(Scroll({
 			horizontal_scroll_mode = "disabled",
 			vertical_scroll_mode = "show_always",
+			h_size_flags = SZ.FILL + SZ.EXPAND,
 		}))
 		local list1 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		s1:setItem(list1)
-		for i = 1, 8 do list1:addChild(Button({ text = "#" .. i })) end
+		for i = 1, 8 do list1:addChild(Button({ text = "项 #" .. i })) end
 
-		-- AUTO (default)
+		-- AUTO — 3 项不溢出，滚动条自动隐藏
 		local s2 = hbox:addChild(Scroll({
 			horizontal_scroll_mode = "disabled",
 			vertical_scroll_mode = "auto",
+			h_size_flags = SZ.FILL + SZ.EXPAND,
 		}))
 		local list2 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		s2:setItem(list2)
-		for i = 1, 3 do list2:addChild(Button({ text = "#" .. i })) end
+		for i = 1, 3 do list2:addChild(Button({ text = "项 #" .. i })) end
 	end
 end
 
