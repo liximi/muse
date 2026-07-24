@@ -83,7 +83,6 @@ function test.create(parent)
 	local tc = root:addChild(TabContainer({
 		v_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND,
 	}))
-	tc:enableDebug(true)
 	tc:addChild(tab1)
 	tc:addChild(tab2)
 	tc:addChild(tab3)
