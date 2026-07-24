@@ -346,27 +346,26 @@ function FlowContainer:_getMinSize(use_desired)
 	if #visible == 0 then return self.transform:getSize() end
 
 	local vertical = self._vertical
-	local max_along = 0
-	local max_cross = 0
+	local max_child_along = 0
 
 	for _, child in ipairs(visible) do
 		local mw, mh
 		if use_desired then mw, mh = child:getDesiredSize()
 		else mw, mh = child:getCombinedMinimumSize() end
 		if vertical then
-			max_along = math.max(max_along, mw)
-			max_cross = math.max(max_cross, mh)
+			max_child_along = math.max(max_child_along, mh)
 		else
-			max_along = math.max(max_along, mh)
-			max_cross = math.max(max_cross, mw)
+			max_child_along = math.max(max_child_along, mw)
 		end
 	end
 
 	local cached = self._cached_size or 0
 	if vertical then
-		return max_along, math.max(max_cross, cached)
+		-- 垂直方向：宽度 = 总列宽（cached），高度 = 最大子控件高度
+		return cached, max_child_along
 	else
-		return math.max(max_cross, cached), max_along
+		-- 水平方向：宽度 = 最大子控件宽度，高度 = 总行高（cached）
+		return max_child_along, cached
 	end
 end
 

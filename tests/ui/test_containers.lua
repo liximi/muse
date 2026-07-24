@@ -41,8 +41,6 @@ function test.create(parent)
 		anchor = {0, 0, 1, 1},
 	}))
 	scroll:setItem(root_vbox)
-	margin:enableDebug(true)
-	scroll:enableDebug(true)
 
 	root_vbox:addChild(Text({
 		text = "容器系统测试  |  粉色框 = 容器边界",
@@ -56,7 +54,6 @@ function test.create(parent)
 	}))
 	do
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
-		hbox:enableDebug(true)
 		hbox:addChild(Button({ text = "Button A" }))
 		hbox:addChild(Button({ text = "Button B" }))
 		hbox:addChild(Button({ text = "Button C" }))
@@ -69,7 +66,6 @@ function test.create(parent)
 	}))
 	do
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
-		hbox:enableDebug(true)
 
 		local b1 = hbox:addChild(Button({ text = "固定", h_size_flags = 0 }))
 
@@ -85,7 +81,6 @@ function test.create(parent)
 	}))
 	do
 		local vbox = root_vbox:addChild(Box({ h = 120, separation = 4, alignment = ALIGN.CENTER }))
-		vbox:enableDebug(true)
 		for i = 1, 3 do
 			vbox:addChild(Button({ text = "居中 " .. i, h_size_flags = SZ.SHRINK_CENTER, v_size_flags = 0 }))
 		end
@@ -102,9 +97,7 @@ function test.create(parent)
 			margin_left = 24, margin_right = 24,
 			h = 60,
 		}))
-		m:enableDebug(true)
 		local c = m:addChild(Center({}))
-		c:enableDebug(true)
 		c:addChild(Button({ text = "居中+边距" }))
 	end
 
@@ -115,7 +108,6 @@ function test.create(parent)
 	}))
 	do
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8, alignment = ALIGN.END }))
-		hbox:enableDebug(true)
 
 		local b1 = hbox:addChild(Button({ text = "靠", h_size_flags = 0 }))
 		local b2 = hbox:addChild(Button({ text = "右", h_size_flags = 0 }))
@@ -129,7 +121,6 @@ function test.create(parent)
 	}))
 	do
 		local vbox = root_vbox:addChild(Box({ auto_size = true, separation = 4 }))
-		vbox:enableDebug(true)
 		vbox:addChild(Button({ text = "第一行" }))
 		vbox:addChild(Button({ text = "第二行" }))
 		vbox:addChild(Button({ text = "第三行 —— VBox 高度自动收缩" }))
@@ -142,7 +133,6 @@ function test.create(parent)
 	}))
 	do
 		local scroll = root_vbox:addChild(Scroll({ h = 120 }))
-		scroll:enableDebug(true)
 
 		local list = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		scroll:setItem(list)
@@ -158,7 +148,6 @@ function test.create(parent)
 	}))
 	do
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
-		hbox:enableDebug(true)
 		hbox:addChild(Button({ text = "左侧" }))
 		hbox:addChild(Spacer())
 		hbox:addChild(Button({ text = "右侧" }))
@@ -171,7 +160,6 @@ function test.create(parent)
 	}))
 	do
 		local vbox = root_vbox:addChild(Box({ h = 100, separation = 4 }))
-		vbox:enableDebug(true)
 		vbox:addChild(Button({ text = "顶部" }))
 		vbox:addChild(Spacer())
 		vbox:addChild(Button({ text = "底部" }))
@@ -184,7 +172,6 @@ function test.create(parent)
 	}))
 	do
 		local grid = root_vbox:addChild(Grid({ columns = 3, h_separation = 8, v_separation = 8 }))
-		grid:enableDebug(true)
 		for i = 1, 6 do
 			grid:addChild(Button({ text = "格 " .. i }))
 		end
@@ -197,7 +184,6 @@ function test.create(parent)
 	}))
 	do
 		local grid = root_vbox:addChild(Grid({ columns = 2, h_separation = 8, v_separation = 8 }))
-		grid:enableDebug(true)
 		grid:addChild(Button({ text = "短" }))
 		grid:addChild(Button({ text = "这个按钮很长很长" }))
 		grid:addChild(Button({ text = "中等长度" }))
@@ -211,7 +197,6 @@ function test.create(parent)
 	}))
 	do
 		local flow = root_vbox:addChild(Flow({ h_separation = 6, v_separation = 6 }))
-		flow:enableDebug(true)
 		local labels = { "标签A", "很长的标签B", "C", "标签D", "另一个标签E", "短", "长长的标签F",
 			"G", "较长标签H", "I", "J", "标签K", "L", "超长标签名称M", "N",
 			"O", "很长很长很长的标签P", "Q", "R", "S", "标签T", "U",
@@ -233,7 +218,6 @@ function test.create(parent)
 			alignment = ALIGN.CENTER,
 			last_wrap_alignment = "begin",
 		}))
-		flow:enableDebug(true)
 		for i = 1, 30 do
 			flow:addChild(Button({ text = "项 " .. i, h_size_flags = 0, v_size_flags = 0 }))
 		end
@@ -249,7 +233,6 @@ function test.create(parent)
 			outline_width = 2,
 			outline_color = Utils.UI_COLORS.LINE,
 		}))
-		pc:enableDebug(true)
 		local inner = pc:addChild(Box({ auto_size = true, separation = 4 }))
 		inner:addChild(Button({ text = "面板内按钮 1" }))
 		inner:addChild(Button({ text = "面板内按钮 2" }))
@@ -268,7 +251,6 @@ function test.create(parent)
 			horizontal_scroll_mode = "disabled",
 			vertical_scroll_mode = "show_always",
 		}))
-		s1:enableDebug(true)
 		local list1 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		s1:setItem(list1)
 		for i = 1, 8 do list1:addChild(Button({ text = "#" .. i })) end
@@ -278,7 +260,6 @@ function test.create(parent)
 			horizontal_scroll_mode = "disabled",
 			vertical_scroll_mode = "auto",
 		}))
-		s2:enableDebug(true)
 		local list2 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
 		s2:setItem(list2)
 		for i = 1, 3 do list2:addChild(Button({ text = "#" .. i })) end
