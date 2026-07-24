@@ -27,10 +27,8 @@ vbox:addSpacer()  -- equivalent to vbox:addChild(Spacer())
 vbox:addChild(Button({ text = "Bottom" }))
 
 -- Multiple spacers with different ratios
-local sp1 = Spacer()
-sp1.stretch_ratio = 1.0
-local sp2 = Spacer()
-sp2.stretch_ratio = 2.0  -- takes twice as much space
+local sp1 = Spacer({ stretch_ratio = 1.0 })
+local sp2 = Spacer({ stretch_ratio = 2.0 })  -- takes twice as much space
 ```
 
 ## Best Practices

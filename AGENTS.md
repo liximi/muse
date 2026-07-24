@@ -162,7 +162,7 @@ Widget:getDesiredSize()           -- 期望尺寸，默认等于 min。Text 覆�
 
 已覆写 `getMinimumSize` 的控件：Text、Button、Image、ProgressBar、Scroll、BoxContainer、ChatBubble。
 
-**重要**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize`，容器会分配 0 高度。需调用 `setCustomMinimumSize(nil, 40)` 或覆写 `getMinimumSize`。
+**重要**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize`，容器会分配 0 高度。需通过 datas 传 `custom_minimum_size = {nil, 40}`，或调用 `setCustomMinimumSize(nil, 40)`，或覆写 `getMinimumSize`。
 
 #### Widget 更新生命周期（2026-07 改动）
 

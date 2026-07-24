@@ -30,4 +30,4 @@ cc:addChild(Button({ text = "Centered", w = 120, h = 40 }))
 ## Best Practices
 
 - Good for dialog content wrappers.
-- Children with default `FILL` will stretch to fill the container, defeating centering. Disable FILL: `child.h_size_flags = 0; child.v_size_flags = 0`.
+- Children with default `FILL` will stretch to fill the container, defeating centering. Disable FILL: `Button({ text = "Centered", h_size_flags = 0, v_size_flags = 0 })`.

@@ -68,16 +68,11 @@ function test.create(parent)
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8 }))
 		hbox:enableDebug(true)
 
-		local b1 = hbox:addChild(Button({ text = "固定" }))
-		b1.h_size_flags = 0
+		local b1 = hbox:addChild(Button({ text = "固定", h_size_flags = 0 }))
 
-		local b2 = hbox:addChild(Button({ text = "占2/3" }))
-		b2.h_size_flags = SZ.FILL + SZ.EXPAND
-		b2.stretch_ratio = 2
+		local b2 = hbox:addChild(Button({ text = "占2/3", h_size_flags = SZ.FILL + SZ.EXPAND, stretch_ratio = 2 }))
 
-		local b3 = hbox:addChild(Button({ text = "占1/3" }))
-		b3.h_size_flags = SZ.FILL + SZ.EXPAND
-		b3.stretch_ratio = 1
+		local b3 = hbox:addChild(Button({ text = "占1/3", h_size_flags = SZ.FILL + SZ.EXPAND, stretch_ratio = 1 }))
 	end
 
 	-- 3. VBox + SHRINK_CENTER
@@ -89,9 +84,7 @@ function test.create(parent)
 		local vbox = root_vbox:addChild(Box({ h = 120, separation = 4, alignment = ALIGN.CENTER }))
 		vbox:enableDebug(true)
 		for i = 1, 3 do
-			local btn = vbox:addChild(Button({ text = "居中 " .. i }))
-			btn.h_size_flags = SZ.SHRINK_CENTER
-			btn.v_size_flags = 0
+			vbox:addChild(Button({ text = "居中 " .. i, h_size_flags = SZ.SHRINK_CENTER, v_size_flags = 0 }))
 		end
 	end
 
@@ -121,12 +114,9 @@ function test.create(parent)
 		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL,  h = 40, separation = 8, alignment = ALIGN.END }))
 		hbox:enableDebug(true)
 
-		local b1 = hbox:addChild(Button({ text = "靠" }))
-		b1.h_size_flags = 0
-		local b2 = hbox:addChild(Button({ text = "右" }))
-		b2.h_size_flags = 0
-		local b3 = hbox:addChild(Button({ text = "!" }))
-		b3.h_size_flags = 0
+		local b1 = hbox:addChild(Button({ text = "靠", h_size_flags = 0 }))
+		local b2 = hbox:addChild(Button({ text = "右", h_size_flags = 0 }))
+		local b3 = hbox:addChild(Button({ text = "!", h_size_flags = 0 }))
 	end
 
 	-- 6. auto_size

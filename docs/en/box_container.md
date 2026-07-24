@@ -69,10 +69,6 @@ vbox:addChild(Button({ text = "Bottom" }))
 
 -- HBox: fixed label + expanding value
 local hbox = HBoxContainer({ anchor = {0, 0, 1, 0}, h = 32, separation = 8 })
-local label = Text({ text = "Name:" })
-label.h_size_flags = 0
-hbox:addChild(label)
-local value = Text({ text = "John Doe" })
-value.h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
-hbox:addChild(value)
+hbox:addChild(Text({ text = "Name:", h_size_flags = 0 }))
+hbox:addChild(Text({ text = "John Doe", h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND }))
 ```

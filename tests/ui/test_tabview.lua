@@ -97,8 +97,8 @@ function test.create(parent)
 		on_tab_changed = function(idx)
 			print("[TabView] Switched to:", idx)
 		end,
+		v_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND,
 	}))
-	tv.v_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
 end
 
 return test

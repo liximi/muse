@@ -32,10 +32,9 @@ hbox:addChild(Text({ text = "Left" }))
 hbox:addSpacer()
 hbox:addChild(Button({ text = "Right" }))
 
--- 手动创建
+-- 手动创建（可调整权重）
 local Spacer = require "ui.widgets.spacer"
-local sp = Spacer()
-sp.stretch_ratio = 2.0  -- 可调整权重
+local sp = Spacer({ stretch_ratio = 2.0 })
 ```
 
 ## 最佳实践

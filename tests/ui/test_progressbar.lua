@@ -59,10 +59,8 @@ function test.create(parent)
 	--------------------------------------------------
 	local sec2 = section("Static Vertical")
 	local vhbox = sec2:addChild(Box({ orientation = ORIENT.HORIZONTAL,  separation = 16, h = 100 }))
-	local vb1 = vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.6, w = 14 }))
-	vb1.h_size_flags = SZ.SHRINK_BEGIN  -- 保持14px宽度
-	local vb2 = vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.3, w = 14 }))
-	vb2.h_size_flags = SZ.SHRINK_BEGIN
+	vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.6, w = 14, h_size_flags = SZ.SHRINK_BEGIN }))
+	vhbox:addChild(ProgressBar({ orientation = ORIENT.VERTICAL, value = 0.3, w = 14, h_size_flags = SZ.SHRINK_BEGIN }))
 	root:addChild(sec2)
 
 	--------------------------------------------------
@@ -147,11 +145,11 @@ function test.create(parent)
 		interactive = true,
 		w = 20,
 		thumb_outline_color = Utils.RGB(80, 80, 100),
+		v_size_flags = SZ.FILL + SZ.EXPAND,  -- 占满 VBox 剩余高度
 		on_value_changed = function(val)
 			vi_label:setText(string.format("%.0f%%", val * 100))
 		end,
 	}))
-	vi_bar.v_size_flags = SZ.FILL + SZ.EXPAND  -- 占满 VBox 剩余高度
 
 	root:addChild(sec4)
 end

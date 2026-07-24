@@ -38,4 +38,4 @@ cc:addChild(Button({
 ## 最佳实践
 
 - CenterContainer 适合做弹出框、对话框的内容容器。
-- 子控件默认 `FILL` 时会填满整个区域（失去居中效果）。如需居中，关闭子控件的 FILL：`child.h_size_flags = 0; child.v_size_flags = 0`。
+- 子控件默认 `FILL` 时会填满整个区域（失去居中效果）。如需居中，关闭子控件的 FILL：`Button({ text = "居中", h_size_flags = 0, v_size_flags = 0 })`。

@@ -18,6 +18,10 @@
     sy = number,              -- 垂直缩放（默认 1）
     padding = {left, right, top, bottom},  -- 内边距（像素）
     r = number,               -- 旋转角（弧度）
+    h_size_flags = number,    -- 水平 SizeFlags 位标志，默认 FILL(1)
+    v_size_flags = number,    -- 垂直 SizeFlags 位标志，默认 FILL(1)
+    stretch_ratio = number,   -- EXPAND 时瓜分权重，默认 1.0
+    custom_minimum_size = {w, h},  -- 覆盖内容最小尺寸
 }
 ```
 
@@ -84,7 +88,7 @@ end
 | `setCustomMinimumSize(w, h)` | 设置自定义最小尺寸覆盖（nil 表示不限制） |
 | `getDesiredSize()` | 期望的自然尺寸，默认等于最小尺寸。Text 覆写为完整文本宽度（换行时返回当前整形后尺寸） |
 
-> **注意**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize` 也不设 `custom_minimum`，容器分配时可能给 0 高度。Button、Text、Image 等已内置覆写 `getMinimumSize`，不需要额外处理。对于自定义 Widget 放入容器，推荐调用 `setCustomMinimumSize(nil, 40)` 或覆写 `getMinimumSize`。
+> **注意**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize` 也不设 `custom_minimum_size`，容器分配时可能给 0 高度。Button、Text、Image 等已内置覆写 `getMinimumSize`，不需要额外处理。对于自定义 Widget 放入容器，推荐在 datas 中传 `custom_minimum_size = {nil, 40}`，或调用 `setCustomMinimumSize(nil, 40)`，或覆写 `getMinimumSize`。
 
 ## 显示控制
 
@@ -190,13 +194,19 @@ Text 覆写了此方法使用 `getGlobalScaledSize()`（文本实际尺寸），
 
 ## SizeFlags — 在容器中的布局行为
 
-每个 Widget 持有以下布局属性，由父容器读取：
+每个 Widget 持有以下布局属性，由父容器读取，可通过 datas 传入：
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `h_size_flags` | number | `FILL` (1) | 水平 SizeFlags 位标志 |
 | `v_size_flags` | number | `FILL` (1) | 垂直 SizeFlags 位标志 |
 | `stretch_ratio` | number | `1.0` | 开启 EXPAND 时瓜分空间的权重 |
+
+```lua
+-- 通过 datas 声明式设置
+Button({ text = "填满剩余", h_size_flags = SZ.FILL + SZ.EXPAND, stretch_ratio = 2 })
+Button({ text = "固定宽度", h_size_flags = 0 })  -- SHRINK_BEGIN
+```
 
 SizeFlags 位标志（`Utils.SIZE_FLAGS`）：
 

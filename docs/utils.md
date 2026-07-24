@@ -50,8 +50,7 @@ Utils.ORIENTATION = {
 可叠加使用：`Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND` = `3`。
 
 ```lua
-child.h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
-child.stretch_ratio = 2.0
+Button({ text = "填满+瓜分", h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND, stretch_ratio = 2.0 })
 ```
 
 ### ALIGNMENT — 容器整体对齐

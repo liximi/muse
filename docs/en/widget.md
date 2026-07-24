@@ -15,6 +15,10 @@ Base class for all UI elements. Provides tree structure, Transform layout, event
     sx = number, sy = number, -- Scale (default 1)
     padding = {left, right, top, bottom},  -- Padding (px)
     r = number,               -- Rotation (radians)
+    h_size_flags = number,    -- Horizontal SizeFlags, default FILL(1)
+    v_size_flags = number,    -- Vertical SizeFlags, default FILL(1)
+    stretch_ratio = number,   -- EXPAND weight, default 1.0
+    custom_minimum_size = {w, h},  -- Override content min size
 }
 ```
 
@@ -68,7 +72,7 @@ end
 | `setCustomMinimumSize(w, h)` | Set custom minimum size override (nil = no constraint) |
 | `getDesiredSize()` | Desired natural size, defaults to minimum. Text overrides for full text width |
 
-> **Note**: A plain Widget with `h = 40` but no overridden `getMinimumSize` or `custom_minimum` may get 0 height from a container. Button, Text, Image etc. already override `getMinimumSize`. For custom widgets in containers, call `setCustomMinimumSize(nil, 40)`.
+> **Note**: A plain Widget with `h = 40` but no overridden `getMinimumSize` or `custom_minimum_size` may get 0 height from a container. Button, Text, Image etc. already override `getMinimumSize`. For custom widgets in containers, pass `custom_minimum_size = {nil, 40}` in datas, call `setCustomMinimumSize(nil, 40)`, or override `getMinimumSize`.
 
 ## Event Handling
 
@@ -107,13 +111,19 @@ Override these methods (naming: `on` + PascalCase event name):
 
 ## SizeFlags
 
-Each Widget holds layout flags read by parent containers:
+Each Widget holds layout flags read by parent containers, settable via datas:
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `h_size_flags` | number | `FILL` (1) | Horizontal size flags |
 | `v_size_flags` | number | `FILL` (1) | Vertical size flags |
 | `stretch_ratio` | number | `1.0` | Distribution weight when EXPAND is set |
+
+```lua
+-- Set via datas
+Button({ text = "Expand", h_size_flags = SZ.FILL + SZ.EXPAND, stretch_ratio = 2 })
+Button({ text = "Fixed", h_size_flags = 0 })  -- SHRINK_BEGIN
+```
 
 Flags are composed via addition: `Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND` = `3`.
 

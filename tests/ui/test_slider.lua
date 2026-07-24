@@ -137,26 +137,26 @@ function test.create(parent)
 	}))
 
 	local vrow = Box({ orientation = ORIENT.HORIZONTAL,  separation = 30, h = 120 })
-	local v1 = vrow:addChild(SliderBar({
+	vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.7,
 		w = 16,
+		h_size_flags = SZ.SHRINK_BEGIN,
 	}))
-	v1.h_size_flags = SZ.SHRINK_BEGIN
 
-	local v2 = vrow:addChild(SliderBar({
+	vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.4,
 		w = 16,
+		h_size_flags = SZ.SHRINK_BEGIN,
 	}))
-	v2.h_size_flags = SZ.SHRINK_BEGIN
 
-	local v3 = vrow:addChild(SliderBar({
+	vrow:addChild(SliderBar({
 		orientation = "vertical",
 		value = 0.9,
 		w = 16,
+		h_size_flags = SZ.SHRINK_BEGIN,
 	}))
-	v3.h_size_flags = SZ.SHRINK_BEGIN
 
 	root:addChild(vrow)
 end
