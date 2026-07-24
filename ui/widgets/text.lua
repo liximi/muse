@@ -137,7 +137,7 @@ end
 --- - 换行开启时：宽度返回 1（"我可以缩小到几乎任意宽度"），高度返回当前整形后的实际行高。
 ---   容器据此知道该文本可以压缩，从而在有限空间内触发换行。
 function Text:getMinimumSize()
-	-- 空文本参照 Godot：返回 (0, 行高)，保证至少有一行高度
+	-- 空文本：返回 (0, 行高)，保证至少有一行高度
 	if self.text == "" or self.text == nil then
 		local font = self:getFont()
 		return 0, font:getHeight() * font:getLineHeight()
@@ -146,14 +146,18 @@ function Text:getMinimumSize()
 	local line_h = font:getHeight() * font:getLineHeight()
 
 	if self.wrap_mode == Utils.TEXT_WRAP_MODE.DEFAULT then
-		-- 换行开启：参照 Godot，宽度 = 1（可压缩），高度 = 当前整形后的高度
 		local _, h = self:getDimensions()
 		return 1, math.max(h, line_h)
 	else
-		-- 不换行：完整文本宽度
-		local text = self:getText(true)
-		local w = font:getWidth(text)
-		return w, line_h
+		-- 不换行模式：宽度 = 完整文本宽度；高度 = 当前实际高度（若已被容器压缩宽度导致换行）
+		local full_w = font:getWidth(self:getText(true))
+		if self.transform.w > 0 and self.transform.w < full_w then
+			-- 容器给的宽度窄于全文宽度，文本实际上被 love.graphics 换行了
+			-- 高度应取实际渲染高度而非单行高
+			local _, h = self:getDimensions()
+			return full_w, math.max(h, line_h)
+		end
+		return full_w, line_h
 	end
 end
 

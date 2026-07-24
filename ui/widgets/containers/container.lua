@@ -69,8 +69,8 @@ function Container:fitChildInRect(child, x, y, w, h)
 	child.transform:setPosition(x, y)
 	child.transform:setSize(w, h)
 
-	-- 立即触发 SizeChanged：让 Text 等控件在父容器继续排其余子控件之前完成重排，
-	-- 避免"宽度变了但文本高度还是旧的"导致下方控件定位错误。
+	-- 立即触发 SizeChanged
+	-- 立即触发 SizeChanged：让 Text 等控件在父容器继续排其余子控件之前完成重排。
 	if child._notifySizeChanged and (w ~= old_w or h ~= old_h) then
 		child:_notifySizeChanged(w, h)
 	end
