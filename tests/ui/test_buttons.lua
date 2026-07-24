@@ -97,6 +97,11 @@ function test.create(parent)
 		on_click = function(_self)
 			local is_sel = _self.cur_state == Utils.BTN_STATES.SELECTED or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
 			_self:setSelected(not is_sel)
+			-- 显式管理文字：状态样式中的 text 只会在切换到该状态时生效（兼容路径），
+			-- 切回 NORMAL/HOVER 时需要手动设置。
+			local now_sel = _self.cur_state == Utils.BTN_STATES.SELECTED
+				or _self.cur_state == Utils.BTN_STATES.SELECTED_HOVER
+			_self:setText(now_sel and "Toggle: ON" or "Toggle: OFF")
 		end,
 	}))
 

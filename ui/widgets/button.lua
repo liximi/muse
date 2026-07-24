@@ -113,6 +113,12 @@ function Button:onSetState(old_state, new_state)
 	local new_style = self:getStateStyle(new_state)
 	Components.applyButtonTextStyle(self, new_style)
 	Components.applyButtonTransform(self, old_style, new_style)
+	-- 兼容旧写法：state style 中带 text 时自动更新按钮文字
+	-- （与 setStateStyle 的行为保持一致）
+	local explicit_style = self.state_styles[new_state]
+	if explicit_style and explicit_style.text then
+		self:setText(explicit_style.text)
+	end
 end
 
 function Button:onDraw()
