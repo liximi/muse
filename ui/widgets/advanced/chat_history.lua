@@ -1,7 +1,7 @@
 local Widget = require "ui.widgets.widget"
 local Text = require "ui.widgets.text"
 local Panel = require "ui.widgets.panel"
-local List = require "ui.widgets.containers.list_container"
+local ListContainer = require "ui.widgets.containers.list_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local Class = require "dependencies.classic"
 
@@ -71,6 +71,10 @@ function ChatBubble:getText()
 	return self.text:getText(true)
 end
 
+function ChatBubble:getMinimumSize()
+	return self.transform:getSize()
+end
+
 function ChatBubble:updateStyle(style)
 	self.bg:SetBGColor(style.bg_color or self.bg.theme.panel.bg_color)
 	self.bg.rounding_radius = style.rounding_radius or 0
@@ -90,9 +94,9 @@ local ChatHistory = Class(Widget, function(self, datas, theme)
 	self.chatter_styles = {}
 	self.history = {}
 
-	self.list = List({
+	self.list = ListContainer({
 		orientation = "vertical",
-		space = datas and datas.space,
+		separation = datas and datas.space,
 		anchor = {0, 0, 1, 0},
 		padding = {0, CHAT_LIST_RIGHT_PAD, 0, 0}
 	})
@@ -136,7 +140,7 @@ end
 ---@param style table self:createChatBubbleStyle()
 function ChatHistory:setChatBubbleStyle(chatter_id, style)
 	self.chatter_styles[chatter_id] = style
-	for i, bubble in ipairs(self.list.items) do
+	for i, bubble in ipairs(self.list.children) do
 		if bubble.chatter_id == chatter_id then
 			bubble:updateStyle(style)
 		end
@@ -196,10 +200,10 @@ end
 
 function ChatHistory:refresh()
 	local new_count = #self.history
-	local old_count = #self.list.items
+	local old_count = #self.list.children
 	if new_count >= old_count then
 		for i, content in ipairs(self.history) do
-			local bubble = self.list.items[i]
+			local bubble = self.list.children[i]
 			if not bubble then
 				bubble = self:createChatBubble(content[1], content[2])
 				self.list:insert(bubble)
@@ -208,10 +212,10 @@ function ChatHistory:refresh()
 			end
 		end
 	elseif new_count < old_count then
-		for i = #self.list.items, 1, -1 do
+		for i = #self.list.children, 1, -1 do
 			local chat_content = self.history[i]
 			if chat_content then
-				local bubble = self.list.items[i]
+				local bubble = self.list.children[i]
 				self:updateChatBubble(bubble, chat_content[1], chat_content[2])
 			else
 				self.list:removeAtPos(i)
