@@ -36,7 +36,7 @@ local TabContainer = Class(Container, function(self, datas, theme)
 	self._selected_index = -1
 	self._use_hidden_for_min = datas and datas.use_hidden_for_min_size or false
 
-	local tab_bar_h = datas and datas.tab_bar_height or theme.tabview.tab_height
+	local tab_bar_h = datas and datas.tab_bar_height or self.theme.tabview.tab_height
 	self._tab_bar_height = tab_bar_h
 
 	-- 内部 TabBar（HBox）
@@ -49,8 +49,8 @@ local TabContainer = Class(Container, function(self, datas, theme)
 	-- 内部内容区域面板
 	self._content_panel = PanelContainer({
 		name = "_content_panel",
-		bg_color = datas and datas.content_bg or theme.tabview.content_bg,
-		rounding_radius = datas and datas.content_rounding_radius or theme.tabview.content_rounding_radius,
+		bg_color = datas and datas.content_bg or self.theme.tabview.content_bg,
+		rounding_radius = datas and datas.content_rounding_radius or self.theme.tabview.content_rounding_radius,
 	})
 
 	-- 通过基类 Widget.addChild 绕过 Container 的 addChild 重写（内部控件不触发重排）

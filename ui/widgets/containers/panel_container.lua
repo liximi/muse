@@ -23,10 +23,10 @@ local PanelContainer = Class(Container, function(self, datas, theme)
 	-- Panel 作为可见背景，默认拦截鼠标
 	self.raycast_target = true
 
-	self.bg_color = datas and datas.bg_color or theme.panel.bg_color
-	self.outline_width = datas and datas.outline_width or theme.panel.outline_width
-	self.outline_color = datas and datas.outline_color or theme.panel.outline_color
-	self.rounding_radius = datas and datas.rounding_radius or theme.panel.rounding_radius
+	self.bg_color = datas and datas.bg_color or self.theme.panel.bg_color
+	self.outline_width = datas and datas.outline_width or self.theme.panel.outline_width
+	self.outline_color = datas and datas.outline_color or self.theme.panel.outline_color
+	self.rounding_radius = datas and datas.rounding_radius or self.theme.panel.rounding_radius
 end)
 
 function PanelContainer:getMinimumSize()
