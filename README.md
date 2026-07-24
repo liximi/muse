@@ -188,9 +188,14 @@ end
 | **BoxContainer** | Godot 风格线性排列容器（HBox/VBox），三趟分配算法 + SizeFlags | [docs/box_container.md](docs/box_container.md) |
 | **MarginContainer** | 四边距容器 | [docs/margin_container.md](docs/margin_container.md) |
 | **CenterContainer** | 居中容器 | [docs/center_container.md](docs/center_container.md) |
+| **PanelContainer** | 带样式面板背景的容器 | [docs/panel_container.md](docs/panel_container.md) |
+| **TabContainer** | 标签页容器（Container 体系），子控件自动成为 Tab | [docs/tab_container.md](docs/tab_container.md) |
+| **FlowContainer** | 流式换行布局（对标 CSS flex-wrap） | [docs/flow_container.md](docs/flow_container.md) |
+| **GridContainer** | 固定列数网格布局 | [docs/grid_container.md](docs/grid_container.md) |
 | **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
 | **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
-| **List** | 线性列表容器，子元素按主轴依次排列，提供 updateItems diff 复用 | [docs/list.md](docs/list.md) |
+| **ListContainer** | 线性列表容器，继承 BoxContainer，提供 updateItems diff 复用 | [docs/list_container.md](docs/list_container.md) |
+| **VirtualList** | 虚拟化列表，仅实例化可见元素，适用于数千项大数据量 | [docs/virtual_list.md](docs/virtual_list.md) |
 
 ### 视图 / 浮层组件
 
@@ -230,16 +235,21 @@ Widget (基类)
 │       └── RadioButton
 ├── TextInput
 ├── SliderBar
-├── Container
-│   ├── BoxContainer
-│   ├── MarginContainer
-│   └── CenterContainer
 ├── Scroll
 ├── Spacer
-├── List
 ├── Tooltip
 ├── Dropdown
-└── ChatHistory（内含 ChatBubble）
+├── VirtualListItem (模板基类)
+└── Container
+    ├── BoxContainer
+    │   └── ListContainer
+    ├── MarginContainer
+    ├── CenterContainer
+    ├── PanelContainer
+    ├── TabContainer
+    ├── FlowContainer
+    ├── GridContainer
+    └── VirtualList
 ```
 
 ### Transform 布局模型
@@ -280,6 +290,10 @@ datas 直接参数 > 自定义 theme > UiManager 默认 theme
     sx = number, sy = number, -- 缩放（默认 1）
     padding = {left, right, top, bottom},  -- 内边距（像素）
     r = number,               -- 旋转（弧度）
+    h_size_flags = number,    -- 水平 SizeFlags（默认 FILL）
+    v_size_flags = number,    -- 垂直 SizeFlags（默认 FILL）
+    stretch_ratio = number,   -- EXPAND 分配权重（默认 1.0）
+    custom_minimum_size = {w, h},  -- 覆盖最小尺寸
 }
 ```
 

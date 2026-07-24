@@ -188,9 +188,14 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 | **BoxContainer** | Godot-style linear layout container (HBox/VBox), three-pass allocation + SizeFlags | [docs/en/box_container.md](docs/en/box_container.md) |
 | **MarginContainer** | Margin container with configurable per-edge margins | [docs/en/margin_container.md](docs/en/margin_container.md) |
 | **CenterContainer** | Center container for centering children | [docs/en/center_container.md](docs/en/center_container.md) |
+| **PanelContainer** | Container with a styled panel background | [docs/en/panel_container.md](docs/en/panel_container.md) |
+| **TabContainer** | Tab container (Container system); children automatically become tabs | [docs/en/tab_container.md](docs/en/tab_container.md) |
+| **FlowContainer** | Flow-wrap layout (equivalent to CSS flex-wrap) | [docs/en/flow_container.md](docs/en/flow_container.md) |
+| **GridContainer** | Fixed-column grid layout | [docs/en/grid_container.md](docs/en/grid_container.md) |
 | **Spacer** | Invisible flexible spacer widget | [docs/en/spacer.md](docs/en/spacer.md) |
 | **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations + auto content tracking | [docs/en/scroll.md](docs/en/scroll.md) |
-| **List** | Linear list container with sequential arrangement and updateItems diff reuse | [docs/en/list.md](docs/en/list.md) |
+| **ListContainer** | Linear list container inheriting BoxContainer, with updateItems diff reuse | [docs/en/list.md](docs/en/list.md) |
+| **VirtualList** | Virtualized list instantiating only visible elements; ideal for thousands of items | [docs/en/virtual_list.md](docs/en/virtual_list.md) |
 
 ### View / Overlay Components
 
@@ -230,16 +235,21 @@ Widget (base class)
 │       └── RadioButton
 ├── TextInput
 ├── SliderBar
-├── Container
-│   ├── BoxContainer
-│   ├── MarginContainer
-│   └── CenterContainer
 ├── Scroll
 ├── Spacer
-├── List
 ├── Tooltip
 ├── Dropdown
-└── ChatHistory (contains ChatBubble)
+├── VirtualListItem (template base class)
+└── Container
+    ├── BoxContainer
+    │   └── ListContainer
+    ├── MarginContainer
+    ├── CenterContainer
+    ├── PanelContainer
+    ├── TabContainer
+    ├── FlowContainer
+    ├── GridContainer
+    └── VirtualList
 ```
 
 ### Transform Layout Model
@@ -280,6 +290,10 @@ All widgets accept the following `datas` fields at construction time (processed 
     sx = number, sy = number, -- scale (default 1)
     padding = {left, right, top, bottom},  -- padding (pixels)
     r = number,               -- rotation (radians)
+    h_size_flags = number,    -- horizontal SizeFlags (default FILL)
+    v_size_flags = number,    -- vertical SizeFlags (default FILL)
+    stretch_ratio = number,   -- EXPAND distribution weight (default 1.0)
+    custom_minimum_size = {w, h},  -- override minimum size
 }
 ```
 
