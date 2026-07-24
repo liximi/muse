@@ -259,7 +259,7 @@ function Dropdown:_buildItems()
 			anchor = {0, 0, 1, 1},
 			padding = {0, SCROLL_BAR_W + SCROLL_BAR_GAP, 0, 0},
 			scrollbar_gap = SCROLL_BAR_GAP,
-			hide_slider_when_cannot_scroll = true,
+			vertical_scroll_mode = "auto",
 			v_bar_pad_top = self._scrollbar_edge_pad,
 			v_bar_pad_bottom = self._scrollbar_edge_pad,
 		})

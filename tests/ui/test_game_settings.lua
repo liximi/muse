@@ -294,7 +294,7 @@ function test.create(parent)
 	local scroll_gfx = tab_graphics:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
-		enable_scroll_h = false,
+		horizontal_scroll_mode = "disabled",
 		v_bar_pad_top = 8,
 		v_bar_pad_bottom = 8,
 	}))
@@ -381,7 +381,7 @@ function test.create(parent)
 	local scroll_aud = tab_audio:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
-		enable_scroll_h = false,
+		horizontal_scroll_mode = "disabled",
 		v_bar_pad_top = 8,
 		v_bar_pad_bottom = 8,
 	}))
@@ -439,7 +439,7 @@ function test.create(parent)
 	local scroll_gp = tab_gameplay:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
-		enable_scroll_h = false,
+		horizontal_scroll_mode = "disabled",
 		v_bar_pad_top = 8,
 		v_bar_pad_bottom = 8,
 	}))
@@ -507,7 +507,7 @@ function test.create(parent)
 	local scroll_acc = tab_accessibility:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
-		enable_scroll_h = false,
+		horizontal_scroll_mode = "disabled",
 		v_bar_pad_top = 8,
 		v_bar_pad_bottom = 8,
 	}))

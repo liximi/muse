@@ -10,6 +10,10 @@ local Box = require "ui.widgets.containers.box_container"
 local Margin = require "ui.widgets.containers.margin_container"
 local Center = require "ui.widgets.containers.center_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
+local Grid = require "ui.widgets.containers.grid_container"
+local Flow = require "ui.widgets.containers.flow_container"
+local PanelContainer = require "ui.widgets.containers.panel_container"
+local TabContainer = require "ui.widgets.containers.tab_container"
 local Spacer = require "ui.widgets.spacer"
 local Utils = require "ui.utils"
 local ORIENT = Utils.ORIENTATION
@@ -172,6 +176,131 @@ function test.create(parent)
 		vbox:addChild(Button({ text = "顶部" }))
 		vbox:addChild(Spacer())
 		vbox:addChild(Button({ text = "底部" }))
+	end
+
+	-- 10. GridContainer — 3 列网格
+	root_vbox:addChild(Text({
+		text = "10. GridContainer — 3 列网格（columns=3）",
+		font_size = 14,
+	}))
+	do
+		local grid = root_vbox:addChild(Grid({ columns = 3, h_separation = 8, v_separation = 8 }))
+		grid:enableDebug(true)
+		for i = 1, 6 do
+			grid:addChild(Button({ text = "格 " .. i }))
+		end
+	end
+
+	-- 11. GridContainer — 不等宽内容
+	root_vbox:addChild(Text({
+		text = "11. GridContainer — 列宽自动对齐（最长文本决定列宽）",
+		font_size = 14,
+	}))
+	do
+		local grid = root_vbox:addChild(Grid({ columns = 2, h_separation = 8, v_separation = 8 }))
+		grid:enableDebug(true)
+		grid:addChild(Button({ text = "短" }))
+		grid:addChild(Button({ text = "这个按钮很长很长" }))
+		grid:addChild(Button({ text = "中等长度" }))
+		grid:addChild(Button({ text = "OK" }))
+	end
+
+	-- 12. FlowContainer — 水平流式
+	root_vbox:addChild(Text({
+		text = "12. FlowContainer — 水平流式换行",
+		font_size = 14,
+	}))
+	do
+		local flow = root_vbox:addChild(Flow({ h_separation = 6, v_separation = 6 }))
+		flow:enableDebug(true)
+		local labels = { "标签A", "很长的标签B", "C", "标签D", "另一个标签E", "短", "长长的标签F" }
+		for _, label in ipairs(labels) do
+			flow:addChild(Button({ text = label, h_size_flags = 0, v_size_flags = 0 }))
+		end
+	end
+
+	-- 13. FlowContainer — 末行居中对齐
+	root_vbox:addChild(Text({
+		text = "13. FlowContainer — alignment=center, last_wrap=begin（末行靠左）",
+		font_size = 14,
+	}))
+	do
+		local flow = root_vbox:addChild(Flow({
+			h_separation = 6, v_separation = 6,
+			alignment = ALIGN.CENTER,
+			last_wrap_alignment = "begin",
+		}))
+		flow:enableDebug(true)
+		for i = 1, 5 do
+			flow:addChild(Button({ text = "项 " .. i, h_size_flags = 0, v_size_flags = 0 }))
+		end
+	end
+
+	-- 14. PanelContainer — 带面板的容器
+	root_vbox:addChild(Text({
+		text = "14. PanelContainer — 带背景面板的容器（嵌套 VBox）",
+		font_size = 14,
+	}))
+	do
+		local pc = root_vbox:addChild(PanelContainer({
+			outline_width = 2,
+			outline_color = Utils.UI_COLORS.LINE,
+		}))
+		pc:enableDebug(true)
+		local inner = pc:addChild(Box({ auto_size = true, separation = 4 }))
+		inner:addChild(Button({ text = "面板内按钮 1" }))
+		inner:addChild(Button({ text = "面板内按钮 2" }))
+	end
+
+	-- 15. TabContainer — 标签页
+	root_vbox:addChild(Text({
+		text = "15. TabContainer — 标签页容器",
+		font_size = 14,
+	}))
+	do
+		local tc = root_vbox:addChild(TabContainer({ h = 160 }))
+		tc:enableDebug(true)
+		local page1 = Widget({ name = "页面一" })
+		page1:addChild(Text({ text = "这是第一个标签页的内容", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
+		tc:addChild(page1)
+
+		local page2 = Widget({ name = "页面二" })
+		page2:addChild(Text({ text = "第二个标签页", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
+		page2:addChild(Button({ text = "按钮在第二页", anchor = {0, 0, 1, 0}, padding = {0, 0, 30, 0} }))
+		tc:addChild(page2)
+
+		local page3 = Widget({ name = "第三页" })
+		page3:addChild(Text({ text = "标签页三的内容", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
+		tc:addChild(page3)
+	end
+
+	-- 16. ScrollMode 演示
+	root_vbox:addChild(Text({
+		text = "16. ScrollMode — SHOW_ALWAYS（始终显示滚动条）vs AUTO（默认）",
+		font_size = 14,
+	}))
+	do
+		local hbox = root_vbox:addChild(Box({ orientation = ORIENT.HORIZONTAL, h = 120, separation = 12 }))
+
+		-- SHOW_ALWAYS
+		local s1 = hbox:addChild(Scroll({
+			horizontal_scroll_mode = "disabled",
+			vertical_scroll_mode = "show_always",
+		}))
+		s1:enableDebug(true)
+		local list1 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
+		s1:setItem(list1)
+		for i = 1, 8 do list1:addChild(Button({ text = "#" .. i })) end
+
+		-- AUTO (default)
+		local s2 = hbox:addChild(Scroll({
+			horizontal_scroll_mode = "disabled",
+			vertical_scroll_mode = "auto",
+		}))
+		s2:enableDebug(true)
+		local list2 = Box({ auto_size = true, separation = 4, anchor = {0, 0, 1, 0} })
+		s2:setItem(list2)
+		for i = 1, 3 do list2:addChild(Button({ text = "#" .. i })) end
 	end
 end
 

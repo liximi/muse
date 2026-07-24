@@ -19,15 +19,14 @@ local SCROLL_MODE = Utils.SCROLL_MODE
 
 --[[datas: 此处不包括当前Widget继承的基类所支持的字段
 	item = Widget,
-	enable_scroll_h = bool 默认为false
-	enable_scroll_v = bool 默认为true
+	horizontal_scroll_mode = "disabled" | "auto" | "show_always" | "show_never" | "reserve"  默认 "disabled"
+	vertical_scroll_mode   = "disabled" | "auto" | "show_always" | "show_never" | "reserve"  默认 "auto"
 
 	sensitivity = number 鼠标滚轮控制滚动的灵敏度(像素)
 	scrollable_w = number 水平方向可滚动的宽度(像素)
 	scrollable_h = number 垂直方向可滚动的宽度(像素)
 
 	show_slider_bar = bool 默认为true
-	hide_slider_when_cannot_scroll = bool 默认为false
 	h_slider_bar_height = number 水平滚动条的高度 默认为8 (滑块会各自向上下超出1像素)
 	v_slider_bar_width = number 垂直滚动条的宽度(像素) 默认为8 (滑块会各自向左右超出1像素)
 	scrollbar_gap = number 滚动条与内容间距(像素) 默认为2
@@ -50,13 +49,9 @@ local Scroll = Class(Widget, function(self, datas, theme)
 
 	self.sensitivity = datas and datas.sensitivity or DEFAULT_SENSITIVITY
 
-	-- ScrollMode：新 API 优先，回退兼容旧字段
+	-- ScrollMode
 	self.h_scroll_mode = (datas and datas.horizontal_scroll_mode) or SCROLL_MODE.DISABLED
 	self.v_scroll_mode = (datas and datas.vertical_scroll_mode) or SCROLL_MODE.AUTO
-	-- 兼容旧 API
-	if datas and datas.enable_scroll_h == true then self.h_scroll_mode = SCROLL_MODE.AUTO end
-	if datas and datas.enable_scroll_v == false then self.v_scroll_mode = SCROLL_MODE.DISABLED end
-	self._hide_when_cannot = (datas and datas.hide_slider_when_cannot_scroll) or false
 
 	self.show_slider_bar = (datas and datas.show_slider_bar) ~= false
 
@@ -348,20 +343,6 @@ function Scroll:updateHBlockLengthPercent()
 				end
 			end
 		end
-		-- 兼容旧 hide_slider_when_cannot_scroll
-		if self._hide_when_cannot then
-			if percent >= 1 and self.slider_bar_h:isShown() then
-				self.slider_bar_h:hide()
-				if self.slider_bar_v then
-					self.slider_bar_v.transform:setPadding(nil, nil, nil, 0)
-				end
-			elseif percent < 1 and not self.slider_bar_h:isShown() then
-				self.slider_bar_h:show()
-				if self.slider_bar_v then
-					self.slider_bar_v.transform:setPadding(nil, nil, nil, self._h_bar_h)
-				end
-			end
-		end
 	end
 end
 
@@ -383,20 +364,6 @@ function Scroll:updateVBlockLengthPercent()
 					if self.slider_bar_h then
 						self.slider_bar_h.transform:setPadding(nil, 0)
 					end
-				end
-			end
-		end
-		-- 兼容旧 hide_slider_when_cannot_scroll
-		if self._hide_when_cannot then
-			if percent >= 1 and self.slider_bar_v:isShown() then
-				self.slider_bar_v:hide()
-				if self.slider_bar_h then
-					self.slider_bar_h.transform:setPadding(nil, 0)
-				end
-			elseif percent < 1 and not self.slider_bar_v:isShown() then
-				self.slider_bar_v:show()
-				if self.slider_bar_h then
-					self.slider_bar_h.transform:setPadding(nil, self._v_bar_w)
 				end
 			end
 		end

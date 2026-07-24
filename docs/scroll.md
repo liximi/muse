@@ -11,8 +11,8 @@
 ```lua
 {
     item = Widget,                    -- 要滚动的内容 widget
-    enable_scroll_h = boolean,        -- 启用水平滚动，默认 false
-    enable_scroll_v = boolean,        -- 启用垂直滚动，默认 true
+    horizontal_scroll_mode = "disabled" | "auto" | "show_always" | "show_never" | "reserve",  -- 水平滚动模式，默认 "disabled"
+    vertical_scroll_mode   = "disabled" | "auto" | "show_always" | "show_never" | "reserve",  -- 垂直滚动模式，默认 "auto"
 
     sensitivity = number,             -- 鼠标滚轮灵敏度（像素），默认 100
     scrollable_w = number,            -- 水平可滚动宽度（像素），默认等于 transform.w
@@ -20,7 +20,6 @@
     auto_track = boolean,             -- 自动追踪内容尺寸变化，默认 true
 
     show_slider_bar = boolean,        -- 是否显示滚动条，默认 true
-    hide_slider_when_cannot_scroll = boolean,  -- 不可滚动时隐藏滚动条，默认 false
     h_slider_bar_height = number,     -- 水平滚动条高度，默认 8
     v_slider_bar_width = number,      -- 垂直滚动条宽度，默认 8
     scrollbar_gap = number,           -- 滚动条与内容间距，默认 2

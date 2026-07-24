@@ -70,7 +70,7 @@ local function Gallery(parent)
 	local scroll = left_panel:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {4, 4, 62, 4},
-		enable_scroll_h = false
+		horizontal_scroll_mode = "disabled"
 	}))
 
 	local btn_list = Widget({
