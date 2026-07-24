@@ -1,42 +1,34 @@
 # RadioButton
 
-Radio button inheriting Checkbox. Renders circular outline + filled dot. `style` is fixed to `"radio"`.
+Radio button. Inherits Checkbox, renders as a circular outline with a solid dot. See [Checkbox](checkbox.md).
 
 **Inheritance:** `Widget` → `ButtonBase` → `Checkbox` → `RadioButton`
 
-## Constructor Parameters (datas)
+## Additional Constructor Parameters
 
 ```lua
 {
-    -- Inherits all Checkbox params
-    circle_size = number,         -- Circle size, default from theme (20)
-    circle_color = {r, g, b, a},  -- Circle fill
-    dot_color = {r, g, b, a},     -- Dot color when checked
-    outline_width = number,
-    outline_color = {r, g, b, a},
+    circle_size = number,         -- Circle size
+    circle_color = {r, g, b, a},  -- Circle background
+    dot_color = {r, g, b, a},     -- Selected dot color
+    outline_width = number,       -- Outline width
+    outline_color = {r, g, b, a}, -- Outline color
 }
 ```
 
-## Public Methods
-
-Inherits all from Checkbox: `isChecked()`, `setChecked(checked)`, `toggle()`.
-
-## Rendering
-
-- Circle background: `box_color` / `circle_color`
-- Outline: `outline_color` + `outline_width`
-- Checked: filled dot at `radius × 0.55` (`check_color` / `dot_color`)
+RadioButton is fixed to `style = "radio"` (circle + dot); switching to checkbox or toggle style is not supported. All other behavior matches Checkbox, including `label`, `on_checked` callback, etc.
 
 ## Example
 
 ```lua
-local rb = RadioButton({
+local radio = RadioButton({
     label = "Option A",
     checked = true,
-    on_checked = function(checked)
-        if checked then print("Option A selected") end
-    end,
+    on_checked = function(checked) print("Selected:", checked) end,
 })
 ```
 
-> Typically used within RadioGroup for mutual exclusion.
+## Best Practices
+
+- **Do**: Place a group of RadioButtons in a RadioGroup for mutual exclusion.
+- **Don't**: Manually manage mutual exclusion across multiple RadioButtons — use RadioGroup.

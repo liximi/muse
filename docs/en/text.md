@@ -1,6 +1,6 @@
 # Text
 
-Text rendering component. Supports coloredtext, word wrap, multi-directional alignment, and overflow clipping.
+A widget for displaying text. Supports automatic wrapping, alignment, and colored text (multi-color segments).
 
 **Inheritance:** `Widget` → `Text`
 
@@ -8,85 +8,81 @@ Text rendering component. Supports coloredtext, word wrap, multi-directional ali
 
 ```lua
 {
-    text = string | table,        -- Text content; also supports coloredtext: {color1, str1, color2, str2, ...}
-    font_key = string,            -- Font key, default from theme
-    font_size = number,           -- Font size, default from theme (16)
-    text_color = {r, g, b, a},    -- Text color, default from theme
-    h_align = string,             -- "left" | "right" | "center" | "justify", default "left"
-    v_align = string,             -- "top" | "bottom" | "center", default "top"
+    text = string | table,    -- Text content, also supports coloredtext: {color1, string1, color2, string2, ...}
+    font_key = string,        -- Font key (must be registered in ui/fonts.lua)
+    font_size = number,       -- Font size
+    text_color = {r, g, b, a}, -- Text color (multiplied with segment colors for coloredtext)
+    h_align = "left" | "center" | "right" | "justify",  -- Horizontal alignment, default "left"
+    v_align = "top" | "center" | "bottom",              -- Vertical alignment, default "top"
 }
 ```
+
+## How It Works
+
+Text creates a `love.graphics.Text` object at construction. `transform.w/h` defaults to 0 — the actual text dimensions are stored inside the `love.graphics.Text` object, accessible via `getDimensions()`.
+
+### Wrap Mode
+
+Controlled by `wrap_mode`, defaulting to off (`TEXT_WRAP_MODE.OFF`). When set to `TEXT_WRAP_MODE.DEFAULT`, text wraps at `transform.w` width.
+
+### Minimum Size
+
+`getMinimumSize()` behavior depends on wrap mode:
+- **Wrap off**: width = full text width (incompressible), height = single line height.
+- **Wrap on**: width = 1 (can shrink to almost any width), height = current shaped line height. Containers use this to know the text can compress, triggering wrapping in constrained space.
+
+### Desired Size
+
+`getDesiredSize()` also depends on wrap mode:
+- **Wrap off**: equals minimum size.
+- **Wrap on**: returns the current shaped dimensions. Containers use this in "pass 2A" to allocate width close to what the text actually needs.
+
+### Culling AABB
+
+Text overrides `getCullAABB()` to use actual text dimensions instead of `transform.w/h`, preventing premature culling inside Scroll containers.
 
 ## Public Methods
 
 | Method | Description |
 |--------|-------------|
-| `setText(text)` | Set text content (triggers `updateTextLayout()`) |
-| `getText(only_string)` | Get text; `only_string=true` extracts plain string from coloredtext |
-| `setTextColor(color)` | Set text color `{r, g, b, a}` |
-| `setFont(font_key, size)` | Set font (must be registered in `ui/fonts.lua`) |
+| `setText(text)` | Set text content |
+| `getText(only_string)` | Get text (coloredtext returns plain concatenation when only_string=true) |
+| `setTextColor({r, g, b, a})` | Set text color |
+| `setFont(font_key, size)` | Set font |
 | `setFontSize(size)` | Set font size |
-| `setHAlign(align)` / `setVAlign(align)` | Set alignment |
-| `setWrapMode(mode)` | Set wrap mode: `"off"` or `"default"` |
-| `getDimensions()` | Get rendered texture dimensions `w, h` |
-| `measure(max_w, max_h)` | Query natural size with width constraint |
-| `updateTextLayout()` | Force rebuild layout |
-
-## Minimum & Desired Size
-
-Text overrides `getMinimumSize()` and `getDesiredSize()`:
-
-| Method | Wrap Off | Wrap On |
-|--------|----------|---------|
-| `getMinimumSize()` | Full text width × line height | Width=1 (compressible), height=current shaped height |
-| `getDesiredSize()` | Same as minimum | Current actual shaped `w, h` |
-
-This matches Godot Label behavior: with wrap on, the text tells containers "I can shrink very narrow" while desired reflects actual needed size.
-
-## Wrap Modes
-
-| Mode | Constant | Behavior |
-|------|----------|----------|
-| Word wrap | `Utils.TEXT_WRAP_MODE.DEFAULT` | Wrap at `transform.w` width |
-| No wrap | `Utils.TEXT_WRAP_MODE.OFF` | Render at actual text width |
-
-## Overflow Mode
-
-```lua
-Utils.TEXT_OVERFLOW_MODE.NONE  -- Don't clip (default)
-Utils.TEXT_OVERFLOW_MODE.CHAR  -- Clip per-character, append ellipsis
-```
-
-## Key Edge Cases
-
-- **`transform.w/h` defaults to 0**: Text stores size in the `love.graphics.Text` object, not in transform. `getCullAABB()` is overridden to use actual text dimensions, so clipping and collision work correctly. Debug bounding boxes may show zero area.
-- **Wrap width fallback**: When `transform.w <= 0`, `updateTextLayout()` fallbacks to full text width.
+| `setHAlign(align)` | Set horizontal alignment |
+| `setVAlign(align)` | Set vertical alignment |
+| `setWrapMode(mode)` | Set wrap mode |
+| `getDimensions()` | Get actual text dimensions (px) |
+| `measure(max_w, max_h)` | Query natural size `{w, h}` under a width constraint |
 
 ## Example
 
 ```lua
-local label = Text({
-    text = "Hello, World!",
-    font_size = 18,
-    text_color = Utils.UI_COLORS.TITLE,
-    h_align = "center",
-    v_align = "center",
-    anchor = {0, 0, 1, 1},
+-- Basic text
+local label = Text({ text = "Hello World", font_size = 16 })
+
+-- Auto-wrapping text
+local desc = Text({
+    text = "A long description that wraps automatically.",
+    w = 200,
+    wrap_mode = "default",
+    h_align = "left",
 })
 
 -- Colored text
 local colored = Text({
     text = {
-        {1, 0.5, 0.5, 1}, "Red ",
-        {0.5, 0.5, 1, 1}, "Blue",
+        {1, 0.3, 0.3}, "Red ",
+        {0.3, 1, 0.3}, "Green ",
+        {0.3, 0.3, 1}, "Blue",
     },
-})
-
--- Wrapped
-local wrapped = Text({
-    text = "A very long text that wraps",
-    wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
-    anchor = {0, 0, 1, 0},
-    h = 60,
+    font_size = 14,
 })
 ```
+
+## Best Practices
+
+- **Do**: Set `w` or obtain width through container layout for wrapping text, otherwise it won't wrap.
+- **Do**: Use `getDimensions()` for actual text size, not `transform.w/h`.
+- **Don't**: Rely on `transform.w/h` for layout calculations when it's 0 — Text dimensions live in the `love.graphics.Text` object.

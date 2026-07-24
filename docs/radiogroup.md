@@ -1,6 +1,6 @@
 # RadioGroup
 
-单选按钮组，管理一组 RadioButton 的互斥行为。
+单选按钮组。管理一组 RadioButton 的互斥行为——选中一个自动取消其余。
 
 **继承链：** `Widget` → `RadioGroup`
 
@@ -8,36 +8,23 @@
 
 ```lua
 {
-    items = {                          -- 各选项的 datas 表，会被传给 RadioButton 构造
-        {label = string, ...},
-        ...
-    },
-    selected_index = number,           -- 初始选中项索引（1-based）
+    items = {{label = string, ...}, ...},  -- 各选项的 datas 表，传给 RadioButton 构造
+    selected_index = number,    -- 初始选中索引
     on_selection_changed = function(index),  -- 选中变化回调
 }
 ```
+
+## 工作原理
+
+`setItems()` 根据传入的 datas 列表创建一组 RadioButton，自动垂直排列并为每个注入 `on_checked` 回调。当任一按钮被选中时，`_onButtonChecked` 取消其余按钮的选中状态，实现互斥逻辑。使用 `_handling` 守卫防止级联反选。
 
 ## 公有方法
 
 | 方法 | 说明 |
 |------|------|
-| `setItems(items, selected_index)` | 设置选项列表，重建所有 RadioButton |
+| `setItems(items, selected_index)` | 设置选项列表 |
 | `getSelected()` | 获取当前选中索引 |
 | `setSelected(index)` | 编程式设置选中项 |
-| `getMinimumSize()` | 返回自身 transform 尺寸 |
-
-## 互斥机制
-
-每个 RadioButton 的 `on_checked` 回调被注入为 `_onButtonChecked(i)`，该方法：
-
-1. 用 `_handling` 守卫防止级联反选。
-2. 将其他所有按钮设为 `setChecked(false)`。
-3. 更新 `_selected_index`。
-4. 触发 `onSelectionChanged` 回调。
-
-## 自动布局
-
-`setItems()` 中每个 RadioButton 默认垂直排列（`item_h = 28`，`spacing = 4`），也可通过 `datas.anchor` / `datas.padding` 手动覆盖。
 
 ## 示例
 
@@ -50,10 +37,7 @@ local group = RadioGroup({
     },
     selected_index = 1,
     on_selection_changed = function(index)
-        print("selected:", index)
+        print("Selected:", index)
     end,
 })
-
--- 编程设置
-group:setSelected(2)
 ```

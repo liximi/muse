@@ -1,288 +1,123 @@
-# Utils — 常量、枚举 & 工具函数
+# Utils
 
-Muse 核心工具模块（`ui/utils.lua`），提供所有枚举常量、颜色工具和辅助函数。`Components` 模块（`ui/components.lua`）提供控件混入和样式应用。
-
----
-
-## 目录
-
-- [枚举常量](#枚举常量)
-- [颜色](#颜色)
-- [工具函数](#工具函数)
-- [Components](#components)
-
----
+工具函数和枚举常量模块。
 
 ## 枚举常量
 
-### RENDER_LAYERS — 渲染层级
+### SIZE_FLAGS
 
-```lua
-Utils.RENDER_LAYERS = {
-    BASE     = 0,   -- 默认层
-    OVERLAY  = 50,  -- 覆盖层
-    DROPDOWN = 80,  -- 下拉弹窗
-    TOOLTIP  = 100, -- 提示框（最顶层）
-}
-```
-
-### ORIENTATION — 方向
-
-```lua
-Utils.ORIENTATION = {
-    VERTICAL   = "vertical",
-    HORIZONTAL = "horizontal",
-}
-```
-
-用于 BoxContainer、ProgressBar、SliderBar。
-
-### SIZE_FLAGS — 容器子控件布局标志
+子控件在容器中的尺寸行为标志，可位组合：
 
 | 标志 | 值 | 含义 |
 |------|-----|------|
-| `SHRINK_BEGIN` | 0 | 保持最小尺寸，靠左/上（默认值） |
-| `FILL` | 1 | 填满分到的区域 |
-| `EXPAND` | 2 | 参与剩余空间瓜分 |
-| `SHRINK_CENTER` | 4 | 在分配区域内居中（需关闭 FILL） |
-| `SHRINK_END` | 8 | 在分配区域内靠右/下（需关闭 FILL） |
+| `SHRINK_BEGIN` | 0 | 保持最小尺寸，靠左/上 |
+| `FILL` | 1 | 填满容器分配的区域 |
+| `EXPAND` | 2 | 参与剩余空间的瓜分 |
+| `SHRINK_CENTER` | 4 | 在区域内居中（需关闭 FILL） |
+| `SHRINK_END` | 8 | 在区域内靠右/下（需关闭 FILL） |
 
-可叠加使用：`Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND` = `3`。
-
-```lua
-Button({ text = "填满+瓜分", h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND, stretch_ratio = 2.0 })
-```
-
-### ALIGNMENT — 容器整体对齐
+### ORIENTATION
 
 ```lua
-Utils.ALIGNMENT = {
-    BEGIN  = "begin",
-    CENTER = "center",
-    END    = "end",
-}
+Utils.ORIENTATION.VERTICAL    -- "vertical"
+Utils.ORIENTATION.HORIZONTAL  -- "horizontal"
 ```
 
-仅当容器内无 EXPAND 子控件时生效。用于 BoxContainer 的 `alignment` 参数。
+### ALIGNMENT
 
-### SCROLL_MODE — 滚动条显示模式
+BoxContainer 无 EXPAND 子控件时的整体偏移：
 
 ```lua
-Utils.SCROLL_MODE = {
-    DISABLED    = "disabled",     -- 禁用滚动
-    AUTO        = "auto",         -- 内容溢出时显示（默认垂直模式）
-    SHOW_ALWAYS = "show_always",  -- 始终显示
-    SHOW_NEVER  = "show_never",   -- 始终隐藏（仍可通过代码滚动）
-    RESERVE     = "reserve",      -- 预留滚动条空间
-}
+Utils.ALIGNMENT.BEGIN   -- "begin"
+Utils.ALIGNMENT.CENTER  -- "center"
+Utils.ALIGNMENT.END     -- "end"
 ```
 
-用于 Scroll 的 `horizontal_scroll_mode` / `vertical_scroll_mode` 参数。
+### H_ALIGN / V_ALIGN
 
-### BTN_STATES — 按钮状态
+Text / TextInput 对齐方式：
 
 ```lua
-Utils.BTN_STATES = {
-    NORMAL        = "normal",
-    PRESSED       = "pressed",
-    DISABLED      = "disabled",
-    SELECTED      = "selected",
-    HOVER         = "hover",
-    SELECTED_HOVER = "selected_hover",
-}
+Utils.H_ALIGN.LEFT / CENTER / RIGHT / JUSTIFY
+Utils.V_ALIGN.TOP / CENTER / BOTTOM
 ```
 
-### H_ALIGN — 水平对齐
+### BTN_STATES
+
+按钮状态：
 
 ```lua
-Utils.H_ALIGN = {
-    LEFT    = "left",
-    CENTER  = "center",
-    RIGHT   = "right",
-    JUSTIFY = "justify",
-}
+Utils.BTN_STATES.NORMAL / HOVER / PRESSED / DISABLED / SELECTED / SELECTED_HOVER
 ```
 
-### V_ALIGN — 垂直对齐
+### CHECKBOX_STYLE
 
 ```lua
-Utils.V_ALIGN = {
-    TOP    = "top",
-    CENTER = "center",
-    BOTTOM = "bottom",
-}
+Utils.CHECKBOX_STYLE.CHECKBOX  -- "checkbox"
+Utils.CHECKBOX_STYLE.TOGGLE    -- "toggle"
 ```
 
-### TEXT_WRAP_MODE — 文本换行
+### TEXT_WRAP_MODE
 
 ```lua
-Utils.TEXT_WRAP_MODE = {
-    OFF     = "off",
-    DEFAULT = "default",
-}
+Utils.TEXT_WRAP_MODE.OFF      -- "off"（不换行）
+Utils.TEXT_WRAP_MODE.DEFAULT  -- "default"（按宽度换行）
 ```
 
-### TEXT_OVERFLOW_MODE — 文本溢出
+### SCROLL_MODE
 
 ```lua
-Utils.TEXT_OVERFLOW_MODE = {
-    NONE = "none",  -- 不修剪
-    CHAR = "char",  -- 逐字符修剪，末尾加省略号
-}
+Utils.SCROLL_MODE.DISABLED / AUTO / SHOW_ALWAYS / SHOW_NEVER / RESERVE
 ```
 
-### CHECKBOX_STYLE — 复选框样式
+### RENDER_LAYERS
 
 ```lua
-Utils.CHECKBOX_STYLE = {
-    CHECKBOX = "checkbox",  -- 方框 + 对勾
-    TOGGLE   = "toggle",    -- 滑动开关
-}
+Utils.RENDER_LAYERS.BASE = 0
+Utils.RENDER_LAYERS.OVERLAY = 50
+Utils.RENDER_LAYERS.DROPDOWN = 80
+Utils.RENDER_LAYERS.TOOLTIP = 100
 ```
 
-### CROSS_ALIGN — 交叉轴对齐（旧 Box，逐步废弃）
+### UI_COLORS
+
+预设颜色表。常用：
 
 ```lua
-Utils.CROSS_ALIGN = {
-    STRETCH = "stretch",
-    START   = "start",
-    CENTER  = "center",
-    END     = "end",
-}
+Utils.UI_COLORS.WHITE / BG / SURFACE / LINE
+Utils.UI_COLORS.TITLE / PRIMARY_TEXT / SECONDARY_TEXT / HINT
+Utils.UI_COLORS.BTN_NORMAL / BTN_HOVER / BTN_DISABLED / BTN_SELECTED
+Utils.UI_COLORS.ACCENT / ACCENT_LIGHT / WARNING
 ```
-
-### ANCHORS_HORI / ANCHORS_VERT — 文本锚点（内部用）
-
-```lua
-Utils.ANCHORS_HORI = { LEFT = "left", MIDDLE = "middle", RIGHT = "right" }
-Utils.ANCHORS_VERT = { TOP = "top", MIDDLE = "middle", BOTTOM = "bottom" }
-```
-
-### TWO_PI
-
-```lua
-Utils.TWO_PI = math.pi * 2  -- 用于旋转角归一化比较
-```
-
----
-
-## 颜色
-
-### UI_COLORS — 预设调色板
-
-```lua
-Utils.UI_COLORS.WHITE            -- {1, 1, 1, 1}
-Utils.UI_COLORS.BG               -- 背景色（深色）
-Utils.UI_COLORS.SURFACE          -- 面板/卡片底色
-Utils.UI_COLORS.LINE             -- 描边/分隔线色
-
-Utils.UI_COLORS.TITLE            -- 标题文本色
-Utils.UI_COLORS.PRIMARY_TEXT     -- 正文文本色
-Utils.UI_COLORS.SECONDARY_TEXT   -- 辅助文本色
-Utils.UI_COLORS.HINT             -- 占位提示色
-
-Utils.UI_COLORS.BTN_NORMAL       -- 按钮默认底色
-Utils.UI_COLORS.BTN_HOVER        -- 按钮悬停底色
-Utils.UI_COLORS.BTN_DISABLED     -- 按钮禁用底色
-Utils.UI_COLORS.BTN_SELECTED     -- 按钮选中底色
-Utils.UI_COLORS.BTN_SELECTED_HOVER  -- 按钮选中+悬停底色
-
-Utils.UI_COLORS.ACCENT           -- 强调色（蓝）
-Utils.UI_COLORS.ACCENT_LIGHT     -- 浅强调色
-Utils.UI_COLORS.WARNING          -- 警告色（黄）
-
--- 兼容旧名称
-Utils.UI_COLORS.PINK / LIGHT_PINK / BLUE / LIGHT_BLUE / YELLOW
-```
-
-### Utils.RGB(r, g, b, a)
-
-0~255 范围颜色转 0~1 的 `{r, g, b, a}`。
-
-```lua
-Utils.RGB(255, 128, 64)        -- → {1, 0.502, 0.251, 1}
-Utils.RGB(100, 200, 50, 0.8)   -- → {0.392, 0.784, 0.196, 0.8}
-```
-
----
 
 ## 工具函数
 
-### Utils.clamp(val, min, max)
+| 函数 | 说明 |
+|------|------|
+| `Utils.RGB(r, g, b, a)` | 将 0~255 的 RGB 值转换为 0~1 的 `{r, g, b, a}` 表 |
+| `Utils.clamp(val, min, max)` | 将值限制在 [min, max] 范围内 |
+| `Utils.hasFlag(flags, flag)` | 检查位标志组合中是否包含某个标志 |
+| `Utils.validateEnum(value, enum, default, label)` | 校验枚举值，非法时返回默认值并打印警告 |
+| `Utils.newButtonStateStyle(...)` | 构造按钮状态样式表 |
+| `Utils.newImageButtonStateStyle(...)` | 构造图片按钮状态样式表 |
 
-```lua
-Utils.clamp(5, 0, 10)   -- → 5
-Utils.clamp(15, 0, 10)  -- → 10
-```
-
-### Utils.validateEnum(value, enum, default, label)
-
-校验枚举值。`nil` 时静默返回 default，非法时打印警告并回退。
-
-```lua
-local orientation = Utils.validateEnum(
-    datas.orientation,
-    Utils.ORIENTATION,
-    Utils.ORIENTATION.VERTICAL,
-    "BoxContainer.orientation"
-)
-```
-
-### Utils.hasFlag(flags, flag)
-
-LuaJIT 兼容的位检测（不用 `bit` 库）。
-
-```lua
-local flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND  -- = 3
-Utils.hasFlag(flags, Utils.SIZE_FLAGS.FILL)     -- → true
-Utils.hasFlag(flags, Utils.SIZE_FLAGS.EXPAND)   -- → true
-Utils.hasFlag(flags, Utils.SIZE_FLAGS.SHRINK_END) -- → false
-```
-
-### Utils.newButtonStateStyle(...)
-
-为 Button 创建单个状态样式表。所有参数可选。
+### newButtonStateStyle
 
 ```lua
 Utils.newButtonStateStyle(text, text_color, font_size, bg_color,
     outline_width, outline_color, offset, scale, rounding_radius)
 ```
 
-### Utils.newImageButtonStateStyle(...)
+参数按位置传入，不需要的可传 `nil`。返回的样式表可直接传给 Button 的 `normal`/`hover` 等字段。
 
-为 ImageButton 创建单个状态样式表。所有参数可选。
-
-```lua
-Utils.newImageButtonStateStyle(texture, tint, text, text_color,
-    font_size, offset, scale)
-```
-
----
-
-## Components
-
-`ui/components.lua` — 可复用的控件混入和样式应用。
-
-### Components.addHoverState(widget)
-
-为任意 Widget 混入 hover 检测能力。调用后：
-
-- widget 新增 `hovered` 属性（boolean）
-- widget 获得 `onHovered(hovered, x, y, dx, dy)` 回调
-- 内部覆写 `onMouseMoved`，先调原 handler 再做 hover 检测
+### newImageButtonStateStyle
 
 ```lua
-local Components = require "ui.components"
-Components.addHoverState(widget)
-function widget:onHovered(hovered, x, y, dx, dy)
-    if hovered then print("鼠标进入") end
-end
+Utils.newImageButtonStateStyle(texture, tint, text, text_color, font_size, offset, scale)
 ```
 
-### Components.applyButtonTextStyle(button, new_style)
+## 最佳实践
 
-应用按钮状态切换时的文本样式变更（颜色 + 字号）。Button/ImageButton 内部自动调用。
-
-### Components.applyButtonTransform(button, old_style, new_style)
-
-应用按钮状态切换时的位置偏移和缩放变更。Button/ImageButton 内部自动调用。
+- **推荐**：使用枚举常量而非硬编码字符串（如 `Utils.ORIENTATION.VERTICAL` 而非 `"vertical"`）。
+- **推荐**：使用 `Utils.hasFlag` 而非手动位运算检测 SizeFlags。
+- **推荐**：使用 `Utils.newButtonStateStyle(...)` 构造按钮样式，保持一致性。

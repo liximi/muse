@@ -1,6 +1,6 @@
 # Text
 
-文本渲染组件，支持 coloredtext、自动换行、多方向对齐和溢出裁剪。
+显示文本的控件。支持自动换行、对齐、colored text（多彩文本）等特性。
 
 **继承链：** `Widget` → `Text`
 
@@ -8,95 +8,81 @@
 
 ```lua
 {
-    text = string | table,        -- 文本内容，也支持 coloredtext 格式：{color1, str1, color2, str2, ...}
-    font_key = string,            -- 字体注册 key，默认来自 theme.text.font_key
-    font_size = number,           -- 字号，默认来自 theme.text.font_size
-    text_color = {r, g, b, a},    -- 文本颜色，默认来自 theme.text.text_color
-    h_align = string,             -- 水平对齐："left" | "right" | "center" | "justify"，默认 "left"
-    v_align = string,             -- 垂直对齐："top" | "bottom" | "center"，默认 "top"
+    text = string | table,    -- 文本内容，也支持 coloredtext 格式：{color1, string1, color2, string2, ...}
+    font_key = string,        -- 字体键（需在 ui/fonts.lua 中注册）
+    font_size = number,       -- 字号
+    text_color = {r, g, b, a}, -- 文本颜色（coloredtext 时会与各段颜色相乘）
+    h_align = "left" | "center" | "right" | "justify",  -- 水平对齐，默认 "left"
+    v_align = "top" | "center" | "bottom",              -- 垂直对齐，默认 "top"
 }
 ```
+
+## 工作原理
+
+Text 在构造时创建一个 `love.graphics.Text` 对象。`transform.w/h` 默认为 0——文本的实际尺寸存储在 `love.graphics.Text` 对象内部，通过 `getDimensions()` 获取。
+
+### 换行模式
+
+通过 `wrap_mode` 控制，默认关闭（`TEXT_WRAP_MODE.OFF`）。设为 `TEXT_WRAP_MODE.DEFAULT` 后，文本按 `transform.w` 宽度自动换行。
+
+### 最小尺寸
+
+`getMinimumSize()` 的行为因换行模式而异：
+- **关闭换行**：宽度 = 完整文本宽度（不可压缩），高度 = 单行高。
+- **开启换行**：宽度 = 1（可缩到几乎任意宽度），高度 = 当前整形后的实际行高。容器据此知道该文本可以压缩，从而在有限空间内触发换行。
+
+### 期望尺寸
+
+`getDesiredSize()` 同样依赖换行模式：
+- **关闭换行**：等于最小尺寸。
+- **开启换行**：返回当前整形后的实际尺寸，容器在“第二趟分配”中据此为文本争取接近所需的宽度。
+
+### 裁剪 AABB
+
+Text 覆写了 `getCullAABB()`，使用文本实际尺寸而非 `transform.w/h`，避免在 Scroll 容器中被过早裁剪。
 
 ## 公有方法
 
 | 方法 | 说明 |
 |------|------|
-| `setText(text)` | 设置文本内容（支持 coloredtext），触发 `updateTextLayout()` |
-| `getText(only_string)` | 获取文本，`only_string=true` 时从 coloredtext 提取纯字符串 |
-| `setTextColor(color)` | 设置文本颜色 `{r, g, b, a}` |
-| `getTextColor()` | 获取文本颜色 |
-| `setFont(font_key, size)` | 设置字体（需在 `ui/fonts.lua` 中注册） |
-| `getFont(return_key)` | 获取字体对象，`return_key=true` 时返回 key 字符串 |
+| `setText(text)` | 设置文本内容 |
+| `getText(only_string)` | 获取文本（only_string=true 时 coloredtext 返回纯文本拼接） |
+| `setTextColor({r, g, b, a})` | 设置文本颜色 |
+| `setFont(font_key, size)` | 设置字体 |
 | `setFontSize(size)` | 设置字号 |
-| `getFontSize()` | 获取字号 |
-| `setHAlign(align)` | 设置水平对齐方式 |
-| `setVAlign(align)` | 设置垂直对齐方式 |
-| `setWrapMode(mode)` | 设置换行模式：`"off"` 或 `"default"` |
-| `getDimensions()` | 获取渲染后的文本纹理尺寸 `w, h` |
-| `getScaledDimensions()` | 获取本地缩放后的纹理尺寸 |
-| `getGlobalScaledDimensions()` | 获取全局缩放后的纹理尺寸 |
-| `getSize()` / `getScaledSize()` / `getGlobalScaledSize()` | 上述方法的别名 |
-| `measure(max_w, max_h)` | 查询自然尺寸 `{w, h}`，给定宽度约束时返回换行后尺寸 |
-| `updateTextLayout()` | 强制刷新文本布局（重建 `love.graphics.Text` 对象） |
-
-## 最小尺寸与期望尺寸
-
-Text 覆写了 `getMinimumSize()` 和 `getDesiredSize()`，供 BoxContainer 等容器参考：
-
-| 方法 | 换行关闭 | 换行开启 |
-|------|----------|----------|
-| `getMinimumSize()` | 完整文本宽度 × 一行高度 | 宽度=1（可压缩到任意窄），高度=当前整形后高度 |
-| `getDesiredSize()` | 同最小尺寸 | 返回当前整形后的实际 `w, h`（尽量争取接近所需的宽度） |
-
-这个设计与 Godot Label 的行为一致：换行开启时告诉容器"我可以缩到很窄"，但 desired 仍然反映实际需要的尺寸。
-
-## 换行模式
-
-| 模式 | 常量 | 行为 |
-|------|------|------|
-| 默认换行 | `Utils.TEXT_WRAP_MODE.DEFAULT` | 以 `transform.w` 为宽度自动换行 |
-| 关闭换行 | `Utils.TEXT_WRAP_MODE.OFF` | 不换行，以文本实际宽度渲染 |
-
-## 溢出模式
-
-```lua
-Utils.TEXT_OVERFLOW_MODE = {
-    NONE = "none",  -- 不修剪文本（默认）
-    CHAR = "char",  -- 逐字符修剪文本，末尾添加省略号
-}
-```
-
-## 关键边界
-
-- **`transform.w/h` 默认为 0**：Text 把尺寸存在 `love.graphics.Text` 对象里，不写入 transform。`getCullAABB()` 已覆写为使用文本实际尺寸，裁剪和碰撞检测正常工作。但 debug 框（`drawBound`）对 Text 仍显示零面积框。
-- **`pivot` + `anchor` 右对齐需手动测宽**：`transform.w = 0` 导致 `pivot={1,0}` 等配置无效，需用 `font:getWidth(text)` 算出宽度再设 `x` 偏移。推荐改用容器（HBox/MarginContainer）来管理对齐。
-- **换行宽度为 0 时的 fallback**：`updateTextLayout()` 在 `transform.w <= 0` 时会用完整文本宽度作为换行宽度，避免零宽度整形。
+| `setHAlign(align)` | 设置水平对齐 |
+| `setVAlign(align)` | 设置垂直对齐 |
+| `setWrapMode(mode)` | 设置换行模式 |
+| `getDimensions()` | 获取文本实际尺寸（像素） |
+| `measure(max_w, max_h)` | 查询在给定宽度约束下的自然尺寸 `{w, h}` |
 
 ## 示例
 
 ```lua
-local label = Text({
-    text = "Hello, World!",
-    font_size = 18,
-    text_color = Utils.UI_COLORS.TITLE,
-    h_align = "center",
-    v_align = "center",
-    anchor = {0, 0, 1, 1},
+-- 基础文本
+local label = Text({ text = "Hello World", font_size = 16 })
+
+-- 自动换行文本
+local desc = Text({
+    text = "A long description that wraps automatically.",
+    w = 200,
+    wrap_mode = "default",
+    h_align = "left",
 })
 
--- coloredtext 格式
+-- 多彩文本（colored text）
 local colored = Text({
     text = {
-        {1, 0.5, 0.5, 1}, "Red text ",
-        {0.5, 0.5, 1, 1}, "Blue text",
+        {1, 0.3, 0.3}, "Red ",
+        {0.3, 1, 0.3}, "Green ",
+        {0.3, 0.3, 1}, "Blue",
     },
-})
-
--- 换行模式 + 溢出裁剪
-local wrapped = Text({
-    text = "A very long text that will wrap to multiple lines",
-    wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
-    anchor = {0, 0, 1, 0},
-    h = 60,
+    font_size = 14,
 })
 ```
+
+## 最佳实践
+
+- **推荐**：换行文本应设置 `w` 或在容器中通过布局获得宽度，否则不会换行。
+- **推荐**：使用 `getDimensions()` 获取文本实际尺寸，而非 `transform.w/h`。
+- **不推荐**：在 `transform.w/h` 为 0 时依赖其值做布局计算——Text 的尺寸在 `love.graphics.Text` 对象中。

@@ -1,6 +1,6 @@
 # Button
 
-Text button with 6 state styles (normal/pressed/hover/selected/selected_hover/disabled).
+Standard button widget. Supports six visual states (normal/hover/pressed/disabled/selected/selected_hover), each independently configurable for background color, text color, font size, outline, etc.
 
 **Inheritance:** `Widget` → `ButtonBase` → `Button`
 
@@ -8,60 +8,78 @@ Text button with 6 state styles (normal/pressed/hover/selected/selected_hover/di
 
 ```lua
 {
-    text = string,                -- Button text
-    font_key = string,            -- Font key
-    on_click = function(),        -- Click callback
-    on_pressed = function(x, y),  -- Press callback
+    text = string | table,    -- Button text (also supports coloredtext)
+    font_key = string,        -- Font key
+    on_click = function,      -- Click callback
+    on_pressed = function,    -- Press callback
 
-    -- State styles (each is a Utils.newButtonStateStyle return value)
-    normal / hover / pressed / disabled / selected / selected_hover = style,
+    -- State styles (see Utils.newButtonStateStyle)
+    normal = Utils.newButtonStateStyle,
+    hover = Utils.newButtonStateStyle,
+    pressed = Utils.newButtonStateStyle,
+    disabled = Utils.newButtonStateStyle,
+    selected = Utils.newButtonStateStyle,
+    selected_hover = Utils.newButtonStateStyle,
 }
 ```
+
+## How It Works
+
+### State Machine
+
+Button inherits from `ButtonBase` and maintains six states. States transition automatically on mouse enter/leave and press/release. `setSelected(true/false)` is used for programmatic selection toggling (e.g., Checkbox, Tab buttons).
+
+### Text-Style Separation
+
+Button text is managed independently via `setText()` / the `text` constructor parameter. State transitions only change color and font size, not the text content. Unlike older versions, `getStateStyle` skips the `text` field when merging styles.
+
+> `setStateStyle(state, style)` still auto-calls `setText(style.text)` if `style.text` exists — this is backward compatibility behavior; new code should not rely on it.
+
+### Minimum Size
+
+`getMinimumSize()` returns the inner Text's minimum size plus 2px padding on each side.
 
 ## Public Methods
 
 | Method | Description |
 |--------|-------------|
-| `setText(t)` | Set button text (text is independent of state changes) |
+| `setText(text)` | Set button text |
 | `getText()` | Get button text |
-| `setStateStyle(state, style)` | Set a state's style. If style contains `text`, auto-calls `setText()` (legacy compatibility) |
-| `getStateStyle(state)` | Get merged state style (custom > theme state > custom normal > theme normal). **text field is excluded from merge** |
-| `getMinimumSize()` | Internal text min size + padding (2px × 4) |
-
-## Text / Style Separation (2026-07 refactor)
-
-Button text content and visual style are independent:
-
-- `setText()` manages text content
-- `setStateStyle()` manages visual properties (color, size, background, outline)
-- State transitions only change color and font size, never text
-- `getStateStyle()` merge skips the `text` field
-
-## State Style Fields
-
-```lua
-{
-    text_color = {r, g, b, a},  -- Text color
-    font_size = number,         -- Font size
-    bg_color = {r, g, b, a},    -- Background color
-    outline_width = number,     -- Outline width
-    outline_color = {r, g, b, a}, -- Outline color
-    offset = {x, y},            -- Position offset (e.g. {0, 2} for press)
-    scale = {sx, sy},           -- Scale
-    rounding_radius = number,   -- Corner radius
-}
-```
+| `setStateStyle(state, style)` | Set style for a state |
+| `getStateStyle(state)` | Get merged state style (custom + theme) |
+| `setSelected(selected)` | Set selected state |
+| `setState(new_state)` | Direct state switch (inherited from ButtonBase) |
 
 ## Example
 
 ```lua
+local Utils = require "ui.utils"
+
+-- Basic button
 local btn = Button({
     text = "Click Me",
-    anchor = {0, 0, 1, 0},
-    h = 40,
-    normal = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-    hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.LINE),
-    pressed = Utils.newButtonStateStyle(nil, nil, nil, nil, nil, nil, {0, 2}),
-    on_click = function() print("clicked!") end,
+    normal = Utils.newButtonStateStyle("Click Me", nil, 14,
+        Utils.UI_COLORS.BTN_NORMAL, 1, Utils.UI_COLORS.LINE),
+    hover = Utils.newButtonStateStyle(nil, nil, 14,
+        Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
+    on_click = function()
+        print("clicked!")
+    end,
+})
+
+-- Toggle-style button with selected state
+local toggle_btn = Button({
+    text = "Toggle",
+    normal = Utils.newButtonStateStyle("Toggle", nil, 14,
+        Utils.UI_COLORS.BTN_NORMAL),
+    selected = Utils.newButtonStateStyle(nil, {1, 1, 1, 1}, 14,
+        Utils.UI_COLORS.ACCENT),
 })
 ```
+
+## Best Practices
+
+- **Do**: Set button text via the constructor `text` parameter or `setText()`, not via `setStateStyle` side effects.
+- **Do**: Use `Utils.newButtonStateStyle(...)` to construct style tables with positional arguments.
+- **Don't**: Block for long periods in `on_click` callbacks — event handlers should return quickly.
+- **Don't**: Use unregistered font keys in button text — this causes runtime errors.

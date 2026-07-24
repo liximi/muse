@@ -1,6 +1,6 @@
 # ImageButton
 
-Image button with texture/tint switching and optional attached text.
+Texture-based button. Like Button, has six states, each configurable with different textures, tints, and text styles.
 
 **Inheritance:** `Widget` → `ButtonBase` → `ImageButton`
 
@@ -8,61 +8,41 @@ Image button with texture/tint switching and optional attached text.
 
 ```lua
 {
-    no_text = boolean,            -- Pure image button (no text), default false
-    font_key = string,            -- Font key
-    on_click = function(),
-    on_pressed = function(x, y),
+    no_text = boolean,        -- Textless mode (no Text child created)
+    font_key = string,        -- Font key
 
-    -- State styles (each is a Utils.newImageButtonStateStyle return value)
-    normal / hover / pressed / disabled / selected / selected_hover = style,
-
-    -- Inherited from Widget
-    h_size_flags = number,     -- SIZE_FLAGS combo, default FILL
-    v_size_flags = number,     -- SIZE_FLAGS combo, default FILL
-    stretch_ratio = number,    -- EXPAND weight, default 1.0
-    custom_minimum_size = {w, h},  -- Override content min size
-    -- ... and all Widget base params (pivot, anchor, x, y, w, h, padding, etc.)
+    -- State styles (see Utils.newImageButtonStateStyle)
+    normal = Utils.newImageButtonStateStyle,
+    hover = Utils.newImageButtonStateStyle,
+    pressed = Utils.newImageButtonStateStyle,
+    disabled = Utils.newImageButtonStateStyle,
+    selected = Utils.newImageButtonStateStyle,
+    selected_hover = Utils.newImageButtonStateStyle,
 }
 ```
 
-If `normal` style contains a `texture`, the button defaults to that texture's dimensions (when `w`/`h` not explicitly set).
+`Utils.newImageButtonStateStyle(texture, tint, text, text_color, font_size, offset, scale)` constructs a state style.
 
-## Public Methods
+## How It Works
 
-| Method | Description |
-|--------|-------------|
-| `setText(t)` | Set text (silently ignored in `no_text` mode) |
-| `setStateStyle(state, style)` | Set state style; auto-updates texture and tint on state change |
-| `getStateStyle(state)` | Get merged state style |
+If `w`/`h` are not specified at construction, they are inferred from `normal.texture` dimensions. `getMinimumSize()` delegates to the inner Image child. Text (unless `no_text = true`) is overlaid on the image with centered anchors.
 
-## State Style Fields
-
-```lua
-{
-    texture = love.Texture,     -- Texture
-    tint = {r, g, b, a},        -- Color tint
-    text = string,              -- Text
-    text_color = {r, g, b, a},  -- Text color
-    font_size = number,         -- Font size
-    offset = {x, y},            -- Offset
-    scale = {sx, sy},           -- Scale
-}
-```
-
-## Size & Container Compatibility
-
-ImageButton reports `getMinimumSize()` from its internal Image widget's texture dimensions, so it works directly inside BoxContainer and other layout containers — no need for `custom_minimum_size`.
-
-If no `texture` is provided in the `normal` style, `getMinimumSize()` returns `(0, 0)` and you must set explicit dimensions when placing it in a container.
+State transitions automatically switch texture, tint, and text style.
 
 ## Example
 
 ```lua
-local icon = love.graphics.newImage("icon.png")
-local ibtn = ImageButton({
-    normal = Utils.newImageButtonStateStyle(icon, {1,1,1,1}, "Save", Utils.UI_COLORS.TITLE, 14),
-    hover = Utils.newImageButtonStateStyle(icon_hover, nil, nil, nil, nil, {0, -1}),
-    disabled = Utils.newImageButtonStateStyle(nil, {0.4,0.4,0.4,1}, nil, Utils.UI_COLORS.SECONDARY_TEXT),
-    on_click = function() print("clicked") end,
+local Utils = require "ui.utils"
+
+local icon_btn = ImageButton({
+    normal = Utils.newImageButtonStateStyle(icon_tex, nil, "Play", {1, 1, 1, 1}, 14),
+    hover  = Utils.newImageButtonStateStyle(icon_hover_tex, {1, 0.9, 0.8, 1}),
+    on_click = function() print("play") end,
 })
 ```
+
+## Best Practices
+
+- **Do**: Let button size be inferred from `normal.texture` dimensions; override with explicit `w`/`h` when needed.
+- **Do**: Use `Utils.newImageButtonStateStyle(...)` for style construction.
+- **Don't**: Call `setText()` on a `no_text = true` button — it's silently ignored.

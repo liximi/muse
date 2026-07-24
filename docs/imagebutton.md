@@ -1,6 +1,6 @@
 # ImageButton
 
-图片按钮，在 ButtonBase 基础上增加纹理/tint 切换和可选附属文本。
+基于贴图的按钮。与 Button 同样有六种状态，每种状态可配置不同的贴图、tint、文字样式。
 
 **继承链：** `Widget` → `ButtonBase` → `ImageButton`
 
@@ -8,77 +8,41 @@
 
 ```lua
 {
-    no_text = boolean,            -- 是否不显示文本（纯图片按钮），默认 false
-    font_key = string,            -- 字体 key
-    on_click = function(),        -- 点击回调
-    on_pressed = function(x, y),  -- 按下回调
+    no_text = boolean,        -- 无文字模式（不创建 Text 子控件）
+    font_key = string,        -- 字体键
 
-    -- 状态样式（每项为 Utils.newImageButtonStateStyle 的返回值）
-    normal = style,
-    hover = style,
-    pressed = style,
-    disabled = style,
-    selected = style,
-    selected_hover = style,
-
-    -- 继承自 Widget 的布局属性
-    h_size_flags = number,     -- SIZE_FLAGS 组合值，默认 FILL
-    v_size_flags = number,     -- SIZE_FLAGS 组合值，默认 FILL
-    stretch_ratio = number,    -- EXPAND 时的分配比例，默认 1.0
-    custom_minimum_size = {w, h},  -- 覆盖内容最小尺寸
-    -- ... 以及所有 Widget 基类参数（pivot, anchor, x, y, w, h, padding 等）
+    -- 状态样式（见 Utils.newImageButtonStateStyle）
+    normal = Utils.newImageButtonStateStyle,
+    hover = Utils.newImageButtonStateStyle,
+    pressed = Utils.newImageButtonStateStyle,
+    disabled = Utils.newImageButtonStateStyle,
+    selected = Utils.newImageButtonStateStyle,
+    selected_hover = Utils.newImageButtonStateStyle,
 }
 ```
 
-若 `normal` 样式中包含 `texture`，构造时会用该纹理的尺寸作为按钮默认尺寸（如果未显式指定 `w`/`h`）。
+`Utils.newImageButtonStateStyle(texture, tint, text, text_color, font_size, offset, scale)` 构造状态样式。
 
-## 公有方法
+## 工作原理
 
-| 方法 | 说明 |
-|------|------|
-| `setText(t)` | 设置按钮文字（`no_text` 模式下静默忽略） |
-| `setStateStyle(state, style)` | 设置某个状态的样式。状态切换时自动更新纹理和 tint |
-| `getStateStyle(state)` | 获取合并后的状态样式 |
+如果构造时未指定 `w`/`h`，自动从 `normal.texture` 的尺寸推导。`getMinimumSize()` 委托给内部 Image 子控件。文字（除非 `no_text = true`）以居中锚点叠加在图片上方。
 
-## 状态样式字段
-
-```lua
-{
-    texture = love.Texture,     -- 贴图
-    tint = {r, g, b, a},        -- 着色
-    text = string,              -- 文字（通过 setStateStyle 传递时自动调 setText）
-    text_color = {r, g, b, a},  -- 文字颜色
-    font_size = number,         -- 字号
-    offset = {x, y},            -- 偏移
-    scale = {sx, sy},           -- 缩放
-}
-```
-
-## 尺寸与容器兼容
-
-ImageButton 通过内部 Image 控件的纹理尺寸报告 `getMinimumSize()`，因此可以直接放入 BoxContainer 等布局容器中，无需手动设置 `custom_minimum_size`。
-
-若未在 `normal` 样式中提供 `texture`，则 `getMinimumSize()` 返回 `(0, 0)`，放入容器时需额外设置尺寸。
+状态切换时自动切换贴图、tint 和文字样式。
 
 ## 示例
 
 ```lua
-local icon = love.graphics.newImage("icon.png")
-local icon_hover = love.graphics.newImage("icon_hover.png")
+local Utils = require "ui.utils"
 
-local ibtn = ImageButton({
-    anchor = {0, 0, 0, 0},
-    normal = Utils.newImageButtonStateStyle(icon, {1,1,1,1}, "Save", Utils.UI_COLORS.TITLE, 14),
-    hover = Utils.newImageButtonStateStyle(icon_hover, nil, nil, nil, nil, {0, -1}),
-    disabled = Utils.newImageButtonStateStyle(nil, {0.4,0.4,0.4,1}, nil, Utils.UI_COLORS.SECONDARY_TEXT),
-    on_click = function()
-        print("icon clicked")
-    end,
-})
-
--- 纯图片按钮
-local icon_only = ImageButton({
-    no_text = true,
-    normal = Utils.newImageButtonStateStyle(icon, {1,1,1,1}),
+local icon_btn = ImageButton({
+    normal = Utils.newImageButtonStateStyle(icon_tex, nil, "Play", {1, 1, 1, 1}, 14),
+    hover  = Utils.newImageButtonStateStyle(icon_hover_tex, {1, 0.9, 0.8, 1}),
+    on_click = function() print("play") end,
 })
 ```
+
+## 最佳实践
+
+- **推荐**：构造时通过 `normal.texture` 的尺寸自动推导按钮尺寸；手动指定 `w`/`h` 覆盖。
+- **推荐**：使用 `Utils.newImageButtonStateStyle(...)` 构造样式。
+- **不推荐**：在 `no_text = true` 的按钮上调用 `setText()`——会被静默忽略。

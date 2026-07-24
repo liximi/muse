@@ -1,18 +1,22 @@
-# List
+# ListContainer
 
-Linear list container arranging children sequentially along an axis. Supports efficient diff-based updates via `updateItems`.
+Linear list container with key-based diff reuse. Inherits BoxContainer, integrated into the Godot container system.
 
-**Inheritance:** `Widget` → `List`
+**Inheritance:** `Widget` → `Container` → `BoxContainer` → `ListContainer`
 
-> List is a direct Widget subclass (not a Container). For simple linear layouts, prefer `BoxContainer`. List's unique value is `updateItems` diff reuse — key-based add/remove/update that preserves widget state (focus, selection, etc.). `chat_history` depends on this capability.
+## Differences from BoxContainer
+
+- Defaults to `auto_size = true`, `separation = 8`.
+- Provides `updateItems()` — key-based diff reuse: preserves existing widgets, creates new ones, removes stale ones.
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    orientation = "vertical" | "horizontal",  -- Default "vertical"
-    items = {Widget, ...},   -- Initial children
-    space = number,          -- Spacing (px), default 8
+    items = {Widget, ...},    -- Initial children
+    separation = number,      -- Spacing, default 8
+    auto_size = boolean,      -- Auto-adjust main-axis size, default true
+    -- Other parameters same as BoxContainer
 }
 ```
 
@@ -20,40 +24,40 @@ Linear list container arranging children sequentially along an axis. Supports ef
 
 | Method | Description |
 |--------|-------------|
-| `setItems(items)` | Full replacement (destroys old state) |
-| `updateItems(newData, keyFn, createFn, updateFn)` | Diff reuse update (preserves widget state) |
-| `insert(item, pos)` | Insert child |
-| `remove(item)` / `removeAtPos(pos)` | Remove child |
+| `setItems(items)` | Full replacement of children |
+| `updateItems(newData, keyFn, createFn, updateFn)` | Key-based diff update |
+| `insert(item, pos)` | Insert at position (nil = append) |
+| `remove(item)` | Remove specified widget |
+| `removeAtPos(pos)` | Remove at position and return it |
 
-## updateItems — Diff Reuse
+### updateItems Signature
 
 ```lua
 list:updateItems(newData, keyFn, createFn, updateFn)
--- keyFn: function(data) -> key  (nil = use data reference as key)
--- createFn: function(data) -> Widget  (required)
--- updateFn: function(widget, data)  (optional, nil = no update)
+-- keyFn:    function(data) -> key  Extract unique key
+-- createFn: function(data) -> Widget  Create new widget (required)
+-- updateFn: function(widget, data)    Update existing widget (optional)
 ```
 
-Example:
+## Example
+
 ```lua
-list:updateItems(buttons_data,
+local list = ListContainer({
+    orientation = "vertical",
+    separation = 4,
+})
+
+-- Diff update (preserves widget state)
+list:updateItems(
+    {{id = 1, label = "A"}, {id = 2, label = "B"}},
     function(d) return d.id end,
     function(d) return Button({ text = d.label }) end,
     function(w, d) w:setText(d.label) end
 )
 ```
 
-## layout Mechanism
+## Best Practices
 
-`layout()` positions children along the main axis using `measure()` for natural sizes. `onUpdate` polls child size changes and re-layouts on change. List's own size is set to the total children size.
-
-## Example
-
-```lua
-local list = List({
-    orientation = "vertical",
-    space = 4,
-    items = { Button({ text = "A" }), Button({ text = "B" }) },
-})
-list:insert(Button({ text = "C" }))
-```
+- **Do**: Use `updateItems` for dynamic lists (e.g., chat history) to preserve widget state (focus, selection, etc.).
+- **Do**: Use stable unique identifiers for `keyFn`; avoid using data references as keys.
+- **Don't**: Rebuild the entire list frequently — `setItems` destroys all old widgets.

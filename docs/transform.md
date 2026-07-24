@@ -1,136 +1,61 @@
-# Transform 布局系统
+# Transform
 
-Transform 是本 UI 框架的核心布局引擎，每个 widget 持有一个 Transform 实例来处理位置、尺寸、旋转和缩放。其设计模仿了 Unity 的 anchor-based 布局系统。
+布局 Transform 系统。管理 UI 元素的位置、尺寸、锚点、支点、缩放和旋转。
 
-## 核心概念
+## 设计原则
 
-### 锚点（Anchor）
+**padding 是唯一真相源**。所有 setter（setPosition、setSize、setAnchor、setPivot）最终写入 `left`/`right`/`top`/`bottom` 字段。`_recalcLayout` 从这四个值 + 锚点 + 支点派生出 `x`/`y`/`w`/`h` 缓存值。
 
-锚点定义了元素在父容器中的定位基准，由 `{minx, miny, maxx, maxy}` 四个 0~1 的百分比值表示一个范围：
+## 核心字段
 
-| 锚点模式 | 条件 | 含义 |
-|----------|------|------|
-| **点锚点** | `min == max` | 尺寸固定（`w`/`h`），位置由 `x`/`y` 偏移决定 |
-| **拉伸锚点** | `min < max` | 尺寸自适应（由锚点范围减 padding 决定），`x`/`y` 为派生值 |
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `x`, `y` | number | 缓存：位置（支点坐标） |
+| `w`, `h` | number | 缓存：尺寸 |
+| `left`, `right`, `top`, `bottom` | number | 真相源：四边边距 |
+| `anchor_min` | {number, number} | 锚点最小比例（0~1） |
+| `anchor_max` | {number, number} | 锚点最大比例（0~1） |
+| `pivot` | {number, number} | 支点（自身尺寸比例 0~1） |
+| `rotation` | number | 旋转角（弧度） |
+| `scale_x`, `scale_y` | number | 缩放比例 |
+| `parent` | Transform/nil | 父 Transform 引用 |
 
-### 支点（Pivot）
+## 锚点机制
 
-`{x, y}` — 0~1 百分比，表示元素自身坐标的原点，同时也是旋转和缩放的中心。
-
-- `{0, 0}` = 左上角
-- `{0.5, 0.5}` = 中心
-- `{1, 1}` = 右下角
-
-### Padding — 唯一真相源
-
-`{left, right, top, bottom}` — 像素偏移。所有的 setter（`setPosition`、`setSize`、`setPivot`、`setPadding`）最终都写入这四个字段。`x`/`y`/`w`/`h` 是从 padding + anchor + pivot 推导出的缓存值（只读）。
-
-```
-配置层：anchor_min, anchor_max（0~1 父容器百分比）
-        pivot（0~1 自身百分比）
-真相源：left, right, top, bottom（像素偏移）
-缓存层：x, y, w, h（由 _recalcLayout 派生）
-```
-
-核心公式：
-```lua
-w = parent_w * (anchor_max_x - anchor_min_x) - left - right
-h = parent_h * (anchor_max_y - anchor_min_y) - top - bottom
-x = left + w * pivot_x
-y = top  + h * pivot_y
-```
-
-点锚点（`min == max`）时 `anchor_w == 0`，`_recalcLayout` 仅在 `anchor_w > 0` 时才重算尺寸，否则保留 `setSize` 设定的值。构造期 `parent_w == 0` 时同样跳过尺寸计算，避免产生负尺寸。
-
-### Setter 不变量
-
-每个 setter 对同一轴同时更新两端 padding，保持"改 A 时 B 不变"：
-- `setPosition(x)` → 同时更新 `left` 和 `right`，保持 `w` 不变
-- `setSize(w)`    → 同时更新 `left` 和 `right`，保持 `x` 不变
-- `setPivot(px)`  → 同时更新 `left` 和 `right`，保持 `x` 和 `w` 都不变
-- `setPadding(...)` → 直接写真相源
-
-## Widget 构造中的 datas 处理顺序
+锚点范围 `(anchor_min, anchor_max)` 定义了子控件相对父控件的定位参考。两者相等时退化为点锚点（子控件不随父控件尺寸变化而拉伸）；两者不等时为拉伸锚点（子控件随父控件自适应）。
 
 ```
-pivot → anchor → position → padding → size
+子控件 x = left + w × pivot[1]
+子控件 y = top + h × pivot[2]
+子控件 w = parent_w × (anchor_max[1] - anchor_min[1]) - left - right
+子控件 h = parent_h × (anchor_max[2] - anchor_min[2]) - top - bottom
 ```
-
-后调用的 setter 覆盖前者的 padding 值。
 
 ## 公有方法
 
-### Setters
-
 | 方法 | 说明 |
 |------|------|
-| `setPosition(x, y)` | 设置位置（像素），nil 表示不修改 |
-| `setSize(w, h)` | 设置尺寸（像素），nil 表示不修改 |
-| `setPadding(left, right, top, bottom)` | 设置 padding（像素），nil 表示不修改 |
+| `setPosition(x, y)` | 设置位置（nil = 不修改） |
+| `setSize(w, h)` | 设置尺寸（nil = 不修改） |
+| `setPadding(left, right, top, bottom)` | 设置边距（nil = 不修改） |
+| `setAnchor(minx, miny, maxx, maxy)` | 设置锚点 |
+| `setPivot(px, py)` | 设置支点 |
 | `setScale(sx, sy)` | 设置缩放 |
-| `setPivot(px, py)` | 设置支点（0~1），保持视觉位置不变 |
-| `setAnchor(minx, miny, maxx, maxy)` | 设置锚点范围（0~1） |
-| `setRotation(rot)` | 设置旋转角（弧度） |
-| `setParent(parent_transform)` | 设置父 Transform（通常由 widget 树自动管理） |
+| `setRotation(rad)` | 设置旋转（自动规范化到 0~2π） |
+| `setParent(parent)` | 设置父 Transform |
+| `getPosition()` | 获取位置 `x, y` |
+| `getSize()` | 获取尺寸 `w, h` |
+| `getGlobalPosition()` | 获取全局（屏幕）坐标（考虑所有父节点的变换） |
+| `getGlobalScale()` | 获取全局累积缩放 |
+| `getGlobalScaledSize()` | 获取全局缩放后尺寸 |
+| `getGlobalRotation()` | 获取全局旋转 |
+| `getAABB()` | 获取轴对齐包围盒（本地坐标） |
+| `getGlobalAABB()` | 获取轴对齐包围盒（屏幕坐标） |
+| `screenToLocal(sx, sy)` | 屏幕坐标 → 本地坐标 |
+| `onUpdate(force)` | 每帧调用：检测脏，必要时重算缓存 |
 
-### Getters（本地坐标）
+## 最佳实践
 
-| 方法 | 返回值 |
-|------|--------|
-| `getPosition()` | `x, y` |
-| `getSize()` | `w, h` |
-| `getScale()` | `scale_x, scale_y` |
-| `getScaledSize()` | `w * scale_x, h * scale_y` |
-| `getAnchor()` | `minx, miny, maxx, maxy` |
-| `getPivot()` | `px, py` |
-| `getPadding()` | `{left, right, top, bottom}` |
-| `getRotation()` | 弧度（归一化到 [0, 2π)） |
-| `getAABB()` | 本地轴对齐包围盒 `x, y, w, h`（考虑旋转） |
-| `getBounds()` | 本地包围盒 `x, y, w, h, r` |
-
-### Getters（全局坐标）
-
-| 方法 | 返回值 |
-|------|--------|
-| `getGlobalPosition()` | 屏幕坐标 `x, y`（递归计算，考虑父级旋转和缩放） |
-| `getGlobalScale()` | 累积缩放 `sx, sy` |
-| `getGlobalScaledSize()` | 全局缩放后尺寸 `w, h` |
-| `getGlobalRotation(no_normalize)` | 累积旋转角（弧度） |
-| `getGlobalAABB()` | 全局轴对齐包围盒 `x, y, w, h` |
-| `getGlobalBounds()` | 全局包围盒 `x, y, w, h, r` |
-
-### 其他
-
-| 方法 | 说明 |
-|------|------|
-| `screenToLocal(screen_x, screen_y)` | 屏幕坐标转本地坐标（考虑全局旋转和缩放） |
-| `onUpdate(force)` | 更新布局计算。内部缓存上次参数，不变时跳过。`force=true` 强制重算 |
-
-## 脏检测与缓存
-
-`onUpdate` 内部缓存了 `left`/`right`/`top`/`bottom`、`anchor`、`pivot` 和 `parent_w`/`parent_h`。仅当任一值变化时才调用 `_recalcLayout`。每帧由 `Widget:update(dt)` 自动调用。
-
-## 使用示例
-
-```lua
--- 全屏填充
-local fullscreen = Widget({
-    anchor = {0, 0, 1, 1},
-    padding = {10, 10, 10, 10}  -- 四边各留 10px
-})
-
--- 居中固定尺寸
-local centered = Widget({
-    pivot = {0.5, 0.5},
-    anchor = {0.5, 0.5, 0.5, 0.5},
-    w = 200, h = 100,
-})
-
--- 顶部水平拉伸、固定高度
-local topbar = Widget({
-    anchor = {0, 0, 1, 0},
-    h = 48,
-})
-```
-
-> **注意**：Text 的 `transform.w/h` 默认为 0（尺寸存在 `love.graphics.Text` 对象里）。Text 覆写了 `getCullAABB()` 保证裁剪正确，但 debug 框对 Text 可能显示零面积框。
+- **推荐**：使用锚点范围（如 `{0, 0, 1, 1}`）实现子控件跟随父控件尺寸自适应。
+- **推荐**：使用中心支点 `{0.5, 0.5}` + 中心锚点 `{0.5, 0.5, 0.5, 0.5}` 实现居中定位。
+- **注意**：构造期 parent_w == 0，依赖 measure 的布局逻辑应放在首帧 update 中。

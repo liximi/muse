@@ -1,6 +1,6 @@
 # Button
 
-文字按钮，支持 6 种状态样式（normal/pressed/hover/selected/selected_hover/disabled）。
+标准按钮控件。支持六种视觉状态（normal/hover/pressed/disabled/selected/selected_hover），每种状态可独立配置背景色、文字颜色、字号、边框等样式。
 
 **继承链：** `Widget` → `ButtonBase` → `Button`
 
@@ -8,75 +8,81 @@
 
 ```lua
 {
-    text = string,                -- 按钮文字
-    font_key = string,            -- 字体 key
-    on_click = function(),        -- 点击回调
-    on_pressed = function(x, y),  -- 按下回调
+    text = string | table,    -- 按钮文字（也支持 coloredtext）
+    font_key = string,        -- 字体键
+    on_click = function,      -- 点击回调
+    on_pressed = function,    -- 按下回调
 
-    -- 状态样式（每项为 Utils.newButtonStateStyle 的返回值）
-    normal = style,
-    hover = style,
-    pressed = style,
-    disabled = style,
-    selected = style,
-    selected_hover = style,
+    -- 各状态样式（见 Utils.newButtonStateStyle）
+    normal = Utils.newButtonStateStyle,
+    hover = Utils.newButtonStateStyle,
+    pressed = Utils.newButtonStateStyle,
+    disabled = Utils.newButtonStateStyle,
+    selected = Utils.newButtonStateStyle,
+    selected_hover = Utils.newButtonStateStyle,
 }
 ```
+
+## 工作原理
+
+### 状态机
+
+Button 继承自 `ButtonBase`，维护六种状态。鼠标移入/移出、按下/释放时自动切换状态。`setSelected(true/false)` 用于编程式切换选中态（Checkbox、Tab 按钮等场景）。
+
+### 文字与样式分离
+
+按钮文字通过 `setText()` / 构造参数 `text` 独立管理。状态切换只改变颜色和字号，不改变文字内容。与旧版不同，`getStateStyle` 合并样式时跳过 `text` 字段。
+
+> `setStateStyle(state, style)` 若 `style.text` 存在，仍会自动调用 `setText(style.text)`——这是兼容旧用法的行为，不推荐新代码依赖。
+
+### 最小尺寸
+
+`getMinimumSize()` 返回内部 Text 的最小尺寸 + 2px 内边距。
 
 ## 公有方法
 
 | 方法 | 说明 |
 |------|------|
-| `setText(t)` | 设置按钮文字（文字不受状态切换影响） |
+| `setText(text)` | 设置按钮文字 |
 | `getText()` | 获取按钮文字 |
-| `setStateStyle(state, style)` | 设置某个状态的样式。若 style 含 `text` 字段，自动调用 `setText()`（兼容旧用法） |
-| `getStateStyle(state)` | 获取合并后的状态样式（自定义样式 > theme 对应状态 > 自定义 normal > theme normal）。**text 字段不参与合并** |
-| `getMinimumSize()` | 返回内部文字最小尺寸 + 内边距（2px × 4） |
-| `setSelected(selected)` | 设置选中状态（继承自 ButtonBase） |
-
-## 文字与样式分离（2026-07 重构）
-
-按钮的**文字内容**与**视觉样式**是独立的：
-
-- `setText()` 管理文字内容。
-- `setStateStyle()` 管理各状态的视觉属性（颜色、字号、背景、描边等）。
-- 状态切换时只改变颜色和字号，不改变文字内容。
-- `getStateStyle()` 合并时跳过 `text` 字段。
-
-`setStateStyle(state, style)` 中若 `style.text` 存在，会自动调用 `setText(style.text)`——这是为了兼容旧代码中通过样式传文字的用法。
-
-## 状态样式字段
-
-```lua
-{
-    text = string,              -- 不参与合并，但通过 setStateStyle 传递时会自动调用 setText
-    text_color = {r, g, b, a},  -- 文本颜色
-    font_size = number,         -- 字号
-    bg_color = {r, g, b, a},    -- 背景色
-    outline_width = number,     -- 描边宽度
-    outline_color = {r, g, b, a}, -- 描边颜色
-    offset = {x, y},            -- 位置偏移（按下时常用 {0, 2}）
-    scale = {sx, sy},           -- 缩放
-    rounding_radius = number,   -- 圆角半径
-}
-```
+| `setStateStyle(state, style)` | 设置某状态的样式 |
+| `getStateStyle(state)` | 获取合并后的状态样式（自定义样式 + 主题样式） |
+| `setSelected(selected)` | 设置选中状态 |
+| `setState(new_state)` | 直接切换状态（继承自 ButtonBase） |
 
 ## 示例
 
 ```lua
+local Utils = require "ui.utils"
+
+-- 基础按钮
 local btn = Button({
     text = "Click Me",
-    anchor = {0, 0, 1, 0},
-    h = 40,
-    normal = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, nil, Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
-    hover = Utils.newButtonStateStyle(nil, nil, nil, Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.LINE),
-    pressed = Utils.newButtonStateStyle(nil, nil, nil, nil, nil, nil, {0, 2}),
+    normal = Utils.newButtonStateStyle("Click Me", nil, 14,
+        Utils.UI_COLORS.BTN_NORMAL, 1, Utils.UI_COLORS.LINE),
+    hover = Utils.newButtonStateStyle(nil, nil, 14,
+        Utils.UI_COLORS.BTN_HOVER, 1, Utils.UI_COLORS.ACCENT_LIGHT),
     on_click = function()
         print("clicked!")
     end,
 })
 
--- 动态修改
-btn:setText("Updated")
-btn:setStateStyle("normal", Utils.newButtonStateStyle(nil, nil, nil, Utils.RGB(80, 120, 180)))
+-- 带选中状态的切换按钮
+local toggle_btn = Button({
+    text = "Toggle",
+    normal = Utils.newButtonStateStyle("Toggle", nil, 14,
+        Utils.UI_COLORS.BTN_NORMAL),
+    selected = Utils.newButtonStateStyle(nil, {1, 1, 1, 1}, 14,
+        Utils.UI_COLORS.ACCENT),
+    on_click = function(self)
+        -- 通过 ButtonBase.setSelected 切换状态需额外处理
+    end,
+})
 ```
+
+## 最佳实践
+
+- **推荐**：通过构造参数 `text` 或 `setText()` 设置按钮文字，而不是依赖 `setStateStyle` 的 side effect。
+- **推荐**：使用 `Utils.newButtonStateStyle(...)` 构造样式表，参数按位置传入。
+- **不推荐**：在 `on_click` 回调中长时间阻塞——事件处理应快速返回。
+- **不推荐**：在按钮文字中使用未注册的字体 key——会导致运行时错误。

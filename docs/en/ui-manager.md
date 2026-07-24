@@ -1,6 +1,6 @@
 # UiManager
 
-Global singleton managing top-level widget hierarchy, focus, themes, render layer caching, and event dispatch.
+Global UI manager (singleton). Holds all root widgets, dispatches LÖVE events, manages render layers and focus.
 
 ## Getting the Instance
 
@@ -8,58 +8,58 @@ Global singleton managing top-level widget hierarchy, focus, themes, render laye
 local UiManager = require "ui.ui_manager":GetInstance()
 ```
 
-## Public Methods
+## Core Responsibilities
 
-### Widget Management
+### Root Widget Management
 
-| Method | Description |
-|--------|-------------|
-| `addWidget(widget)` | Add widget as root node. Calls `_setAttached(true)` |
-| `removeWidget(widget)` | Remove root widget. Returns success |
-| `moveToTop(widget)` / `moveToBottom(widget)` | Move root in render/event order |
-| `invalidateRenderCache()` | Mark render layer cache dirty |
-| `getWidgetCount()` | Get active widget count |
+The `hierarchy` array stores all top-level widgets. Events traverse from last to first (later-added widgets are on top).
+
+### Render Layer System
+
+Widgets are drawn grouped by `render_layer`, ensuring overlays like Dropdown and Tooltip appear above regular UI:
+
+| Layer | Value | Use |
+|-------|-------|-----|
+| `BASE` | 0 | Regular UI |
+| `OVERLAY` | 50 | Semi-overlay |
+| `DROPDOWN` | 80 | Dropdown menus |
+| `TOOLTIP` | 100 | Tooltips (topmost) |
 
 ### Focus Management
 
+Maintains a `current_focus` reference. `setFocus(widget)` transfers focus; `clearFocus()` removes it.
+
+### Lifecycle
+
+`addWidget` automatically calls `widget:_setAttached(true)`, triggering `onAttached`. `removeWidget` calls `_setAttached(false)`.
+
+## Public Methods
+
 | Method | Description |
 |--------|-------------|
-| `setFocus(widget)` / `getFocus()` / `clearFocus()` | Focus management |
+| `addWidget(widget)` | Add root widget |
+| `removeWidget(widget)` | Remove root widget |
+| `setFocus(widget)` | Set focus |
+| `clearFocus()` | Clear focus |
+| `invalidateRenderCache()` | Invalidate render layer cache (auto-called on show/hide) |
+| `moveToTop(widget)` | Move root widget to top |
+| `moveToBottom(widget)` | Move root widget to bottom |
+| `getWidgetCount()` | Get active widget count |
+| `getDefaultTheme()` | Get default theme |
 
-`Tab` cycles through `focusable = true` widgets (`Shift+Tab` reverses). Clicking outside clears focus.
+## Lifecycle Hooks
 
-### Theme
+| Hook | Trigger |
+|------|---------|
+| `onWidgetCreated` | Called when a Widget is constructed (counts) |
+| `onWidgetDestroyed` | Called when a Widget is destroyed (counts) |
 
-| Method | Description |
-|--------|-------------|
-| `getDefaultTheme()` / `setDefaultTheme(theme)` | Get/set default theme |
+## Event Dispatch
 
-### Event Dispatch
+`UiManager` receives LÖVE global events (`love.draw`, `love.update`, `love.mousepressed`, etc.) and dispatches them to hierarchy root widgets grouped by render layer.
 
-Events traverse hierarchy from last to first. All event methods (except `update`/`draw`) return `boolean` (`true` = consumed).
+## Best Practices
 
-| Method | LÖVE Event |
-|--------|-----------|
-| `update(dt)` | `love.update` |
-| `draw()` | `love.draw` — layered by `render_layer` ascending |
-| `KeyPressed(key, isrepeat)` | `love.keypressed` — Tab intercepted |
-| `KeyReleased/TextInput/MouseMoved/MousePressed/MouseReleased/WheelMoved` | Corresponding events |
-
-### Event Consumption
-
-```lua
-function love.mousepressed(x, y, button)
-    local ui_handled = UiManager:MousePressed(x, y, button)
-    if not ui_handled then
-        gameWorld:handleClick(x, y)
-    end
-end
-```
-
-### Render Layers
-
-```lua
-Utils.RENDER_LAYERS = {
-    BASE = 0, OVERLAY = 50, DROPDOWN = 80, TOOLTIP = 100
-}
-```
+- **Do**: Use `addWidget` / `removeWidget` to manage overlays (Modal, Tooltip, Dropdown popup).
+- **Do**: Use `render_layer` instead of manual Z-ordering to control draw order.
+- **Don't**: Manipulate the `hierarchy` array directly — use `addWidget`/`removeWidget`.

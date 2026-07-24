@@ -1,6 +1,6 @@
 # Dropdown
 
-Dropdown selector with trigger button and popup option list. Supports scrolling, screen edge avoidance, and render layer management.
+Dropdown selector. Clicking the trigger button opens a popup option list; selecting an option auto-closes the popup.
 
 **Inheritance:** `Widget` → `Dropdown`
 
@@ -8,41 +8,35 @@ Dropdown selector with trigger button and popup option list. Supports scrolling,
 
 ```lua
 {
-    options = {string, ...},          -- Option texts
-    selected_index = number,          -- Default selection (1-based), default 1
-    on_select = function(index, value),
-    max_visible_items = number,       -- Max visible at once, default 6
-    scrollbar_edge_pad = number,      -- Scrollbar edge padding (px), default 2
-    scroll_bottom_pad = number,       -- Bottom extra padding (px), default 4
+    options = {string, ...},      -- Option text list
+    selected_index = number,      -- Default selected index (1-based), default 1
+    on_select = function(index, value),  -- Selection callback
+    max_visible_items = number,   -- Max visible items at once, default 6
+    placeholder = string,         -- Placeholder text when nothing selected
+    scrollbar_edge_pad = number,  -- Scrollbar edge padding, default 2
+    scroll_bottom_pad = number,   -- Scroll bottom extra padding, default 4
 }
 ```
 
-## Public Methods
-
-| Method | Description |
-|--------|-------------|
-| `select(index)` | Select option (triggers `onSelect`, closes popup) |
-| `getSelectedIndex()` / `getSelectedValue()` | Get current selection |
-| `setOptions(options, selected_index)` | Replace options list |
-| `getMinimumSize()` | Returns own transform size |
-
 ## How It Works
 
-- **Trigger button**: fills Dropdown area, toggles open/close on click.
-- **Popup**: root widget at `render_layer = DROPDOWN = 80`, full-screen anchor. Registered to UiManager on `onAttached`, destroyed on `onDetached`.
-- **Panel**: absolute-positioned Panel inside popup, positioned below (or above) the trigger with edge avoidance.
-- **Options**: direct Button array when ≤ `max_visible_items`; wrapped in Scroll when more.
-- **Close**: clicking popup background or selecting an option. Popup intercepts MouseMoved and WheelMoved.
+Dropdown internally maintains a `trigger` (the trigger button) and a `popup` (the popup layer). The `popup` is registered as an independent UiManager root widget at the `DROPDOWN` render layer (80), ensuring it draws above all regular UI.
+
+When options exceed `max_visible_items`, scrolling appears automatically. The popup panel calculates its open direction based on the trigger button's screen position — preferring downward, falling back to upward when space is insufficient. Clicking the popup background area closes the dropdown.
+
+## Lifecycle
+
+The popup is registered with UiManager on `onAttached` and unregistered on `onDetached`. This ensures the dropdown only displays in active scenes.
 
 ## Example
 
 ```lua
-local dd = Dropdown({
-    options = {"Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape"},
+local dropdown = Dropdown({
+    options = {"Option A", "Option B", "Option C"},
     selected_index = 1,
-    max_visible_items = 4,
-    on_select = function(index, value) print("selected:", index, value) end,
-    anchor = {0, 0, 0, 0},
-    w = 200, h = 32,
+    w = 200,
+    on_select = function(index, value)
+        print("Selected:", index, value)
+    end,
 })
 ```

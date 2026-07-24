@@ -1,6 +1,6 @@
 # Image
 
-贴图渲染组件，支持 tint 着色和 clamp 模式拉伸填充。
+图片显示控件。支持纹理拉伸、tint 着色和 `use_texture_size` 自动尺寸。
 
 **继承链：** `Widget` → `Image`
 
@@ -8,43 +8,39 @@
 
 ```lua
 {
-    texture = love.Texture,       -- 贴图对象
-    use_texture_size = boolean,   -- 是否将 Image 尺寸重置为贴图原始尺寸
-    tint = {r, g, b, a},          -- 着色，默认来自 theme.image.tint ({1,1,1,1})
+    texture = love.Texture,    -- 贴图对象
+    use_texture_size = boolean, -- 是否将控件尺寸设为纹理原始尺寸
+    tint = {r, g, b, a},       -- 着色（将乘以纹理颜色）
 }
 ```
 
-> `use_texture_size` 与拉伸锚点冲突——它会覆盖 `datas.w` / `datas.h`。
+## 工作原理
+
+`getMinimumSize()` 返回纹理原始尺寸。若纹理的 WrapMode 为 `"clamp"`，绘制时通过调整 scale 来拉伸填充控件区域（而非重复平铺）。
 
 ## 公有方法
 
 | 方法 | 说明 |
 |------|------|
-| `setTexture(texture, resize)` | 设置贴图。`resize=true` 时将尺寸重置为贴图原始尺寸 |
-| `getTexture()` | 获取贴图对象 |
-| `setTint(r, g, b, a)` | 设置着色。支持 `setTint({r,g,b,a})` 和 `setTint(r,g,b,a)` 两种形式 |
-| `getTint()` | 获取着色 |
-| `getTextureRowSize()` | 获取贴图原始尺寸 `w, h` |
-| `getMinimumSize()` | 返回贴图原始尺寸 |
-| `reSize()` | 将 UI 尺寸还原为贴图原始尺寸 |
-| `measure(max_w, max_h)` | 已设尺寸时返回当前尺寸；未设时 fallback 到贴图原始尺寸 |
-
-## Clamp 模式
-
-若贴图 `WrapMode` 为 `"clamp"`，Image 会将 quad 设为贴图完整尺寸，通过缩放拉伸填满 UI 矩形区域。
+| `setTexture(texture, resize)` | 设置贴图，`resize=true` 时自动将控件尺寸设为纹理原始尺寸 |
+| `getTexture()` | 获取当前贴图 |
+| `setTint({r, g, b, a})` | 设置着色 |
+| `reSize()` | 将控件尺寸重置为纹理原始尺寸 |
+| `getTextureRowSize()` | 获取纹理原始宽高 |
 
 ## 示例
 
 ```lua
-local img = love.graphics.newImage("sprite.png")
-
-local ui_img = Image({
-    texture = img,
+-- 显示图片并自动使用纹理尺寸
+local img = Image({
+    texture = my_texture,
     use_texture_size = true,
-    tint = {1, 0.8, 0.6, 1},
 })
 
--- 动态换图
-local new_img = love.graphics.newImage("other.png")
-ui_img:setTexture(new_img, true)
+-- 指定尺寸的图标
+local icon = Image({
+    texture = icon_texture,
+    w = 32, h = 32,
+    tint = {1, 1, 1, 0.8},
+})
 ```

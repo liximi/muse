@@ -1,6 +1,6 @@
 # NineSlice
 
-9-slice texture rendering. Divides a texture into 3×3 cells: corners keep original proportions, edges stretch unidirectionally, center stretches bidirectionally.
+9-slice scaled image. Divides a texture into a 3×3 grid; corners and edges keep their original size while the center stretches to fill.
 
 **Inheritance:** `Widget` → `NineSlice`
 
@@ -8,21 +8,21 @@
 
 ```lua
 {
-    texture = love.Texture,                -- Required
-    center_padding = {left, right, top, bottom},  -- Required: cut boundaries (px)
+    texture = love.Texture,       -- Texture object (required)
+    center_padding = {left, right, top, bottom},  -- Center area margins (px), defining corner sizes
 }
 ```
 
 ## How It Works
 
-`center_padding` defines the cut boundaries on the texture. Corners render at original scale, edges stretch along their respective axes, and the center stretches both ways.
+The texture is divided into nine regions by `center_padding`. Corners draw at original scale, edges stretch in one axis, and the center stretches in both axes. Ideal for UI backgrounds that need to preserve border and corner appearance at varying sizes.
 
 ## Example
 
 ```lua
-local frame = NineSlice({
-    texture = love.graphics.newImage("panel_border.png"),
-    center_padding = {8, 8, 8, 8},
+local bg = NineSlice({
+    texture = panel_texture,
+    center_padding = {12, 12, 12, 12},  -- 12px corners
     anchor = {0, 0, 1, 1},
 })
 ```

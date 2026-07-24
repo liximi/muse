@@ -1,6 +1,6 @@
 # CenterContainer
 
-A container that centers its children.
+Centers child widgets within the container. Equivalent to Godot's `CenterContainer`.
 
 **Inheritance:** `Widget` → `Container` → `CenterContainer`
 
@@ -8,26 +8,17 @@ A container that centers its children.
 
 ```lua
 {
-    use_top_left = boolean,  -- When true, aligns children top-left (default false)
+    use_top_left = boolean,  -- When true, aligns top-left instead of center, default false
 }
 ```
 
 ## How It Works
 
-`_sortChildren()` computes each child's `getCombinedMinimumSize()` and places the child in the horizontal and vertical center of the container. `getMinimumSize()` returns the maximum of all children's minimum sizes.
+`_sortChildren()` computes the child's minimum size and centers it within the container, maximizing the allocated area width to prevent premature text wrapping. `use_top_left = true` disables centering for top-left alignment.
 
 ## Example
 
 ```lua
-local CenterContainer = require "ui.widgets.containers.center_container"
-
-local cc = CenterContainer({
-    anchor = {0, 0, 1, 1},
-})
-cc:addChild(Button({ text = "Centered", w = 120, h = 40 }))
+local center = CenterContainer({ w = 200, h = 100 })
+center:addChild(Text({ text = "Centered" }))
 ```
-
-## Best Practices
-
-- Good for dialog content wrappers.
-- Children with default `FILL` will stretch to fill the container, defeating centering. Disable FILL: `Button({ text = "Centered", h_size_flags = 0, v_size_flags = 0 })`.
