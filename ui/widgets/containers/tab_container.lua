@@ -1,24 +1,18 @@
 --------------------------------------------------
 -- TabContainer — 标签页容器
 --
--- 顶部/底部 TabBar + 内容区域。继承 Container，
--- 添加的子控件自动成为标签页（类似 Godot TabContainer）。
---
--- 每个子控件作为一页内容，tab 标题取自子控件 name。
--- 可通过 setTabTitle(idx, title) 覆盖标题。
+-- 顶部/底部 TabBar + 内容区域。继承 Container。
+-- 添加的子控件自动成为标签页，始终保持在 TabContainer 内，
+-- 仅通过可见性切换（对标 Godot TabContainer）。
 --------------------------------------------------
 
 local Container = require "ui.widgets.containers.container"
 local BoxContainer = require "ui.widgets.containers.box_container"
 local Button = require "ui.widgets.button"
-local PanelContainer = require "ui.widgets.containers.panel_container"
 local Utils = require "ui.utils"
 local Class = require "dependencies.classic"
 
-local TAB_POSITION = {
-	TOP = "top",
-	BOTTOM = "bottom",
-}
+local TAB_POSITION = { TOP = "top", BOTTOM = "bottom" }
 
 --[[datas:
 	tabs_position          = "top" | "bottom"  默认 "top"
@@ -32,31 +26,25 @@ local TabContainer = Class(Container, function(self, datas, theme)
 	self.raycast_target = true
 
 	self._tabs_position = datas and datas.tabs_position or TAB_POSITION.TOP
-	self._tabs_visible = datas and (datas.tabs_visible ~= false) or true
+	self._tabs_visible = (datas and datas.tabs_visible ~= false) or true
 	self._selected_index = -1
 	self._use_hidden_for_min = datas and datas.use_hidden_for_min_size or false
-
-	local tab_bar_h = datas and datas.tab_bar_height or self.theme.tabview.tab_height
-	self._tab_bar_height = tab_bar_h
+	self._tab_bar_height = datas and datas.tab_bar_height or self.theme.tabview.tab_height
 
 	-- 内部 TabBar（HBox）
-	self._tab_bar = BoxContainer({
-		name = "_tab_bar",
-		orientation = "horizontal",
-		separation = 0,
-	})
+	self._tab_bar = BoxContainer({ name = "_tab_bar", orientation = "horizontal", separation = 0 })
 
-	-- 内部内容区域面板
-	self._content_panel = PanelContainer({
-		name = "_content_panel",
+	-- 内部装饰面板（仅绘制背景，不包含子控件）
+	local Panel = require("ui.widgets.panel")
+	self._bg_panel = Panel({
 		bg_color = datas and datas.content_bg or self.theme.tabview.content_bg,
 		rounding_radius = datas and datas.content_rounding_radius or self.theme.tabview.content_rounding_radius,
 	})
 
-	-- 通过基类 Widget.addChild 绕过 Container 的 addChild 重写（内部控件不触发重排）
-	local _widgetAddChild = require("ui.widgets.widget").addChild
-	_widgetAddChild(self, self._tab_bar)
-	_widgetAddChild(self, self._content_panel)
+	-- 通过 Widget.addChild 绕过 Container.addChild 重写
+	local wac = require("ui.widgets.widget").addChild
+	wac(self, self._bg_panel)
+	wac(self, self._tab_bar)
 
 	self._tab_buttons = {}
 
@@ -82,10 +70,9 @@ end
 
 function TabContainer:getTabControl(idx)
 	if idx < 1 or idx > #self._tab_buttons then return nil end
-	-- 找到第 idx 个非内部子控件
 	local count = 0
 	for _, child in ipairs(self.children) do
-		if child ~= self._tab_bar and child ~= self._content_panel then
+		if child ~= self._tab_bar and child ~= self._bg_panel then
 			count = count + 1
 			if count == idx then return child end
 		end
@@ -94,13 +81,16 @@ function TabContainer:getTabControl(idx)
 end
 
 function TabContainer:setTabTitle(idx, title)
-	if idx < 1 or idx > #self._tab_buttons then return end
-	self._tab_buttons[idx]:setText(title)
+	if self._tab_buttons[idx] then
+		self._tab_buttons[idx]:setText(title)
+	end
 end
 
 function TabContainer:getTabTitle(idx)
-	if idx < 1 or idx > #self._tab_buttons then return nil end
-	return self._tab_buttons[idx]:getText()
+	if self._tab_buttons[idx] then
+		return self._tab_buttons[idx]:getText()
+	end
+	return nil
 end
 
 function TabContainer:setTabsPosition(pos)
@@ -128,42 +118,45 @@ function TabContainer:_selectTab(idx)
 	if idx == self._selected_index then return end
 	if idx < 1 or idx > #self._tab_buttons then return end
 
-	-- 更新按钮状态
-	if self._selected_index >= 1 and self._tab_buttons[self._selected_index] then
+	if self._tab_buttons[self._selected_index] then
 		self._tab_buttons[self._selected_index]:setSelected(false)
 	end
 	self._selected_index = idx
 	self._tab_buttons[idx]:setSelected(true)
 
-	-- 切换内容
-	self:_refreshContent()
+	-- 显示当前子控件，隐藏其余
+	for _, child in ipairs(self.children) do
+		if child ~= self._tab_bar and child ~= self._bg_panel then
+			local child_idx = self:getTabIdxFromControl(child)
+			if child_idx == idx then child:show() else child:hide() end
+		end
+	end
+
+	self:queueSort()
 end
 
-function TabContainer:_refreshContent()
-	self._content_panel:removeAllChildren()
-	local ctrl = self:getTabControl(self._selected_index)
-	if ctrl then
-		self._content_panel:addChild(ctrl)
+function TabContainer:getTabIdxFromControl(control)
+	local count = 0
+	for _, child in ipairs(self.children) do
+		if child ~= self._tab_bar and child ~= self._bg_panel then
+			count = count + 1
+			if child == control then return count end
+		end
 	end
+	return -1
 end
 
 function TabContainer:_rebuildTabBar()
 	self._tab_bar:removeAllChildren()
 	self._tab_buttons = {}
 
-	local count = 0
-	for _, child in ipairs(self.children) do
-		if child ~= self._tab_bar and child ~= self._content_panel then
-			count = count + 1
-		end
-	end
-	if count == 0 then return end
-
 	local idx = 0
 	for _, child in ipairs(self.children) do
-		if child ~= self._tab_bar and child ~= self._content_panel then
+		if child ~= self._tab_bar and child ~= self._bg_panel then
 			idx = idx + 1
+			child:hide()
 			local title = child.name or ("Tab " .. idx)
+			local tab_idx = idx  -- 闭包安全：捕获当前值
 			local btn = Button({
 				text = title,
 				h_size_flags = Utils.SIZE_FLAGS.EXPAND + Utils.SIZE_FLAGS.FILL,
@@ -177,20 +170,21 @@ function TabContainer:_rebuildTabBar()
 					self.theme.tabview.tab_text_selected,
 					nil,
 					self.theme.tabview.tab_bg_selected),
-				on_click = function() self:_selectTab(idx) end,
+				on_click = function() self:_selectTab(tab_idx) end,
 			})
-			btn._tab_index = idx
-			self._tab_buttons[idx] = btn
+			btn._tab_index = tab_idx
+			self._tab_buttons[tab_idx] = btn
 			self._tab_bar:addChild(btn)
 		end
 	end
 
-	-- 设置初始选中
 	if self._pending_selected then
 		self:_selectTab(self._pending_selected)
 		self._pending_selected = nil
 	elseif self._selected_index < 1 and #self._tab_buttons > 0 then
 		self:_selectTab(1)
+	else
+		self:queueSort()
 	end
 end
 
@@ -211,33 +205,40 @@ function TabContainer:_sortChildren()
 	local bar_h = self._tab_bar_height
 	if not self._tabs_visible then bar_h = 0 end
 
-	-- TabBar 位置
+	local content_y, content_h
 	if self._tabs_position == TAB_POSITION.BOTTOM then
 		self:fitChildInRect(self._tab_bar, 0, ch - bar_h, cw, bar_h)
-		self:fitChildInRect(self._content_panel, 0, 0, cw, ch - bar_h)
+		content_y, content_h = 0, ch - bar_h
 	else
 		self:fitChildInRect(self._tab_bar, 0, 0, cw, bar_h)
-		self:fitChildInRect(self._content_panel, 0, bar_h, cw, ch - bar_h)
+		content_y, content_h = bar_h, ch - bar_h
+	end
+
+	-- 背景面板填满内容区
+	self:fitChildInRect(self._bg_panel, 0, content_y, cw, content_h)
+
+	-- 选中子控件填满内容区
+	local ctrl = self:getTabControl(self._selected_index)
+	if ctrl then
+		self:fitChildInRect(ctrl, 0, content_y, cw, content_h)
 	end
 end
 
 function TabContainer:getMinimumSize()
 	local bar_w, bar_h = 0, self._tab_bar_height
 	if self._tabs_visible then
-		bar_w, _ = self._tab_bar:getCombinedMinimumSize()
+		bar_w = self._tab_bar:getCombinedMinimumSize()
 	end
 
 	local max_cw, max_ch = 0, 0
 	for _, child in ipairs(self.children) do
-		if child ~= self._tab_bar and child ~= self._content_panel then
-			if not child:isShown() and not self._use_hidden_for_min then
-				goto continue
+		if child ~= self._tab_bar and child ~= self._bg_panel then
+			if child:isShown() or self._use_hidden_for_min then
+				local cmw, cmh = child:getCombinedMinimumSize()
+				max_cw = math.max(max_cw, cmw)
+				max_ch = math.max(max_ch, cmh)
 			end
-			local cmw, cmh = child:getCombinedMinimumSize()
-			max_cw = math.max(max_cw, cmw)
-			max_ch = math.max(max_ch, cmh)
 		end
-		::continue::
 	end
 
 	return math.max(bar_w, max_cw), bar_h + max_ch
@@ -246,21 +247,18 @@ end
 function TabContainer:getDesiredSize()
 	local bar_w, bar_h = 0, self._tab_bar_height
 	if self._tabs_visible then
-		local bw, _ = self._tab_bar:getDesiredSize()
-		bar_w = bw
+		bar_w = self._tab_bar:getDesiredSize()
 	end
 
 	local max_cw, max_ch = 0, 0
 	for _, child in ipairs(self.children) do
-		if child ~= self._tab_bar and child ~= self._content_panel then
-			if not child:isShown() and not self._use_hidden_for_min then
-				goto continue
+		if child ~= self._tab_bar and child ~= self._bg_panel then
+			if child:isShown() or self._use_hidden_for_min then
+				local cdw, cdh = child:getDesiredSize()
+				max_cw = math.max(max_cw, cdw)
+				max_ch = math.max(max_ch, cdh)
 			end
-			local cdw, cdh = child:getDesiredSize()
-			max_cw = math.max(max_cw, cdw)
-			max_ch = math.max(max_ch, cdh)
 		end
-		::continue::
 	end
 
 	return math.max(bar_w, max_cw), bar_h + max_ch

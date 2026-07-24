@@ -16,7 +16,6 @@ local Class = require "dependencies.classic"
 local SZ = Utils.SIZE_FLAGS
 local ALIGN = Utils.ALIGNMENT
 
--- 末行对齐模式
 local LAST_WRAP_ALIGN = {
 	INHERIT = "inherit",
 	BEGIN = "begin",
@@ -30,7 +29,6 @@ local LAST_WRAP_ALIGN = {
 	v_separation        = number  行间距，默认 0
 	alignment           = "begin" | "center" | "end"  默认 "begin"
 	last_wrap_alignment = "inherit" | "begin" | "center" | "end"  末行对齐，默认 "inherit"
-	reverse_fill        = bool  反向填充，默认 false
 ]]
 local FlowContainer = Class(Container, function(self, datas, theme)
 	datas = datas or {}
@@ -44,13 +42,12 @@ local FlowContainer = Class(Container, function(self, datas, theme)
 	self.v_separation = datas.v_separation or 0
 	self.alignment = datas.alignment or ALIGN.BEGIN
 	self.last_wrap_alignment = datas.last_wrap_alignment or LAST_WRAP_ALIGN.INHERIT
-	self.reverse_fill = datas.reverse_fill or false
 
 	self._cached_line_count = 0
 	self._cached_line_max_children = 0
+	self._cached_size = 0
 end)
 
--- 行数据
 local function newLineData(child_count, min_line_height, min_line_length, stretch_avail, stretch_ratio_total, is_filled)
 	return {
 		child_count = child_count,
@@ -64,14 +61,17 @@ end
 
 function FlowContainer:_sortChildren()
 	local visible = self:_visibleChildren()
-	if #visible == 0 then return end
+	if #visible == 0 then
+		self._cached_size = 0
+		self._cached_line_count = 0
+		self._cached_line_max_children = 0
+		return
+	end
 
 	local cw, ch = self.transform:getSize()
 	local vertical = self._vertical
 	local h_sep = self.h_separation
 	local v_sep = self.v_separation
-
-	-- 主轴维度
 	local container_size = vertical and ch or cw
 
 	-- 第一趟：换行 + 收集每行信息
@@ -80,20 +80,18 @@ function FlowContainer:_sortChildren()
 	local lines = {}
 
 	local ofs_x, ofs_y = 0, 0
-	local line_height = 0  -- h: 行高；v: 列宽
+	local line_height = 0
 	local line_stretch_ratio_total = 0
 	local children_in_line = 0
 
 	for _, child in ipairs(visible) do
-		local mw, mh = child:getDesiredSize()  -- Flow 用 desired_size
+		local mw, mh = child:getDesiredSize()
 
 		if vertical then
 			if children_in_line > 0 then ofs_y = ofs_y + v_sep end
 			if ofs_y + mh > container_size then
-				-- 换列
-				local line_length = ofs_y - v_sep
-				table.insert(lines, newLineData(children_in_line, line_height, line_length,
-					container_size - line_length, line_stretch_ratio_total, true))
+				table.insert(lines, newLineData(children_in_line, line_height, ofs_y - v_sep,
+					container_size - (ofs_y - v_sep), line_stretch_ratio_total, true))
 				ofs_x = ofs_x + line_height + h_sep
 				ofs_y = 0
 				line_height = 0
@@ -108,10 +106,8 @@ function FlowContainer:_sortChildren()
 		else
 			if children_in_line > 0 then ofs_x = ofs_x + h_sep end
 			if ofs_x + mw > container_size then
-				-- 换行
-				local line_length = ofs_x - h_sep
-				table.insert(lines, newLineData(children_in_line, line_height, line_length,
-					container_size - line_length, line_stretch_ratio_total, true))
+				table.insert(lines, newLineData(children_in_line, line_height, ofs_x - h_sep,
+					container_size - (ofs_x - h_sep), line_stretch_ratio_total, true))
 				ofs_y = ofs_y + line_height + v_sep
 				ofs_x = 0
 				line_height = 0
@@ -134,17 +130,16 @@ function FlowContainer:_sortChildren()
 	local last_is_filled = false
 	if #visible > 0 then
 		local last_child = visible[#visible]
-		local lmw, lmh = children_min[last_child][1], children_min[last_child][2]
+		local lm = children_min[last_child]
 		if vertical then
-			last_is_filled = (ofs_y + lmh > container_size)
+			last_is_filled = (ofs_y + lm[2] > container_size)
 		else
-			last_is_filled = (ofs_x + lmw > container_size)
+			last_is_filled = (ofs_x + lm[1] > container_size)
 		end
 	end
 	table.insert(lines, newLineData(children_in_line, line_height, last_line_length,
 		container_size - last_line_length, line_stretch_ratio_total, last_is_filled))
 
-	-- 缓存行信息
 	self._cached_line_count = #lines
 	self._cached_line_max_children = #lines > 0 and lines[1].child_count or 0
 
@@ -174,7 +169,6 @@ function FlowContainer:_sortChildren()
 
 		-- 行内 EXPAND 分配（每行第一个子控件触发计算）
 		if child_idx_in_line == 1 then
-			-- 收集该行子控件
 			local line_children = {}
 			local j = visible_idx
 			while j <= #visible and #line_children < line_data.child_count do
@@ -182,7 +176,6 @@ function FlowContainer:_sortChildren()
 				j = j + 1
 			end
 
-			-- 计算 stretch 分配
 			local line_remaining = line_data.stretch_avail
 			local stretch_children = {}
 			local stretch_active = {}
@@ -203,23 +196,22 @@ function FlowContainer:_sortChildren()
 			while stretch_total > 0 do
 				local refit_ok = true
 				for i_s, lc in ipairs(stretch_children) do
-					if not stretch_active[i_s] then goto continue end
-					local ratio = lc.stretch_ratio or 1
-					local child_stretch = math.floor(line_remaining * ratio / stretch_total)
-					local cmw, cmh = table.unpack(children_min[lc])
-					local child_axis_min = vertical and cmh or cmw
-					-- 最大尺寸（暂无 max_size 系统，使用容器尺寸）
-					local max_stretch = math.max(0, container_size - child_axis_min)
+					if stretch_active[i_s] then
+						local ratio = lc.stretch_ratio or 1
+						local child_stretch = math.floor(line_remaining * ratio / stretch_total)
+						local cm = children_min[lc]
+						local child_axis_min = vertical and cm[2] or cm[1]
+						local max_stretch = math.max(0, container_size - child_axis_min)
 
-					if child_stretch > max_stretch then
-						children_stretch[lc] = max_stretch
-						stretch_active[i_s] = false
-						stretch_total = stretch_total - ratio
-						line_remaining = line_remaining - max_stretch
-						refit_ok = false
-						break
+						if child_stretch > max_stretch then
+							children_stretch[lc] = max_stretch
+							stretch_active[i_s] = false
+							stretch_total = stretch_total - ratio
+							line_remaining = line_remaining - max_stretch
+							refit_ok = false
+							break
+						end
 					end
-					::continue::
 				end
 				if refit_ok then
 					for i_s, lc in ipairs(stretch_children) do
@@ -232,7 +224,6 @@ function FlowContainer:_sortChildren()
 				end
 			end
 
-			-- 更新行剩余空间
 			local used = 0
 			for _, lc in ipairs(line_children) do used = used + (children_stretch[lc] or 0) end
 			lines[line_idx + 1].stretch_avail = math.max(line_data.stretch_avail - used, 0)
@@ -284,8 +275,8 @@ function FlowContainer:_sortChildren()
 		end
 
 		-- 计算子控件尺寸
-		local cmw, cmh = table.unpack(children_min[child])
-		local child_w, child_h = cmw, cmh
+		local cm = children_min[child]
+		local child_w, child_h = cm[1], cm[2]
 
 		if vertical then
 			if Utils.hasFlag(child.h_size_flags, SZ.FILL)
@@ -307,7 +298,6 @@ function FlowContainer:_sortChildren()
 			end
 		end
 
-		-- 限制不超过容器
 		if vertical then
 			child_h = math.min(child_h, container_size - ofs_y)
 		else
@@ -322,59 +312,8 @@ function FlowContainer:_sortChildren()
 			ofs_x = ofs_x + child_w + h_sep
 		end
 	end
-end
 
-function FlowContainer:getMinimumSize()
-	return self:_getMinSize(false)
-end
-
-function FlowContainer:getDesiredSize()
-	return self:_getMinSize(true)
-end
-
-function FlowContainer:_getMinSize(use_desired)
-	local visible = self:_visibleChildren()
-	if #visible == 0 then return self.transform:getSize() end
-
-	local vertical = self._vertical
-	local max_along = 0  -- 交叉轴
-	local max_cross = 0  -- 主轴方向取最大值（用于 minimum 报告）
-
-	for _, child in ipairs(visible) do
-		local mw, mh
-		if use_desired then mw, mh = child:getDesiredSize()
-		else mw, mh = child:getCombinedMinimumSize() end
-		if vertical then
-			max_along = math.max(max_along, mw)
-			max_cross = math.max(max_cross, mh)
-		else
-			max_along = math.max(max_along, mh)
-			max_cross = math.max(max_cross, mw)
-		end
-	end
-
-	-- 使用缓存的布局尺寸（_cached_size 在 _sortChildren 之后设置）
-	local cached_size = self._cached_size or 0
-	if vertical then
-		return max_along, math.max(max_cross, cached_size)
-	else
-		return math.max(max_cross, cached_size), max_along
-	end
-end
-
--- 缓存 _cached_size
-local origSort = FlowContainer._sortChildren
-FlowContainer._sortChildren = function(self)
-	origSort(self)
-	-- 计算缓存尺寸
-	local visible = self:_visibleChildren()
-	if #visible == 0 then
-		self._cached_size = 0
-		return
-	end
-
-	local vertical = self._vertical
-	local line_height = 0
+	-- 计算缓存尺寸（用于 getMinimumSize / getDesiredSize）
 	if vertical then
 		local max_x = 0
 		for _, child in ipairs(visible) do
@@ -391,6 +330,43 @@ FlowContainer._sortChildren = function(self)
 			max_y = math.max(max_y, y + h)
 		end
 		self._cached_size = max_y
+	end
+end
+
+function FlowContainer:getMinimumSize()
+	return self:_getMinSize(false)
+end
+
+function FlowContainer:getDesiredSize()
+	return self:_getMinSize(true)
+end
+
+function FlowContainer:_getMinSize(use_desired)
+	local visible = self:_visibleChildren()
+	if #visible == 0 then return self.transform:getSize() end
+
+	local vertical = self._vertical
+	local max_along = 0
+	local max_cross = 0
+
+	for _, child in ipairs(visible) do
+		local mw, mh
+		if use_desired then mw, mh = child:getDesiredSize()
+		else mw, mh = child:getCombinedMinimumSize() end
+		if vertical then
+			max_along = math.max(max_along, mw)
+			max_cross = math.max(max_cross, mh)
+		else
+			max_along = math.max(max_along, mh)
+			max_cross = math.max(max_cross, mw)
+		end
+	end
+
+	local cached = self._cached_size or 0
+	if vertical then
+		return max_along, math.max(max_cross, cached)
+	else
+		return math.max(max_cross, cached), max_along
 	end
 end
 
