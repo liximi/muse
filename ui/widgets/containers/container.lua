@@ -1,5 +1,5 @@
 --------------------------------------------------
--- Container 基类 — scene/gui/container.cpp
+-- Container 基类
 --
 -- 核心契约：子控件进入 Container 后放弃自主定位权，
 -- 由容器的 _sortChildren() 统一管理位置和尺寸。
@@ -31,7 +31,7 @@ function Container:queueSort()
 end
 
 --- 将子控件放入给定的矩形区域内，根据其 size_flags 决定 Fill/Shrink 行为。
---- container.cpp:130 fit_child_in_rect
+--- 非 FILL 时尺寸在 [minsize, MIN(desired, rect_size)] 之间。
 ---@param child Widget
 ---@param x number 矩形左上角 X
 ---@param y number 矩形左上角 Y
@@ -39,12 +39,13 @@ end
 ---@param h number 矩形高度
 function Container:fitChildInRect(child, x, y, w, h)
 	local mw, mh = child:getCombinedMinimumSize()
+	local dw, dh = child:getDesiredSize()
 	local hf = child.h_size_flags
 	local vf = child.v_size_flags
 
 	-- 水平 Fill/Shrink
 	if not Utils.hasFlag(hf, SZ.FILL) then
-		local fw = mw
+		local fw = math.max(math.min(dw, w), mw)
 		if Utils.hasFlag(hf, SZ.SHRINK_END) then
 			x = x + w - fw
 		elseif Utils.hasFlag(hf, SZ.SHRINK_CENTER) then
@@ -55,7 +56,7 @@ function Container:fitChildInRect(child, x, y, w, h)
 
 	-- 垂直 Fill/Shrink
 	if not Utils.hasFlag(vf, SZ.FILL) then
-		local fh = mh
+		local fh = math.max(math.min(dh, h), mh)
 		if Utils.hasFlag(vf, SZ.SHRINK_END) then
 			y = y + h - fh
 		elseif Utils.hasFlag(vf, SZ.SHRINK_CENTER) then
@@ -68,8 +69,36 @@ function Container:fitChildInRect(child, x, y, w, h)
 	child.transform:setSize(w, h)
 end
 
---- 返回可见且可排序的子控件列表（排除非 Control、隐藏、top_level）。
---- container.cpp as_sortable_control
+--- 返回容器内部可用最大尺寸（扣除自身装饰如 padding/margin 后的空间）。
+--- 默认返回自身尺寸。子类覆写以减去边距。
+---@return number w
+---@return number h
+function Container:getInnerCombinedMaximumSize()
+	return self.transform:getSize()
+end
+
+--- 返回容器的期望尺寸（基于子控件 desired_size 计算）。
+--- 默认等于 getMinimumSize()。子类覆写以报告基于子控件 desired_size 的尺寸。
+---@return number w
+---@return number h
+function Container:getDesiredSize()
+	return self:getMinimumSize()
+end
+
+--- 返回本容器允许子控件使用的水平 size_flags 列表。
+--- 子类可覆写以限制子控件的行为（如 PanelContainer 禁止 EXPAND）。
+---@return table
+function Container:_getAllowedSizeFlagsHorizontal()
+	return { SZ.FILL, SZ.EXPAND, SZ.SHRINK_BEGIN, SZ.SHRINK_CENTER, SZ.SHRINK_END }
+end
+
+--- 返回本容器允许子控件使用的垂直 size_flags 列表。
+---@return table
+function Container:_getAllowedSizeFlagsVertical()
+	return { SZ.FILL, SZ.EXPAND, SZ.SHRINK_BEGIN, SZ.SHRINK_CENTER, SZ.SHRINK_END }
+end
+
+--- 返回可见的子控件列表。
 ---@return Widget[]
 function Container:_visibleChildren()
 	local result = {}
@@ -82,7 +111,6 @@ function Container:_visibleChildren()
 end
 
 --- 子类覆写此方法实现具体布局逻辑。
---- box_container.cpp _resort
 function Container:_sortChildren()
 	-- 子类覆写
 end

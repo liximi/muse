@@ -72,6 +72,14 @@ local Utils = {
 		CENTER = "center",
 		END    = "end",
 	},
+	-- 滚动条显示模式
+	SCROLL_MODE = {
+		DISABLED   = "disabled",    -- 禁用滚动，子控件填满区域
+		AUTO       = "auto",        -- 内容溢出时显示滚动条
+		SHOW_ALWAYS = "show_always", -- 始终显示
+		SHOW_NEVER  = "show_never",  -- 始终隐藏（仍可通过代码滚动）
+		RESERVE     = "reserve",     -- 预留滚动条空间
+	},
 }
 
 --- 构造颜色对象
