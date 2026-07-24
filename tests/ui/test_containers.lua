@@ -3,6 +3,7 @@
 -- 粉色框 = 容器边界，内部元素不画框
 --------------------------------------------------
 
+local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
