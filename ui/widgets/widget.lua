@@ -194,7 +194,7 @@ end
 --- 移除并销毁所有子节点（释放 GPU 资源）。
 --- 与 removeAllChildren 不同，此方法会递归调用 destroy()，彻底清理。
 --- 仅用于不再需要子节点的场景（如测试切换、面板重建）。
---- TabView/List 等需要复用内容的场景请用 removeAllChildren。
+--- TabView/ListContainer 等需要复用内容的场景请用 removeAllChildren。
 function Widget:clearChildren()
 	local copy = {}
 	for _, child in ipairs(self.children) do

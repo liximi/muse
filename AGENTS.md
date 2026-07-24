@@ -46,7 +46,9 @@ Widget
         ├── BoxContainer (orientation="horizontal"/"vertical")
         ├── MarginContainer
         ├── CenterContainer
-        └── Spacer (不可见弹性占位)
+        ├── Spacer (不可见弹性占位)
+        ├── ListContainer (线性 + key-based diff 复用)
+        └── VirtualList (虚拟化列表，仅实例化可见元素)
 ```
 
 #### Container 基类 (`ui/widgets/containers/container.lua`)
@@ -108,6 +110,44 @@ Widget
 - **MarginContainer** — 四边距。最简单的容器：自身尺寸减 margin → fitChildInRect
 - **CenterContainer** — 子控件居中
 - **Spacer** — 不可见 EXPAND+FILL Widget，射线穿透。用法：`hbox:addChild(Spacer())` 推右
+- **ListContainer** — 继承 BoxContainer，默认 auto_size=true、separation=8。核心特性：`updateItems(data, keyFn, createFn, updateFn)` 基于 key 做 diff，复用已有控件、创建新控件、移除多余的旧控件。另有 `insert`/`remove`/`removeAtPos`/`setItems` 便捷方法
+
+#### VirtualList 虚拟化列表 (`ui/widgets/containers/virtual_list.lua`)
+
+仅实例化可见范围内的元素。适用于大数据量列表（数百～数千项），每个 item 固定尺寸。
+
+**模板系统**：
+- `VirtualListItem` (`ui/widgets/virtual_list_item.lua`) — item 基类
+  - 子类必须覆写 `getItemSize() → along_size`（沿主轴固定尺寸）
+  - 子类必须覆写 `bindData(data, index)`（填充数据，data 可能为 nil）
+
+**核心算法**：
+```
+visibleCount  = ceil(viewport / itemStride)      -- itemStride = itemSize + separation
+instanceCount = visibleCount + 2                   -- 上下各 1 个缓冲
+
+firstIndex    = floor(scrollOffset / itemStride)
+visualOffset  = -(scrollOffset % itemStride)
+
+每个 item widget 固定布局位置 = index * itemStride
+实际位置 = 固定位置 + visualOffset  ← 模拟滚动
+显示数据 = getData(firstIndex + index)
+```
+
+- 实例数量仅在容器尺寸或模板尺寸变化时重建
+- `firstIndex` 变化时 → 全部 item `bindData` 重绑
+- 内置 wheel 事件 + scissor 裁剪 + 滚动条（支持拖拽/点击跳转）
+
+**公开方法**：
+- `setData(count, getData(index) → data)` — 设置数据源
+- `scrollTo(offset)` — 设置滚动偏移（自动 clamp）
+- `getScrollOffset()` / `getMaxScroll()` — 滚动状态查询
+- `getItems()` — 返回当前 item 控件列表
+
+**陷阱**：
+- VirtualList 覆写了 `_getChildrenMinSize()` 返回 (0,0)，不参与 BoxContainer 的自动尺寸计算。需通过 anchor 或显式 setSize 指定尺寸
+- `_sortChildren` 遍历 `self._itemWidgets` 而非 `_visibleChildren()`，确保隐藏的缓冲 item 保持正确位置
+- 模板 `getItemSize()` 只能返回固定值，不支持动态尺寸 item
 
 #### 最小尺寸系统
 
@@ -120,7 +160,7 @@ Widget:setCustomMinimumSize(w, h) -- 覆盖最小尺寸
 Widget:getDesiredSize()           -- 期望尺寸，默认等于 min。Text 覆写为完整文本宽度
 ```
 
-已覆写 `getMinimumSize` 的控件：Text、Button、Image、ProgressBar、Scroll、BoxContainer。
+已覆写 `getMinimumSize` 的控件：Text、Button、Image、ProgressBar、Scroll、BoxContainer、ChatBubble。
 
 **重要**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize`，容器会分配 0 高度。需调用 `setCustomMinimumSize(nil, 40)` 或覆写 `getMinimumSize`。
 
@@ -196,14 +236,18 @@ Widget
 ├── Scroll
 ├── SliderBar
 ├── Dropdown
-├── Spacer (新)
-└── Container (新)
-    ├── BoxContainer (新，合并旧 HBox/VBox)
-    ├── MarginContainer (新)
-    └── CenterContainer (新)
+├── Spacer
+├── VirtualListItem (模板基类)
+│   └── (用户自定义子类)
+└── Container
+    ├── BoxContainer
+    │   └── ListContainer (diff 复用)
+    ├── MarginContainer
+    ├── CenterContainer
+    └── VirtualList (虚拟化)
 ```
 
-旧 `Box`（flex-grow/shrink）和 `List`（updateItems diff）仍保留但逐步废弃。`chat_history.lua` 仍用 `List`。
+旧 `Box`（flex-grow/shrink）仍保留但逐步废弃。
 
 ### Button 文字与样式分离（2026-07 重构）
 
@@ -293,6 +337,8 @@ Widget
 - **Godot Containers** — 9 节演示所有容器特性（Fill/Expand/alignment/auto_size/Spacer/Scroll）
 - **Game Settings** — 真实复杂 UI（TabView + BoxContainer + Scroll auto_track）
 - **ProgressBar** — 容器重写版，静态/交互式水平垂直
+- **Chat History** — ChatBubble + ListContainer + Scroll
+- **Virtual List** — 虚拟化列表，3000 项数据仅实例化 ~12 个控件
 
 ---
 

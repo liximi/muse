@@ -26,6 +26,7 @@ local test_modules = {
 	require "tests.ui.test_nineslice",
 	require "tests.ui.test_game_settings",
 	require "tests.ui.test_containers",
+	require "tests.ui.test_virtual_list",
 }
 
 --[[
