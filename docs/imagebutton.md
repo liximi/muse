@@ -20,6 +20,13 @@
     disabled = style,
     selected = style,
     selected_hover = style,
+
+    -- 继承自 Widget 的布局属性
+    h_size_flags = number,     -- SIZE_FLAGS 组合值，默认 FILL
+    v_size_flags = number,     -- SIZE_FLAGS 组合值，默认 FILL
+    stretch_ratio = number,    -- EXPAND 时的分配比例，默认 1.0
+    custom_minimum_size = {w, h},  -- 覆盖内容最小尺寸
+    -- ... 以及所有 Widget 基类参数（pivot, anchor, x, y, w, h, padding 等）
 }
 ```
 
@@ -46,6 +53,12 @@
     scale = {sx, sy},           -- 缩放
 }
 ```
+
+## 尺寸与容器兼容
+
+ImageButton 通过内部 Image 控件的纹理尺寸报告 `getMinimumSize()`，因此可以直接放入 BoxContainer 等布局容器中，无需手动设置 `custom_minimum_size`。
+
+若未在 `normal` 样式中提供 `texture`，则 `getMinimumSize()` 返回 `(0, 0)`，放入容器时需额外设置尺寸。
 
 ## 示例
 

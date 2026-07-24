@@ -15,6 +15,13 @@ Image button with texture/tint switching and optional attached text.
 
     -- State styles (each is a Utils.newImageButtonStateStyle return value)
     normal / hover / pressed / disabled / selected / selected_hover = style,
+
+    -- Inherited from Widget
+    h_size_flags = number,     -- SIZE_FLAGS combo, default FILL
+    v_size_flags = number,     -- SIZE_FLAGS combo, default FILL
+    stretch_ratio = number,    -- EXPAND weight, default 1.0
+    custom_minimum_size = {w, h},  -- Override content min size
+    -- ... and all Widget base params (pivot, anchor, x, y, w, h, padding, etc.)
 }
 ```
 
@@ -41,6 +48,12 @@ If `normal` style contains a `texture`, the button defaults to that texture's di
     scale = {sx, sy},           -- Scale
 }
 ```
+
+## Size & Container Compatibility
+
+ImageButton reports `getMinimumSize()` from its internal Image widget's texture dimensions, so it works directly inside BoxContainer and other layout containers — no need for `custom_minimum_size`.
+
+If no `texture` is provided in the `normal` style, `getMinimumSize()` returns `(0, 0)` and you must set explicit dimensions when placing it in a container.
 
 ## Example
 
