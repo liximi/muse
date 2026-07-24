@@ -191,7 +191,6 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 | **Spacer** | Invisible flexible spacer widget | [docs/en/spacer.md](docs/en/spacer.md) |
 | **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations + auto content tracking | [docs/en/scroll.md](docs/en/scroll.md) |
 | **List** | Linear list container with sequential arrangement and updateItems diff reuse | [docs/en/list.md](docs/en/list.md) |
-| **Box** | Flexbox-style layout container (legacy, replaced by BoxContainer) | [docs/en/box.md](docs/en/box.md) |
 
 ### View / Overlay Components
 
@@ -238,7 +237,6 @@ Widget (base class)
 ├── Scroll
 ├── Spacer
 ├── List
-├── Box
 ├── Tooltip
 ├── Dropdown
 └── ChatHistory (contains ChatBubble)

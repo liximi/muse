@@ -190,8 +190,7 @@ end
 | **CenterContainer** | 居中容器 | [docs/center_container.md](docs/center_container.md) |
 | **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
 | **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
-| **List** | 线性列表容器（旧版），子元素按主轴依次排列 + diff 复用 | [docs/list.md](docs/list.md) |
-| **Box** | Flexbox 式布局容器（旧版，已由 BoxContainer 替代） | [docs/box.md](docs/box.md) |
+| **List** | 线性列表容器，子元素按主轴依次排列，提供 updateItems diff 复用 | [docs/list.md](docs/list.md) |
 
 ### 视图 / 浮层组件
 
@@ -238,7 +237,6 @@ Widget (基类)
 ├── Scroll
 ├── Spacer
 ├── List
-├── Box
 ├── Tooltip
 ├── Dropdown
 └── ChatHistory（内含 ChatBubble）
