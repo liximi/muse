@@ -317,16 +317,16 @@ function FlowContainer:_sortChildren()
 	if vertical then
 		local max_x = 0
 		for _, child in ipairs(visible) do
-			local x = child.transform.x
-			local _, _, w = child.transform:getRect()
+			local x, _ = child.transform:getPosition()
+			local w, _ = child.transform:getSize()
 			max_x = math.max(max_x, x + w)
 		end
 		self._cached_size = max_x
 	else
 		local max_y = 0
 		for _, child in ipairs(visible) do
-			local y = child.transform.y
-			local _, _, _, h = child.transform:getRect()
+			local _, y = child.transform:getPosition()
+			local _, h = child.transform:getSize()
 			max_y = math.max(max_y, y + h)
 		end
 		self._cached_size = max_y
