@@ -1,64 +1,55 @@
 # ImageButton
 
-An image button component that adds texture switching on top of ButtonBase, with optional accompanying text.
+Image button with texture/tint switching and optional attached text.
 
-**Inheritance chain:** `Widget` → `ButtonBase` → `ImageButton`
+**Inheritance:** `Widget` → `ButtonBase` → `ImageButton`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    no_text = boolean,            -- whether to hide text (pure image button)
-    font_key = string,            -- font key
-    normal = style_table,         -- default state style (Utils.newImageButtonStateStyle)
-    hover = style_table,
-    pressed = style_table,
-    disabled = style_table,
-    selected = style_table,
-    selected_hover = style_table,
+    no_text = boolean,            -- Pure image button (no text), default false
+    font_key = string,            -- Font key
+    on_click = function(),
+    on_pressed = function(x, y),
 
-    on_click = function(),        -- click callback (inherited from ButtonBase)
-    on_pressed = function(x, y),  -- press callback (inherited from ButtonBase)
+    -- State styles (each is a Utils.newImageButtonStateStyle return value)
+    normal / hover / pressed / disabled / selected / selected_hover = style,
 }
 ```
 
-If `datas.w` / `datas.h` are not set, they will be inferred from the size of `normal.texture`.
-
-### State Style Fields (returned by `Utils.newImageButtonStateStyle`)
-
-```lua
-{
-    texture = love.Texture,       -- texture
-    tint = {r, g, b, a},         -- tint color
-    text = string | table,        -- text (coloredtext)
-    text_color = {r, g, b, a},    -- text color
-    font_size = number,           -- font size
-    offset = {x, y},              -- positional offset
-    scale = {sx, sy},             -- scale
-}
-```
+If `normal` style contains a `texture`, the button defaults to that texture's dimensions (when `w`/`h` not explicitly set).
 
 ## Public Methods
 
 | Method | Description |
 |--------|-------------|
-| `setStateStyle(state, style)` | Set the style for a given state |
-| `getStateStyle(state)` | Get the merged style |
+| `setText(t)` | Set text (silently ignored in `no_text` mode) |
+| `setStateStyle(state, style)` | Set state style; auto-updates texture and tint on state change |
+| `getStateStyle(state)` | Get merged state style |
 
-State transition logic is identical to Button (inherited from ButtonBase).
+## State Style Fields
+
+```lua
+{
+    texture = love.Texture,     -- Texture
+    tint = {r, g, b, a},        -- Color tint
+    text = string,              -- Text
+    text_color = {r, g, b, a},  -- Text color
+    font_size = number,         -- Font size
+    offset = {x, y},            -- Offset
+    scale = {sx, sy},           -- Scale
+}
+```
 
 ## Example
 
 ```lua
-local icon = love.graphics.newImage("assets/icon.png")
-
+local icon = love.graphics.newImage("icon.png")
 local ibtn = ImageButton({
-    normal = Utils.newImageButtonStateStyle(icon, {1, 1, 1, 1}, "Save"),
-    hover = Utils.newImageButtonStateStyle(nil, nil, nil, nil, nil, {0, -1}),
-    pressed = Utils.newImageButtonStateStyle(nil, nil, nil, nil, nil, {0, 2}),
-    disabled = Utils.newImageButtonStateStyle(nil, {0.4, 0.4, 0.4, 1}),
-    on_click = function()
-        print("image button clicked!")
-    end,
+    normal = Utils.newImageButtonStateStyle(icon, {1,1,1,1}, "Save", Utils.UI_COLORS.TITLE, 14),
+    hover = Utils.newImageButtonStateStyle(icon_hover, nil, nil, nil, nil, {0, -1}),
+    disabled = Utils.newImageButtonStateStyle(nil, {0.4,0.4,0.4,1}, nil, Utils.UI_COLORS.SECONDARY_TEXT),
+    on_click = function() print("clicked") end,
 })
 ```

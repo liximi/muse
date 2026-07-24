@@ -1,19 +1,19 @@
 # Text
 
-A text rendering component with support for coloredtext, automatic word wrap, and alignment.
+Text rendering component. Supports coloredtext, word wrap, multi-directional alignment, and overflow clipping.
 
-**Inheritance chain:** `Widget` → `Text`
+**Inheritance:** `Widget` → `Text`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    text = string | table,        -- text content; also supports coloredtext format: {color1, str1, color2, str2, ...}
-    font_key = string,            -- font registry key, default "default"
-    font_size = number,           -- font size, default 16
-    text_color = {r, g, b, a},    -- text color, defaults to theme.text.text_color
-    h_align = string,             -- horizontal alignment: "left" | "right" | "center" | "justify", default "left"
-    v_align = string,             -- vertical alignment: "top" | "bottom" | "center", default "top"
+    text = string | table,        -- Text content; also supports coloredtext: {color1, str1, color2, str2, ...}
+    font_key = string,            -- Font key, default from theme
+    font_size = number,           -- Font size, default from theme (16)
+    text_color = {r, g, b, a},    -- Text color, default from theme
+    h_align = string,             -- "left" | "right" | "center" | "justify", default "left"
+    v_align = string,             -- "top" | "bottom" | "center", default "top"
 }
 ```
 
@@ -21,48 +21,48 @@ A text rendering component with support for coloredtext, automatic word wrap, an
 
 | Method | Description |
 |--------|-------------|
-| `setText(text)` | Set text content (supports coloredtext) |
-| `getText(only_string)` | Get text; `only_string=true` extracts a plain string from coloredtext |
+| `setText(text)` | Set text content (triggers `updateTextLayout()`) |
+| `getText(only_string)` | Get text; `only_string=true` extracts plain string from coloredtext |
 | `setTextColor(color)` | Set text color `{r, g, b, a}` |
-| `getTextColor()` | Get text color |
 | `setFont(font_key, size)` | Set font (must be registered in `ui/fonts.lua`) |
-| `getFont(return_key)` | Get font object; `return_key=true` returns the key string |
 | `setFontSize(size)` | Set font size |
-| `getFontSize()` | Get font size |
-| `setHAlign(align)` | Set horizontal alignment |
-| `setVAlign(align)` | Set vertical alignment |
+| `setHAlign(align)` / `setVAlign(align)` | Set alignment |
 | `setWrapMode(mode)` | Set wrap mode: `"off"` or `"default"` |
-| `getDimensions()` | Get rendered text dimensions `w, h` |
-| `getMinimumSize()` | Returns the minimum natural text size (unwrapped full width × one line height) |
-| `getDesiredSize()` | Same as `getMinimumSize()` (desired natural width = unwrapped full width) |
-| `getScaledDimensions()` | Get locally scaled dimensions |
-| `getGlobalScaledDimensions()` | Get globally scaled dimensions |
-| `getSize()` | Same as `getDimensions()` |
-| `getScaledSize()` | Same as `getScaledDimensions()` |
-| `getGlobalScaledSize()` | Same as `getGlobalScaledDimensions()` |
-| `measure(max_w, max_h)` | Query natural size `{w, h}`; returns wrapped size when a width constraint is given |
-| `updateTextLayout()` | Force-refresh text layout |
+| `getDimensions()` | Get rendered texture dimensions `w, h` |
+| `measure(max_w, max_h)` | Query natural size with width constraint |
+| `updateTextLayout()` | Force rebuild layout |
+
+## Minimum & Desired Size
+
+Text overrides `getMinimumSize()` and `getDesiredSize()`:
+
+| Method | Wrap Off | Wrap On |
+|--------|----------|---------|
+| `getMinimumSize()` | Full text width × line height | Width=1 (compressible), height=current shaped height |
+| `getDesiredSize()` | Same as minimum | Current actual shaped `w, h` |
+
+This matches Godot Label behavior: with wrap on, the text tells containers "I can shrink very narrow" while desired reflects actual needed size.
 
 ## Wrap Modes
 
 | Mode | Constant | Behavior |
 |------|----------|----------|
-| Default wrap | `Utils.TEXT_WRAP_MODE.DEFAULT` | Auto-wraps using `transform.w` as the width |
-| No wrap | `Utils.TEXT_WRAP_MODE.OFF` | No wrapping; renders at the text's actual width |
+| Word wrap | `Utils.TEXT_WRAP_MODE.DEFAULT` | Wrap at `transform.w` width |
+| No wrap | `Utils.TEXT_WRAP_MODE.OFF` | Render at actual text width |
 
-> **Note**: When wrapping is OFF, `measure()` may still use a different width constraint.
-> In single-line inputs, both `wrap_mode=OFF` and correct width constraint in `measure()` are needed.
+## Overflow Mode
 
-## Important Edge Cases
+```lua
+Utils.TEXT_OVERFLOW_MODE.NONE  -- Don't clip (default)
+Utils.TEXT_OVERFLOW_MODE.CHAR  -- Clip per-character, append ellipsis
+```
 
-- **`transform.w/h` defaults to 0**: Text stores dimensions in `love.graphics.Text`, not in transform.
-  `getGlobalAABB()` reads `self.w/h` (=0), but Text overrides `Widget:getCullAABB()` using
-  `getGlobalScaledSize()` (virtual, returns actual text size), so culling and hit detection work correctly.
-  However, debug boxes (`drawBound`) still show zero-area for Text
-- **Right-alignment with `pivot`+`anchor` requires manual width**: `transform.w=0` breaks `pivot={1,0}` etc.
-  Use `font:getWidth(text)` to measure first, then set `x` offset
+## Key Edge Cases
 
-## Examples
+- **`transform.w/h` defaults to 0**: Text stores size in the `love.graphics.Text` object, not in transform. `getCullAABB()` is overridden to use actual text dimensions, so clipping and collision work correctly. Debug bounding boxes may show zero area.
+- **Wrap width fallback**: When `transform.w <= 0`, `updateTextLayout()` fallbacks to full text width.
+
+## Example
 
 ```lua
 local label = Text({
@@ -74,11 +74,19 @@ local label = Text({
     anchor = {0, 0, 1, 1},
 })
 
--- coloredtext format
+-- Colored text
 local colored = Text({
     text = {
-        {1, 0.5, 0.5, 1}, "Red text ",
-        {0.5, 0.5, 1, 1}, "Blue text",
+        {1, 0.5, 0.5, 1}, "Red ",
+        {0.5, 0.5, 1, 1}, "Blue",
     },
+})
+
+-- Wrapped
+local wrapped = Text({
+    text = "A very long text that wraps",
+    wrap_mode = Utils.TEXT_WRAP_MODE.DEFAULT,
+    anchor = {0, 0, 1, 0},
+    h = 60,
 })
 ```

@@ -1,34 +1,37 @@
-# Scroll (ScrollContainer)
+# Scroll
 
-A scroll container providing a clipped scrollable view with support for horizontal/vertical scrolling, scrollbars, and tween animations.
+Scroll container with scissor clipping. Supports horizontal/vertical scrolling, scrollbars, tween animations, and auto content size tracking.
 
-**Inheritance chain:** `Widget` → `Scroll`
+**Inheritance:** `Widget` → `Scroll`
+
+> Scroll is not a Container subclass — it manages content through an internal `scroll_root` Widget. Content is set via `setItem()`.
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    item = Widget,                    -- child widget to scroll (required)
-    enable_scroll_h = boolean,        -- enable horizontal scrolling, default false
-    enable_scroll_v = boolean,        -- enable vertical scrolling, default true
+    item = Widget,                    -- Content widget
+    enable_scroll_h = boolean,        -- Enable horizontal scroll, default false
+    enable_scroll_v = boolean,        -- Enable vertical scroll, default true
 
-    sensitivity = number,             -- mouse wheel sensitivity (pixels), default 100
-    scrollable_w = number,            -- horizontal scrollable width (pixels)
-    scrollable_h = number,            -- vertical scrollable height (pixels)
-    auto_track = boolean,             -- auto-track content size changes and update scrollable range, default true
+    sensitivity = number,             -- Wheel sensitivity (px), default 100
+    scrollable_w = number,            -- Horizontal scrollable width
+    scrollable_h = number,            -- Vertical scrollable height
+    auto_track = boolean,             -- Auto-track content size changes, default true
 
-    show_slider_bar = boolean,        -- whether to show scrollbars, default true
-    hide_slider_when_cannot_scroll = boolean,  -- hide scrollbars when not scrollable, default false
-    h_slider_bar_height = number,     -- horizontal scrollbar height, default 8
-    v_slider_bar_width = number,      -- vertical scrollbar width, default 8
-    scrollbar_gap = number,           -- gap between scrollbar and content, default 2
-    v_bar_pad_top = number,           -- vertical scrollbar top padding, default 0
-    v_bar_pad_bottom = number,        -- vertical scrollbar bottom padding, default 0
-    h_bar_pad_left = number,          -- horizontal scrollbar left padding, default 0
-    h_bar_pad_right = number,         -- horizontal scrollbar right padding, default 0
-    v_bar_min_h = number,             -- vertical scrollbar minimum height, default 0 (no limit)
-    h_bar_min_w = number,             -- horizontal scrollbar minimum width, default 0 (no limit)
-    block_min_len = number,           -- thumb minimum length, default 0 (no limit)
+    show_slider_bar = boolean,        -- Show scrollbar, default true
+    hide_slider_when_cannot_scroll = boolean,  -- Hide when not scrollable, default false
+    h_slider_bar_height = number,     -- Horizontal scrollbar height, default 8
+    v_slider_bar_width = number,      -- Vertical scrollbar width, default 8
+    scrollbar_gap = number,           -- Scrollbar gap from content, default 2
+
+    v_bar_pad_top = number,           -- Vertical scrollbar top padding
+    v_bar_pad_bottom = number,        -- Vertical scrollbar bottom padding
+    h_bar_pad_left = number,          -- Horizontal scrollbar left padding
+    h_bar_pad_right = number,         -- Horizontal scrollbar right padding
+    v_bar_min_h = number,             -- Vertical scrollbar minimum height
+    h_bar_min_w = number,             -- Horizontal scrollbar minimum width
+    block_min_len = number,           -- Minimum slider length
 }
 ```
 
@@ -36,47 +39,56 @@ A scroll container providing a clipped scrollable view with support for horizont
 
 | Method | Description |
 |--------|-------------|
-| `setItem(item)` | Set the content widget to scroll |
-| `setXOffset(offset, tween)` | Set horizontal scroll offset (tween=true enables easing animation) |
-| `setYOffset(offset, tween)` | Set vertical scroll offset |
-| `setScrollableW(w)` | Set horizontal scrollable width (auto-updates thumb ratio) |
-| `setScrollableH(h)` | Set vertical scrollable height |
-| `updateHBlockLengthPercent()` | Update horizontal thumb length ratio |
-| `updateVBlockLengthPercent()` | Update vertical thumb length ratio |
+| `setItem(item)` | Set scrollable content |
+| `setXOffset(offset, tween)` / `setYOffset(offset, tween)` | Set scroll offset |
+| `setScrollableW(w)` / `setScrollableH(h)` | Set scrollable range |
+| `updateHBlockLengthPercent()` / `updateVBlockLengthPercent()` | Update slider ratio |
 | `getMinimumSize()` | Returns own transform size |
 
-## auto_track (Auto-Track Content Size)
+## auto_track
 
-Enabled by default. `onUpdate` polls `item`'s `transform.w/h` each frame, auto-updating `scrollable_w/h` + thumb ratios.
-Content shrinking auto-corrects out-of-bounds offsets. Set to `false` to fall back to manual `setScrollableW/H`.
+Enabled by default. Each frame in `onUpdate`, polls `item`'s `transform.w/h` and updates scrollable range + slider ratio automatically. Clamps overshooting offsets when content shrinks.
 
-## Scrollbar Minimum Size Constraint
+## Scissor Clipping
 
-When `v_bar_min_h > 0` or `h_bar_min_w > 0`, if the track space is insufficient, the system proportionally reduces scrollbar end margins to ensure the minimum size is met.
+- Managed in `scroll_root`'s `onDraw`/`onPostDraw` closures (not on Scroll itself).
+- Nested Scrolls compute intersection manually since `love.graphics.setScissor` replaces rather than intersects.
+- CPU-side culling: `_clip_rect` expanded by 1px tolerance, only skips elements fully outside.
 
 ## Interaction
 
-- Mouse wheel scrolls up/down within the Scroll area
-- Mouse wheel sensitivity: 100px (customizable via `sensitivity`)
-- Dragging the scrollbar thumb enables fast positioning
-
-## Edge Cases
-
-- **Content MUST be set via `setItem()`**: Direct `addChild` to Scroll does NOT enter the internal `scroll_root`,
-  so scrolling and clipping will not work. Correct usage: `scroll:setItem(content)`
-- **Partially visible elements are not culled**: `_clip_rect` is expanded by 1px on each side.
-  AABB culling only skips subtrees that have **zero overlap** with the clip region
-- Scrollbar thumbs have `block_min_len` constraints; insufficient track space scales edge padding proportionally
+- Mouse wheel scrolls vertically (100px per tick by default)
+- Drag scrollbar slider for fast positioning
+- `onWheelMoved` returns `true` — nested Scrolls scroll independently
+- Mouse events only pass to content when within the visible area
 
 ## Example
 
 ```lua
-local content = Widget({h = 800})  -- content taller than the container
+-- Basic
+local content = Widget({h = 800})
 local scroll = Scroll({
     item = content,
     anchor = {0, 0, 1, 1},
-    padding = {0, 8, 0, 0},  -- reserve right-side space for the scrollbar
-    hide_slider_when_cannot_scroll = true,
+    padding = {0, 8, 0, 0},
 })
 scroll:setScrollableH(800)
+
+-- auto_track + VBox
+local VBoxContainer = require "ui.widgets.containers.box_v_container"
+local list = VBoxContainer({ auto_size = true, separation = 4 })
+for i = 1, 50 do
+    list:addChild(Button({ text = "Item " .. i, h = 32 }))
+end
+local scroll = Scroll({
+    item = list,
+    anchor = {0, 0, 1, 1},
+})
+-- No manual setScrollableH needed; auto_track follows VBox height
 ```
+
+## Best Practices
+
+- **Content must be set via `setItem()`**: direct `addChild` to Scroll bypasses `scroll_root`; scrolling and clipping break.
+- **VBox in Scroll needs `anchor = {0, 0, 1, 0}`**: fill scroll_root horizontally, height determined by content.
+- **Nested Scroll wheel isolation**: inner and outer Scrolls handle wheel independently.

@@ -12,11 +12,11 @@
     orientation = string,         -- 方向："horizontal"（默认）| "vertical"
     fill_color = {r, g, b, a},    -- 填充色，默认来自 theme.progressbar.fill_color
     bg_color = {r, g, b, a},      -- 背景色，默认来自 theme.progressbar.bg_color
-    rounding_radius = number,     -- 圆角半径，默认 4
+    rounding_radius = number,     -- 圆角半径，默认来自 theme（4）
 
     -- 交互模式
     interactive = boolean,           -- 是否允许用户手动调节，默认 false
-    thumb_radius = number,           -- 滑块圆点半径（像素），默认自动计算（取薄边一半的 1.2 倍，最小 5px）
+    thumb_radius = number,           -- 滑块圆点半径（像素），默认自动计算（薄边一半的 1.2 倍，最小 5px）
     thumb_color = {r, g, b, a},      -- 滑块颜色，默认等于 fill_color
     thumb_outline_color = {r, g, b, a},  -- 滑块描边色，默认 nil（不描边）
     thumb_outline_width = number,    -- 滑块描边宽度，默认 2
@@ -31,16 +31,17 @@
 | `setValue(v)` | 设置进度值（0~1，自动 clamp），交互模式下触发 `on_value_changed` |
 | `setProgress(v)` | `setValue` 的别名 |
 | `getValue()` | 获取当前进度值 |
+| `getMinimumSize()` | 水平条返回 `(0, max(h, 8))`，垂直条返回 `(max(w, 10), max(h, 30))` |
 
 ## 交互模式
 
 当 `interactive = true` 时：
 
-- **点击轨道** — 进度直接跳转到点击位置
-- **拖拽滑块** — 实时跟随鼠标更新值
-- **鼠标悬停滑块** — 光标变为手型
-- **滑块外观** — 在填充条末端显示一个圆形拖拽把手，支持自定义半径和颜色
+- **点击/拖拽** — 在 progress bar 区域内按下鼠标即更新进度值，拖拽时实时跟随
+- **鼠标悬停滑块** — 光标变为手型（hand）
+- **滑块外观** — 在填充条末端显示一个圆形拖拽把手，半径和颜色可自定义
 - **回调通知** — 值变化时触发 `on_value_changed(value)`
+- **hover 检测** — 自动混入 `Components.addHoverState`，支持 `onHovered` 回调
 
 ## 示例
 
@@ -52,7 +53,7 @@ local static = ProgressBar({
     h = 12,
 })
 
--- 可交互进度条（音量调节）
+-- 可交互进度条（音乐播放进度）
 local vol = ProgressBar({
     value = 0.8,
     interactive = true,
@@ -78,6 +79,6 @@ local v = ProgressBar({
     end,
 })
 
--- 更新进度
+-- 编程更新
 static:setValue(0.75)
 ```

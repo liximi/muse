@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.EN.md)
 
-**Muse** — a desktop-grade UI framework for the [LÖVE](https://love2d.org/) game engine, written in Lua. It implements a complete widget system including a layout engine, theme system, text input, scrollable lists, Flexbox layout, and more.
+**Muse** — a desktop-grade UI framework for the [LÖVE](https://love2d.org/) game engine, written in Lua. Its layout system is modeled after the [Godot](https://godotengine.org/) engine's Container architecture, providing BoxContainer, MarginContainer, CenterContainer and SizeFlags child layout flags. It also implements a complete widget system including a theme system, text input, scrollable lists, and more.
 
 > This library makes extensive use of LLM-generated code. Please evaluate the risks before using it in production.
 
@@ -186,9 +186,13 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 |-----------|-------------|---------------|
 | **Modal** | Modal dialog with fullscreen semi-transparent overlay + centered content, closes on Escape / outside click | [docs/en/modal.md](docs/en/modal.md) |
 | **TabView** | Tabbed view with top Button bar + content panel below | [docs/en/tabview.md](docs/en/tabview.md) |
-| **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations | [docs/en/scroll.md](docs/en/scroll.md) |
-| **List** | Linear list container; children arranged sequentially along the main axis, auto-layout | [docs/en/list.md](docs/en/list.md) |
-| **Box** | Flexbox-style layout container with flex_grow/shrink distribution | [docs/en/box.md](docs/en/box.md) |
+| **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations + auto content tracking | [docs/en/scroll.md](docs/en/scroll.md) |
+| **BoxContainer** | Godot-style linear layout container (HBox/VBox), three-pass allocation + SizeFlags | [docs/en/box_container.md](docs/en/box_container.md) |
+| **MarginContainer** | Margin container with configurable per-edge margins | [docs/en/margin_container.md](docs/en/margin_container.md) |
+| **CenterContainer** | Center container for centering children | [docs/en/center_container.md](docs/en/center_container.md) |
+| **Spacer** | Invisible flexible spacer widget | [docs/en/spacer.md](docs/en/spacer.md) |
+| **List** | Linear list container (legacy), sequential arrangement + diff reuse | [docs/en/list.md](docs/en/list.md) |
+| **Box** | Flexbox-style layout container (legacy, being phased out) | [docs/en/box.md](docs/en/box.md) |
 
 ### Overlay Components
 
@@ -226,7 +230,12 @@ Widget (base class)
 │       └── RadioButton
 ├── TextInput
 ├── SliderBar
+├── Container
+│   ├── BoxContainer
+│   ├── MarginContainer
+│   └── CenterContainer
 ├── Scroll
+├── Spacer
 ├── List
 ├── Box
 ├── Tooltip

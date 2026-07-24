@@ -1,20 +1,19 @@
 # Dropdown
 
-A dropdown selection component. Clicking the trigger button expands a popup option list.
+Dropdown selector with trigger button and popup option list. Supports scrolling, screen edge avoidance, and render layer management.
 
-**Inheritance chain:** `Widget` → `Dropdown`
+**Inheritance:** `Widget` → `Dropdown`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    options = {string, ...},          -- option text list
-    selected_index = number,          -- default selected index (1-based), default 1
-    on_select = function(index, value),  -- selection callback
-    max_visible_items = number,       -- maximum simultaneously visible options, default 6
-    placeholder = string,             -- placeholder text when nothing is selected
-    scrollbar_edge_pad = number,      -- scrollbar end padding (pixels), default 2
-    scroll_bottom_pad = number,       -- scroll content bottom padding (pixels), default 4
+    options = {string, ...},          -- Option texts
+    selected_index = number,          -- Default selection (1-based), default 1
+    on_select = function(index, value),
+    max_visible_items = number,       -- Max visible at once, default 6
+    scrollbar_edge_pad = number,      -- Scrollbar edge padding (px), default 2
+    scroll_bottom_pad = number,       -- Bottom extra padding (px), default 4
 }
 ```
 
@@ -22,39 +21,28 @@ A dropdown selection component. Clicking the trigger button expands a popup opti
 
 | Method | Description |
 |--------|-------------|
-| `select(index)` | Select the item at the given index (triggers `onSelect` and closes popup) |
-| `getSelectedIndex()` | Get the currently selected index |
-| `getSelectedValue()` | Get the currently selected text |
-| `setOptions(options, selected_index)` | Replace the options list |
+| `select(index)` | Select option (triggers `onSelect`, closes popup) |
+| `getSelectedIndex()` / `getSelectedValue()` | Get current selection |
+| `setOptions(options, selected_index)` | Replace options list |
+| `getMinimumSize()` | Returns own transform size |
 
-## Static Methods
+## How It Works
 
-| Method | Description |
-|--------|-------------|
-| `Dropdown.destroyAll()` | Destroy popups of all active Dropdowns (used when switching test scenes) |
-
-## Behavior
-
-- Popup is a UiManager root widget with fullscreen anchor
-- Render layer: `DROPDOWN = 80`
-- Options displayed directly when count ≤ `max_visible_items`
-- Wrapped in a Scroll container when count > `max_visible_items`
-- Popup position auto-flips to avoid screen edges (top/bottom flip, left/right alignment)
-- Clicking empty area of the popup layer dismisses it
-- Popup layer intercepts MouseMoved to prevent penetration
+- **Trigger button**: fills Dropdown area, toggles open/close on click.
+- **Popup**: root widget at `render_layer = DROPDOWN = 80`, full-screen anchor. Registered to UiManager on `onAttached`, destroyed on `onDetached`.
+- **Panel**: absolute-positioned Panel inside popup, positioned below (or above) the trigger with edge avoidance.
+- **Options**: direct Button array when ≤ `max_visible_items`; wrapped in Scroll when more.
+- **Close**: clicking popup background or selecting an option. Popup intercepts MouseMoved and WheelMoved.
 
 ## Example
 
 ```lua
 local dd = Dropdown({
-    options = {"Apple", "Banana", "Cherry", "Date", "Elderberry"},
+    options = {"Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape"},
     selected_index = 1,
     max_visible_items = 4,
-    on_select = function(index, value)
-        print("selected:", index, value)
-    end,
+    on_select = function(index, value) print("selected:", index, value) end,
     anchor = {0, 0, 0, 0},
-    w = 200,
-    h = 32,
+    w = 200, h = 32,
 })
 ```

@@ -8,12 +8,12 @@
 
 ```lua
 {
-    items = {                      -- 选项列表
-        {label = string, ...},     -- 每个 item 的 datas 会传给 RadioButton 构造
+    items = {                          -- 各选项的 datas 表，会被传给 RadioButton 构造
+        {label = string, ...},
         ...
     },
-    selected_index = number,       -- 初始选中项索引（1-based）
-    on_selection_changed = function(index),  -- 选中变更回调
+    selected_index = number,           -- 初始选中项索引（1-based）
+    on_selection_changed = function(index),  -- 选中变化回调
 }
 ```
 
@@ -22,18 +22,22 @@
 | 方法 | 说明 |
 |------|------|
 | `setItems(items, selected_index)` | 设置选项列表，重建所有 RadioButton |
-| `getSelected()` | 返回当前选中索引 |
+| `getSelected()` | 获取当前选中索引 |
 | `setSelected(index)` | 编程式设置选中项 |
-
-## 自动布局
-
-RadioGroup 自动垂直排列 RadioButton：
-- 每个按钮高度：28px
-- 按钮间距：4px
+| `getMinimumSize()` | 返回自身 transform 尺寸 |
 
 ## 互斥机制
 
-当任一按钮被选中时，自动取消其他按钮的选中状态。通过 `_handling` 守卫防止级联反选。
+每个 RadioButton 的 `on_checked` 回调被注入为 `_onButtonChecked(i)`，该方法：
+
+1. 用 `_handling` 守卫防止级联反选。
+2. 将其他所有按钮设为 `setChecked(false)`。
+3. 更新 `_selected_index`。
+4. 触发 `onSelectionChanged` 回调。
+
+## 自动布局
+
+`setItems()` 中每个 RadioButton 默认垂直排列（`item_h = 28`，`spacing = 4`），也可通过 `datas.anchor` / `datas.padding` 手动覆盖。
 
 ## 示例
 
@@ -48,7 +52,8 @@ local group = RadioGroup({
     on_selection_changed = function(index)
         print("selected:", index)
     end,
-    anchor = {0, 0, 1, 0},
-    h = 100,
 })
+
+-- 编程设置
+group:setSelected(2)
 ```

@@ -1,17 +1,20 @@
 # Container (Base Class)
 
-Base class for all containers. Children entering a Container surrender positioning control — the container manages their positions and sizes via `_sortChildren()`.
+Base class for all containers. Children inside a Container surrender their own positioning rights — the container manages their positions and sizes uniformly.
 
-**Inheritance chain:** `Widget` → `Container`
+**Inheritance:** `Widget` → `Container`
 
-`addChild` / `removeChild` automatically trigger re-sort. Subclasses only need to override `_sortChildren()`, calling `fitChildInRect(child, x, y, w, h)` to position each child.
+## Core Contract
+
+- `addChild` / `removeChild` auto-trigger `queueSort()`. The next frame's `_preChildrenUpdate` calls `_sortChildren()`.
+- Subclasses override `_sortChildren()` and call `fitChildInRect(child, x, y, w, h)` to position each child.
+- Containers override `_preChildrenUpdate` (not `onUpdate`), ensuring sorting happens before children update.
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    auto_size = boolean,     -- auto-adjust size along main axis after each sort, default false
-    -- ... also inherits all Widget base class parameters
+    auto_size = boolean,     -- Auto-resize to children's min size after each sort, default false
 }
 ```
 
@@ -19,58 +22,47 @@ Base class for all containers. Children entering a Container surrender positioni
 
 | Method | Description |
 |--------|-------------|
-| `queueSort()` | Mark dirty, auto-calls `_sortChildren()` next frame in `_preChildrenUpdate` |
-| `fitChildInRect(child, x, y, w, h)` | Place child in the given rectangle, following its `h_size_flags` / `v_size_flags` for Fill/Shrink behavior |
-| `_sortChildren()` | Override in subclass to implement layout algorithm |
-| `getMinimumSize()` | Override in subclass to report minimum container size. Default returns own transform size |
-| `_getChildrenMinSize()` | Returns pure child-derived minimum size (without container cap), for change detection |
-| `auto_size` | Property; when enabled, auto-resizes along main axis after each sort |
+| `queueSort()` | Mark dirty; next frame's `_preChildrenUpdate` calls `_sortChildren()` |
+| `fitChildInRect(child, x, y, w, h)` | Place child in a rectangle, honoring its `h_size_flags` / `v_size_flags` |
+| `_visibleChildren()` | Return visible (`isShown() == true`) children |
 
-## SizeFlags — Child Layout Intent
+### Methods to Override
 
-Each Widget holds `h_size_flags`, `v_size_flags` (default `FILL`), and `stretch_ratio` (default 1.0):
-
-| Flag | Value | Meaning |
-|------|-------|---------|
-| `SHRINK_BEGIN` | 0 | Keep minimum size, align to start (default) |
-| `FILL` | 1 | Fill the allocated area |
-| `EXPAND` | 2 | Grab remaining space |
-| `SHRINK_CENTER` | 4 | Center within allocated area (disable FILL first) |
-| `SHRINK_END` | 8 | Align end within allocated area (disable FILL first) |
-
-Bit check: `Utils.hasFlag(flags, flag)`.
-
-### Example: Set child behavior in containers
-
-```lua
--- Let child grab remaining space
-child.h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
-child.stretch_ratio = 2.0  -- takes 2 shares when dividing
-
--- Keep minimum size, center in area
-child.h_size_flags = Utils.SIZE_FLAGS.SHRINK_CENTER  -- note: this disables FILL
-child:setCustomMinimumSize(100, nil)
-```
+| Method | Description |
+|--------|-------------|
+| `_sortChildren()` | Implement the layout algorithm |
+| `getMinimumSize()` | Report container minimum size. Default: own transform size |
+| `_getChildrenMinSize()` | Pure child-derived minimum size (no container cap), used for change detection |
 
 ## fitChildInRect Behavior
 
 ```
 FILL: child fills the allocated rectangle (default)
-Non-FILL: child keeps minimum size, positioned by SHRINK_BEGIN/CENTER/END within the area
+Non-FILL: child keeps minimum size, positioned per SHRINK_BEGIN/CENTER/END
 ```
-
-All Widgets default to `h_size_flags = FILL`, `v_size_flags = FILL`.
 
 ## Change Detection
 
-`_preChildrenUpdate` polls `_getChildrenMinSize()` each frame. Re-sorts when the container size or child minimum sizes change.
+`_preChildrenUpdate` polls each frame. Triggers resort on:
+1. `_dirty` flag (set by `queueSort()`)
+2. Container size change
+3. `_getChildrenMinSize()` change
+
+Uses `_getChildrenMinSize()` instead of `getMinimumSize()` to avoid BoxContainer's `math.max(children, container_size)` masking child growth when the container itself is large.
+
+## auto_size
+
+When enabled, the container adjusts its own size along the main axis to match `_getChildrenMinSize()` after each resort. Requires subclasses to set `_auto_size_axis`.
 
 ## Example: Custom Container
 
 ```lua
 local Container = require "ui.widgets.containers.container"
+local Class = require "dependencies.classic"
+
 local MyContainer = Class(Container, function(self, datas, theme)
     Container.new(self, "MyContainer", datas, theme)
+    self._auto_size_axis = "v"
 end)
 
 function MyContainer:getMinimumSize()

@@ -1,29 +1,25 @@
 # Checkbox
 
-A checkbox component supporting two visual styles: square + checkmark and sliding toggle.
+Checkbox component supporting square+checkmark and sliding toggle styles.
 
-**Inheritance chain:** `Widget` → `ButtonBase` → `Checkbox`
+**Inheritance:** `Widget` → `ButtonBase` → `Checkbox`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    checked = boolean,            -- initial checked state, default false
-    style = "checkbox" | "toggle", -- visual style, default "checkbox"
-    box_size = number,            -- box size (pixels), default 20
-    box_color = {r, g, b, a},     -- box color
-    check_color = {r, g, b, a},   -- checkmark / track color
-    outline_width = number,       -- outline width, default 1
-    outline_color = {r, g, b, a}, -- outline color
-    rounding_radius = number,     -- corner radius, default 3
-
-    on_checked = function(checked),  -- checked-state change callback
-    on_click = function(),           -- click callback (inherited from ButtonBase)
-    on_pressed = function(x, y),     -- press callback
-
-    label = string | table,       -- optional label text (coloredtext)
-    label_color = {r, g, b, a},   -- label color
-    label_font_size = number,     -- label font size
+    checked = boolean,            -- Initial state, default false
+    style = "checkbox" | "toggle", -- Default "checkbox"
+    box_size = number,            -- Box size, default from theme (20)
+    box_color = {r, g, b, a},     -- Box fill color
+    check_color = {r, g, b, a},   -- Checkmark / active track color
+    outline_width = number,       -- Default 1
+    outline_color = {r, g, b, a},
+    rounding_radius = number,     -- Default 3
+    on_checked = function(checked),
+    label = string | table,       -- Label text (supports coloredtext)
+    label_color = {r, g, b, a},
+    label_font_size = number,
 }
 ```
 
@@ -31,33 +27,33 @@ A checkbox component supporting two visual styles: square + checkmark and slidin
 
 | Method | Description |
 |--------|-------------|
-| `isChecked()` | Return whether currently checked |
-| `setChecked(checked)` | Programmatically set checked state |
-| `toggle()` | Toggle the checked state |
+| `isChecked()` | Get logical checked state |
+| `setChecked(checked)` | Programmatically set state (triggers `onChecked`) |
+| `toggle()` | Toggle state |
+| `getMinimumSize()` | Returns own transform size |
 
-## Style Descriptions
+## Styles
 
-- **checkbox** — square box + checkmark shown when checked
-- **toggle** — sliding switch, track width is `box_size * 1.8`
+### checkbox (default)
 
-## Examples
+Square box with checkmark (polyline) when checked.
+
+### toggle
+
+Capsule-shaped track with circular knob. Track turns `check_color` when active. Knob color from `theme.checkbox.knob_color`.
+
+## Example
 
 ```lua
--- Square checkbox
 local cb = Checkbox({
     label = "Enable feature",
     checked = true,
-    on_checked = function(checked)
-        print("checked:", checked)
-    end,
+    on_checked = function(checked) print("enabled:", checked) end,
 })
 
--- Sliding toggle
 local toggle = Checkbox({
     style = "toggle",
-    checked = false,
-    on_checked = function(checked)
-        print("toggled:", checked)
-    end,
+    label = "Dark mode",
+    on_checked = function(checked) setDarkMode(checked) end,
 })
 ```

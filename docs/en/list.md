@@ -1,16 +1,18 @@
-# List (ListContainer)
+# List
 
-A linear list container whose children are arranged sequentially along the main axis.
+Linear list container arranging children sequentially along an axis. Supports efficient diff-based updates via `updateItems`.
 
-**Inheritance chain:** `Widget` → `List`
+**Inheritance:** `Widget` → `List`
+
+> List is a direct Widget subclass, not a Container. For new code prefer `BoxContainer`; use List when you need `updateItems` diff reuse (e.g., chat_history).
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    orientation = "vertical" | "horizontal",  -- layout direction, default "vertical"
-    items = {Widget, ...},       -- initial list of child elements
-    space = number,              -- spacing between elements (pixels), default 8
+    orientation = "vertical" | "horizontal",  -- Default "vertical"
+    items = {Widget, ...},   -- Initial children
+    space = number,          -- Spacing (px), default 8
 }
 ```
 
@@ -18,46 +20,32 @@ A linear list container whose children are arranged sequentially along the main 
 
 | Method | Description |
 |--------|-------------|
-| `setItems(items)` | Set child element list (**destroys old widgets** — state like button pressed, focus/selection is lost) |
-| `updateItems(data, keyFn, createFn, updateFn)` | **Recommended**: diff & reuse existing widgets. See below |
-| `insert(item, pos)` | Insert an element at the given position (pos optional, defaults to end) |
-| `remove(item)` | Remove the specified element |
-| `removeAtPos(pos)` | Remove the element at the given position and return it |
-| `layout()` | Manually trigger layout calculation |
+| `setItems(items)` | Full replacement (destroys old state) |
+| `updateItems(newData, keyFn, createFn, updateFn)` | Diff reuse update (preserves widget state) |
+| `insert(item, pos)` | Insert child |
+| `remove(item)` / `removeAtPos(pos)` | Remove child |
 
-### updateItems — Recommended Update Method
+## updateItems — Diff Reuse
 
 ```lua
-list:updateItems(
-    newData,                          -- new data array
-    function(item) return item.id end,  -- keyFn: extract unique key (optional, defaults to reference identity)
-    function(item) return Button({ text = item.label }) end,  -- createFn: create new widget
-    function(widget, item) widget:setText(item.label) end     -- updateFn: update existing widget (optional)
+list:updateItems(newData, keyFn, createFn, updateFn)
+-- keyFn: function(data) -> key  (nil = use data reference as key)
+-- createFn: function(data) -> Widget  (required)
+-- updateFn: function(widget, data)  (optional, nil = no update)
+```
+
+Example:
+```lua
+list:updateItems(buttons_data,
+    function(d) return d.id end,
+    function(d) return Button({ text = d.label }) end,
+    function(w, d) w:setText(d.label) end
 )
 ```
 
-Flow: match existing widgets by key → reuse & call `updateFn` in-place → create new via `createFn` for unmatched → remove surplus. Reused widgets preserve state (button pressed, focus, selection).
+## layout Mechanism
 
-> **Do NOT call `setItems` every frame**: it rebuilds all children each frame, destroying button state,
-> TextInput focus/cursor/selection. Use `updateItems` instead when data changes.
-
-## Auto Layout
-
-- Children are arranged sequentially along the main axis with spacing `space`
-- Container size automatically equals the sum of all child sizes + spacing
-- Auto re-layout when child sizes change (detected via `measure()` each frame)
-
-## Convenience Constructors
-
-```lua
--- Vertical list
-local ListV = require "ui.widgets.containers.list_v_container"
-local list = ListV({space = 4})
-
--- Horizontal list
-local ListH = require "ui.widgets.containers.list_h_container"
-local list = ListH({space = 8})
-```
+`layout()` positions children along the main axis using `measure()` for natural sizes. `onUpdate` polls child size changes and re-layouts on change. List's own size is set to the total children size.
 
 ## Example
 
@@ -65,13 +53,7 @@ local list = ListH({space = 8})
 local list = List({
     orientation = "vertical",
     space = 4,
-    items = {
-        Button({text = "Item 1", h = 30}),
-        Button({text = "Item 2", h = 30}),
-        Button({text = "Item 3", h = 30}),
-    },
+    items = { Button({ text = "A" }), Button({ text = "B" }) },
 })
-
--- Dynamic append
-list:insert(Button({text = "Item 4", h = 30}))
+list:insert(Button({ text = "C" }))
 ```

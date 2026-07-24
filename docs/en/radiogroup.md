@@ -1,19 +1,16 @@
 # RadioGroup
 
-A radio button group that manages mutual exclusion among a set of RadioButtons.
+Manages mutual exclusion among a group of RadioButtons.
 
-**Inheritance chain:** `Widget` → `RadioGroup`
+**Inheritance:** `Widget` → `RadioGroup`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    items = {                      -- list of options
-        {label = string, ...},     -- each item's datas is passed to the RadioButton constructor
-        ...
-    },
-    selected_index = number,       -- initially selected item index (1-based)
-    on_selection_changed = function(index),  -- selection change callback
+    items = {{label = string, ...}, ...},  -- Option datas passed to RadioButton
+    selected_index = number,
+    on_selection_changed = function(index),
 }
 ```
 
@@ -21,19 +18,14 @@ A radio button group that manages mutual exclusion among a set of RadioButtons.
 
 | Method | Description |
 |--------|-------------|
-| `setItems(items, selected_index)` | Set option list, rebuilding all RadioButtons |
-| `getSelected()` | Return the currently selected index |
-| `setSelected(index)` | Programmatically set the selected item |
+| `setItems(items, selected_index)` | Rebuild RadioButtons |
+| `getSelected()` | Get selected index |
+| `setSelected(index)` | Programmatically select |
+| `getMinimumSize()` | Returns own transform size |
 
-## Auto Layout
+## Mutual Exclusion
 
-RadioGroup automatically arranges RadioButtons vertically:
-- Each button height: 28px
-- Button spacing: 4px
-
-## Mutual Exclusion Mechanism
-
-When any button is selected, all other buttons are automatically deselected. A `_handling` guard prevents cascading deselection.
+Each RadioButton's `on_checked` callback fires `_onButtonChecked(i)`, which deselects all other buttons and updates `_selected_index`. A `_handling` guard prevents cascading toggles.
 
 ## Example
 
@@ -45,10 +37,6 @@ local group = RadioGroup({
         {label = "Option C"},
     },
     selected_index = 1,
-    on_selection_changed = function(index)
-        print("selected:", index)
-    end,
-    anchor = {0, 0, 1, 0},
-    h = 100,
+    on_selection_changed = function(index) print("selected:", index) end,
 })
 ```

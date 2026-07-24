@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.EN.md)
 
-**缪斯** 是基于 [LÖVE](https://love2d.org/) 游戏引擎的桌面级 UI 框架，使用 Lua 编写。实现了一套完整的 widget 系统，包括布局引擎、主题系统、文本输入、滚动列表、Flexbox 布局等功能。
+**缪斯** 是基于 [LÖVE](https://love2d.org/) 游戏引擎的桌面级 UI 框架，使用 Lua 编写。Muse 的布局系统模仿了 [Godot](https://godotengine.org/) 引擎的 Container 体系，提供 BoxContainer、MarginContainer、CenterContainer 等容器组件以及 SizeFlags 子控件布局标志。此外还实现了完整的 widget 系统，包括主题系统、文本输入、滚动列表等功能。
 
 > 本库大量使用了 LLM 生成代码，请自行评估使用风险。
 
@@ -186,9 +186,13 @@ end
 |------|------|------|
 | **Modal** | 模态框，全屏半透明遮罩 + 居中内容，Escape/点击外部关闭 | [docs/modal.md](docs/modal.md) |
 | **TabView** | 标签页视图，顶部 Button 栏 + 下方内容面板 | [docs/tabview.md](docs/tabview.md) |
-| **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 | [docs/scroll.md](docs/scroll.md) |
-| **List** | 线性列表容器，子元素按主轴依次排列，自动布局 | [docs/list.md](docs/list.md) |
-| **Box** | Flexbox 式布局容器，flex_grow/shrink 伸缩分配 | [docs/box.md](docs/box.md) |
+| **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
+| **BoxContainer** | Godot 风格线性排列容器（HBox/VBox），三趟分配算法 + SizeFlags | [docs/box_container.md](docs/box_container.md) |
+| **MarginContainer** | 四边距容器 | [docs/margin_container.md](docs/margin_container.md) |
+| **CenterContainer** | 居中容器 | [docs/center_container.md](docs/center_container.md) |
+| **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
+| **List** | 线性列表容器（旧版，逐步废弃），子元素按主轴依次排列 + diff 复用 | [docs/list.md](docs/list.md) |
+| **Box** | Flexbox 式布局容器（旧版，逐步废弃） | [docs/box.md](docs/box.md) |
 
 ### 浮层组件
 
@@ -226,7 +230,12 @@ Widget (基类)
 │       └── RadioButton
 ├── TextInput
 ├── SliderBar
+├── Container
+│   ├── BoxContainer
+│   ├── MarginContainer
+│   └── CenterContainer
 ├── Scroll
+├── Spacer
 ├── List
 ├── Box
 ├── Tooltip

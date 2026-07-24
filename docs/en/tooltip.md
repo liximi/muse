@@ -1,18 +1,20 @@
 # Tooltip
 
-A mouse hover tooltip component that appears after hovering over a target widget for a specified delay.
+Mouse hover tooltip. Shows a floating text label after hovering over a target widget for a configurable delay.
 
-**Inheritance chain:** `Widget` → `Tooltip`
+**Inheritance:** `Widget` → `Tooltip`
+
+> Tooltip is a parentless UiManager root widget (`render_layer = TOOLTIP = 100`), auto-registered in the constructor.
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    target = Widget,              -- target widget (required)
-    text = string,                -- tooltip text
-    delay = number,               -- hover delay (seconds), default 0.5
-    max_width = number,           -- maximum text width (pixels), default 250
-    offset = {x, y},              -- offset relative to mouse cursor (pixels), default {12, 18}
+    target = Widget,       -- Target widget (required)
+    text = string,         -- Tooltip text
+    delay = number,        -- Hover delay in seconds, default 0.5
+    max_width = number,    -- Max text width (wraps if exceeded), default 250
+    offset = {x, y},       -- Offset from mouse (px), default {12, 18}
 }
 ```
 
@@ -21,30 +23,31 @@ A mouse hover tooltip component that appears after hovering over a target widget
 | Method | Description |
 |--------|-------------|
 | `setText(text)` | Set tooltip text |
-| `setTarget(target)` | Replace target widget |
-| `destroy()` | Destroy the tooltip and remove from UiManager |
+| `setTarget(target)` | Change target widget |
 
 ## Static Methods
 
 | Method | Description |
 |--------|-------------|
-| `Tooltip.destroyAll()` | Destroy all active Tooltips (used when switching test scenes) |
+| `Tooltip.destroyAll()` | Destroy all active Tooltips |
 
-## Behavior
+## How It Works
 
-- Renders on the topmost layer (`render_layer = TOOLTIP = 100`)
-- Registered directly with UiManager as a root widget (avoids parent container offset interference)
-- Auto-flips to avoid screen edges (flips to left/top when right/bottom space is insufficient)
-- Auto-hides when target widget is not operational
+- `onUpdate` polls mouse position against target's `regionDetection`.
+- Accumulates hover timer; shows after `delay`.
+- Hides immediately when mouse leaves target.
+- Follows mouse on move; auto-flips when near screen edges.
 
 ## Example
 
 ```lua
-local btn = Button({text = "Hover me", w = 100, h = 30})
+local Tooltip = require "ui.widgets.tooltip"
+local btn = Button({ text = "Hover me", w = 120, h = 32 })
+
 local tip = Tooltip({
     target = btn,
-    text = "This is a tooltip message",
+    text = "This button does something useful",
     delay = 0.3,
-    offset = {10, 20},
+    max_width = 200,
 })
 ```

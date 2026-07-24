@@ -1,45 +1,31 @@
 # RadioButton
 
-A radio button that inherits from Checkbox, rendered as a circular outline with a filled dot.
+Radio button inheriting Checkbox. Renders circular outline + filled dot. `style` is fixed to `"radio"`.
 
-**Inheritance chain:** `Widget` → `ButtonBase` → `Checkbox` → `RadioButton`
+**Inheritance:** `Widget` → `ButtonBase` → `Checkbox` → `RadioButton`
 
 ## Constructor Parameters (datas)
 
-In addition to all of Checkbox's parameters, the following are supported:
-
 ```lua
 {
-    circle_size = number,         -- circle size (pixels), defaults to theme
-    circle_color = {r, g, b, a},  -- circle color
-    dot_color = {r, g, b, a},     -- selected dot color
-    outline_width = number,       -- outline width
-    outline_color = {r, g, b, a}, -- outline color
-
-    -- Also inherits these Checkbox parameters:
-    checked = boolean,
-    label = string | table,
-    label_color = {r, g, b, a},
-    on_checked = function(checked),
-    on_click = function(),
+    -- Inherits all Checkbox params
+    circle_size = number,         -- Circle size, default from theme (20)
+    circle_color = {r, g, b, a},  -- Circle fill
+    dot_color = {r, g, b, a},     -- Dot color when checked
+    outline_width = number,
+    outline_color = {r, g, b, a},
 }
 ```
 
 ## Public Methods
 
-Same as Checkbox:
+Inherits all from Checkbox: `isChecked()`, `setChecked(checked)`, `toggle()`.
 
-| Method | Description |
-|--------|-------------|
-| `isChecked()` | Return whether currently selected |
-| `setChecked(checked)` | Programmatically set selected state |
-| `toggle()` | Toggle the selected state |
+## Rendering
 
-## Notes
-
-- `style` is fixed to `"radio"` and cannot be changed
-- When selected, renders a filled dot with a radius of 55% of the outer circle
-- Typically used with RadioGroup to achieve mutual exclusion
+- Circle background: `box_color` / `circle_color`
+- Outline: `outline_color` + `outline_width`
+- Checked: filled dot at `radius × 0.55` (`check_color` / `dot_color`)
 
 ## Example
 
@@ -48,7 +34,9 @@ local rb = RadioButton({
     label = "Option A",
     checked = true,
     on_checked = function(checked)
-        print("selected:", checked)
+        if checked then print("Option A selected") end
     end,
 })
 ```
+
+> Typically used within RadioGroup for mutual exclusion.

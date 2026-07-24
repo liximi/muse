@@ -1,20 +1,20 @@
 # SliderBar
 
-A slider component supporting horizontal and vertical orientation. Consists of a track background and a draggable thumb (Button).
+Slider component supporting horizontal and vertical orientation, with continuous and integer step modes.
 
-**Inheritance chain:** `Widget` → `SliderBar`
+**Inheritance:** `Widget` → `SliderBar`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    orientation = "vertical" | "horizontal",  -- orientation, default "vertical"
-    max_limit = number,           -- maximum value, default 1
-    block_length_percent = number, -- thumb length as proportion of track 0~1, default 0.1
-    block_min_len = number,       -- minimum thumb length (pixels), default 0
-    step = number,               -- step size, default 0 (continuous). >0 snaps value to step multiples
-    sensitivity = number,         -- click track / scroll wheel sensitivity, default 0.8
-    on_value_update = function(value, percent),  -- value change callback
+    orientation = "vertical" | "horizontal",  -- Default "vertical"
+    max_limit = number,           -- Maximum value, default 1
+    block_length_percent = number, -- Slider length as ratio of track, default from theme (0.1)
+    block_min_len = number,       -- Minimum slider length (px), default 0
+    step = number,               -- Step size, default 0 (continuous). >0 snaps to nearest multiple
+    sensitivity = number,         -- Track click step sensitivity, default from theme (0.8)
+    on_value_update = function(value, percent),
 }
 ```
 
@@ -22,46 +22,39 @@ A slider component supporting horizontal and vertical orientation. Consists of a
 
 | Method | Description |
 |--------|-------------|
-| `setValue(val)` | Set current value (0 ~ max_limit), does not trigger callback |
+| `setValue(val)` | Set current value (0 ~ max_limit), no callback trigger, auto-snaps |
 | `setPercent(percent)` | Set value by percentage (0~1) |
-| `setMaxLimit(max)` | Set maximum value (auto-clamps current value and triggers callback) |
-| `setBlockLengthPercent(percent)` | Set thumb length ratio (auto-clamped to 0~1) |
-| `setOnValueUpdateFn(callback_fn)` | Set the value change callback function |
+| `setMaxLimit(max)` | Set maximum value (auto-clamps and triggers callback) |
+| `setBlockLengthPercent(percent)` | Set slider length ratio |
+| `setOnValueUpdateFn(callback)` | Set value change callback |
+| `getMinimumSize()` | Returns own transform size |
 
 ## Interaction
 
 | Action | Behavior |
 |--------|----------|
-| Drag thumb | Real-time value update |
-| Click empty track area | Step toward click position (delta = thumb length × sensitivity) |
-| Long-press track | Repeat step every 0.25 seconds |
-| Window resize | Thumb size and rounding auto-adapt |
+| Drag slider | Real-time value update. Step mode uses `outQuad` easing (0.15s) to snap |
+| Click empty track | Step towards click direction (delta = slider size × sensitivity), with easing |
+| Long press track | Repeat step every 0.25s, with easing |
+| Window resize | Slider size and corner radius auto-adapt |
 
 ## Step Mode
 
-The `step` parameter controls value granularity:
+| step Value | Mode | Example (max_limit=100) |
+|-----------|------|------------------------|
+| 0 or unset | Continuous float | Can drag to 37.2, 81.5, etc. |
+| 1 | Integer steps | Values only: 0, 1, 2, ..., 100 |
+| 5 | Multiples of 5 | Values only: 0, 5, 10, ..., 100 |
+| 0.5 | Half-integers | Values only: 0, 0.5, 1.0, ..., 100 |
 
-| step value | Mode | Example (max_limit=100) |
-|-----------|------|-------------------------|
-| 0 or nil | Continuous float | Can drag to 37.2, 81.5, etc. |
-| 1 | Integer step | Values only take 0, 1, 2, ..., 100 |
-| 5 | Multiple of 5 | Values only take 0, 5, 10, ..., 100 |
-| 0.5 | Half-integer | Values only take 0, 0.5, 1.0, ..., 100 |
-
-Step snapping applies to all interactions (drag, track click, long-press). `setValue`/`setPercent` also auto-snap.
-
-## Thumb Rounding
-
-Both ends of the thumb are semi-circular. The corner radius is calculated from the thin-edge dimension (width for vertical sliders, height for horizontal sliders), and is kept in sync in `onSizeChanged` and `setBlockLengthPercent`.
+Step snapping applies to all interactions including `setValue`/`setPercent`.
 
 ## Convenience Constructors
 
 ```lua
--- Horizontal slider
 local SliderBarH = require "ui.widgets.sliderbar_h"
 local h = SliderBarH({h = 12, anchor = {0, 0, 1, 0}})
 
--- Vertical slider
 local SliderBarV = require "ui.widgets.sliderbar_v"
 local v = SliderBarV({w = 12, anchor = {0, 0, 0, 1}})
 ```
@@ -69,7 +62,7 @@ local v = SliderBarV({w = 12, anchor = {0, 0, 0, 1}})
 ## Example
 
 ```lua
--- Continuous mode (default)
+-- Continuous mode
 local slider = SliderBar({
     orientation = "horizontal",
     anchor = {0, 0, 1, 0},
@@ -90,5 +83,4 @@ local int_slider = SliderBar({
     block_length_percent = 0.1,
     block_min_len = 15,
 })
-int_slider:setValue(90)  -- value is always an integer
 ```

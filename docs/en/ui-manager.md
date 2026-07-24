@@ -1,6 +1,6 @@
 # UiManager
 
-UiManager is a global singleton that manages the top-level widget hierarchy and event dispatch.
+Global singleton managing top-level widget hierarchy, focus, themes, render layer caching, and event dispatch.
 
 ## Getting the Instance
 
@@ -14,56 +14,43 @@ local UiManager = require "ui.ui_manager":GetInstance()
 
 | Method | Description |
 |--------|-------------|
-| `addWidget(widget)` | Add a widget as a root node (the widget must not have a parent) |
-| `moveToTop(widget)` | Move the root widget to the top of render order (drawn last) |
-| `moveToBottom(widget)` | Move the root widget to the bottom of render order (drawn first) |
+| `addWidget(widget)` | Add widget as root node. Calls `_setAttached(true)` |
+| `removeWidget(widget)` | Remove root widget. Returns success |
+| `moveToTop(widget)` / `moveToBottom(widget)` | Move root in render/event order |
+| `invalidateRenderCache()` | Mark render layer cache dirty |
+| `getWidgetCount()` | Get active widget count |
 
 ### Focus Management
 
 | Method | Description |
 |--------|-------------|
-| `setFocus(widget)` | Set the currently focused widget (automatically calls `onRemoveFocus` on the old focus and `onFocus` on the new one) |
-| `getFocus()` | Return the currently focused widget |
-| `clearFocus()` | Clear focus |
+| `setFocus(widget)` / `getFocus()` / `clearFocus()` | Focus management |
 
-The Tab key cycles through focusable widgets (hold Shift for reverse order).
+`Tab` cycles through `focusable = true` widgets (`Shift+Tab` reverses). Clicking outside clears focus.
 
 ### Theme
 
 | Method | Description |
 |--------|-------------|
-| `getDefaultTheme()` | Return the current default theme instance |
-| `setDefaultTheme(theme)` | Set the default theme (all widgets without an explicit theme will use this) |
+| `getDefaultTheme()` / `setDefaultTheme(theme)` | Get/set default theme |
 
 ### Event Dispatch
 
-UiManager dispatches LÖVE events to the widget tree, traversing the hierarchy from end to beginning (most recently added widgets receive events first).
+Events traverse hierarchy from last to first. All event methods (except `update`/`draw`) return `boolean` (`true` = consumed).
 
-All event methods (except `update`/`draw`) return a `boolean`:
-- `true` — event was consumed by the UI (explicitly handled by a widget, or blocked by a `raycast_target` control)
-- `false` — event passed through the UI, landing on empty space
-
-| Method | Corresponding LÖVE Event |
-|--------|--------------------------|
+| Method | LÖVE Event |
+|--------|-----------|
 | `update(dt)` | `love.update` |
-| `draw()` | `love.draw` (drawn in layers by `render_layer`) |
-| `KeyPressed(key, isrepeat)` | `love.keypressed` |
-| `KeyReleased(key)` | `love.keyreleased` |
-| `TextInput(text)` | `love.textinput` |
-| `MouseMoved(x, y, dx, dy)` | `love.mousemoved` |
-| `MousePressed(x, y, button)` | `love.mousepressed` |
-| `MouseReleased(x, y, button)` | `love.mousereleased` |
-| `WheelMoved(x, y)` | `love.wheelmoved` |
+| `draw()` | `love.draw` — layered by `render_layer` ascending |
+| `KeyPressed(key, isrepeat)` | `love.keypressed` — Tab intercepted |
+| `KeyReleased/TextInput/MouseMoved/MousePressed/MouseReleased/WheelMoved` | Corresponding events |
 
-Clicking outside any widget automatically clears focus.
-
-**Usage example for external systems**:
+### Event Consumption
 
 ```lua
 function love.mousepressed(x, y, button)
     local ui_handled = UiManager:MousePressed(x, y, button)
     if not ui_handled then
-        -- Click landed outside UI — run game logic
         gameWorld:handleClick(x, y)
     end
 end
@@ -71,13 +58,8 @@ end
 
 ### Render Layers
 
-`draw()` renders in ascending `render_layer` order. Predefined layers:
-
 ```lua
 Utils.RENDER_LAYERS = {
-    BASE = 0,       -- default layer
-    OVERLAY = 50,   -- overlay layer
-    DROPDOWN = 80,  -- dropdown menus
-    TOOLTIP = 100   -- tooltips
+    BASE = 0, OVERLAY = 50, DROPDOWN = 80, TOOLTIP = 100
 }
 ```
