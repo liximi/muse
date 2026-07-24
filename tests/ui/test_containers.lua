@@ -209,14 +209,14 @@ function test.create(parent)
 
 	-- 13. FlowContainer — 末行对齐
 	root_vbox:addChild(Text({
-		text = "13. FlowContainer — alignment=center, last_wrap=begin（末行靠左）",
+		text = "13. FlowContainer — alignment=center, last_wrap=end（末行靠右）",
 		font_size = 14,
 	}))
 	do
 		local flow = root_vbox:addChild(Flow({
 			h_separation = 6, v_separation = 6,
 			alignment = ALIGN.CENTER,
-			last_wrap_alignment = "begin",
+			last_wrap_alignment = "end",
 		}))
 		for i = 1, 30 do
 			flow:addChild(Button({ text = "项 " .. i, h_size_flags = 0, v_size_flags = 0 }))

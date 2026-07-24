@@ -346,26 +346,30 @@ function FlowContainer:_getMinSize(use_desired)
 	if #visible == 0 then return self.transform:getSize() end
 
 	local vertical = self._vertical
-	local max_child_along = 0
+	local max_child_axis = 0  -- 主轴方向的最大子控件尺寸（用于最小宽度/高度保证）
+	local max_child_cross = 0  -- 交叉轴方向的最大子控件尺寸
 
 	for _, child in ipairs(visible) do
 		local mw, mh
 		if use_desired then mw, mh = child:getDesiredSize()
 		else mw, mh = child:getCombinedMinimumSize() end
 		if vertical then
-			max_child_along = math.max(max_child_along, mh)
+			max_child_axis = math.max(max_child_axis, mh)
+			max_child_cross = math.max(max_child_cross, mw)
 		else
-			max_child_along = math.max(max_child_along, mw)
+			max_child_axis = math.max(max_child_axis, mw)
+			max_child_cross = math.max(max_child_cross, mh)
 		end
 	end
 
 	local cached = self._cached_size or 0
 	if vertical then
-		-- 垂直方向：宽度 = 总列宽（cached），高度 = 最大子控件高度
-		return cached, max_child_along
+		-- 宽度 = max(总列宽, 最大子控件宽度)，高度 = max(最大子控件高度, ...)  —— 但 cached 才是真实列宽
+		return math.max(cached, max_child_cross), max_child_axis
 	else
-		-- 水平方向：宽度 = 最大子控件宽度，高度 = 总行高（cached）
-		return max_child_along, cached
+		-- 宽度 = max(最大子控件宽度, ...)，高度 = max(总行高, 最大子控件高度)
+		-- cached 为 0 时（初始帧），至少返回单行高度保证不为 0
+		return max_child_axis, math.max(cached, max_child_cross)
 	end
 end
 
