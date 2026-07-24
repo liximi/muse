@@ -181,8 +181,15 @@ function TabContainer:_rebuildTabBar()
 	if self._pending_selected then
 		self:_selectTab(self._pending_selected)
 		self._pending_selected = nil
-	elseif self._selected_index < 1 and #self._tab_buttons > 0 then
-		self:_selectTab(1)
+	elseif #self._tab_buttons > 0 then
+		-- 重建按钮后需要恢复选中状态（_selectTab 会跳过相同索引，先重置再选）
+		local prev = self._selected_index
+		self._selected_index = -1
+		if prev >= 1 and prev <= #self._tab_buttons then
+			self:_selectTab(prev)
+		else
+			self:_selectTab(1)
+		end
 	else
 		self:queueSort()
 	end
