@@ -43,6 +43,7 @@ Anchors define an element's positioning reference within its parent container, e
     right = 0,          -- right edge to anchor right side distance (pixels)
     top = 0,            -- top edge to anchor top side distance (pixels)
     bottom = 0,         -- bottom edge to anchor bottom side distance (pixels)
+    r = 0,              -- rotation angle (radians)
 }
 ```
 

@@ -43,6 +43,7 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 | `addChild(child)` | 添加子 widget（自动检测循环引用，自动从旧父节点移除） |
 | `removeChild(child)` | 移除子 widget |
 | `removeAllChildren()` | 移除所有子 widget |
+| `clearChildren()` | 移除并**销毁**所有子节点（释放 GPU 资源）。仅用于不再需要子节点的场景 |
 
 ## 生命周期
 
@@ -50,12 +51,23 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 |------|------|
 | `destroy()` | 递归销毁自身及所有子孙，从父节点移除 |
 | `isValid()` | 检查 widget 是否有效（未被销毁） |
+| `onAttached()` | 加入 UiManager 活动树时调用（子类可覆写注册全局资源） |
+| `onDetached()` | 从活动树移除时调用（子类可覆写释放全局资源） |
+| `_preChildrenUpdate(dt)` | 在子控件 update 之前调用的钩子。Container 覆写此方法以在子控件拿到尺寸前完成布局 |
 
 ## 尺寸测量
 
 | 方法 | 说明 |
 |------|------|
 | `measure(max_w, max_h)` | 查询自然（内容）尺寸，返回值 `{w, h}`。默认返回当前 transform 尺寸 |
+| `getMinimumSize()` | 返回自身内容的最小自然尺寸 `w, h`。子类覆写以报告基于实际内容的最小尺寸（如 Text 返回文本尺寸、Button 返回文字+边距） |
+| `getCombinedMinimumSize()` | `max(getMinimumSize(), custom_minimum)`，容器实际使用的值 |
+| `setCustomMinimumSize(w, h)` | 设置自定义最小尺寸覆盖（nil 表示不限制） |
+| `getDesiredSize()` | 期望的自然尺寸，默认等于最小尺寸。Text 覆写为完整文本宽度 |
+
+> **注意**：普通 Widget 设了 `h = 40` 但不覆写 `getMinimumSize`，容器会分配 0 高度。
+> 需调用 `setCustomMinimumSize(nil, 40)` 或覆写 `getMinimumSize`。
+> Button、Text、Image 等已内置覆写，不需要额外处理。
 
 ## 显示控制
 
@@ -115,7 +127,7 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 | Button / ImageButton / Checkbox / RadioButton | `true` | 交互控件（继承 ButtonBase） |
 | TextInput / SliderBar / Scroll | `true` | 交互控件 |
 | Modal / TabView / Dropdown / Tooltip | `true` | 容器但有交互/视觉 |
-| Widget（基类） / Box / List / RadioGroup | `false` | 纯布局容器，不阻挡 |
+| Widget（基类） / Container / BoxContainer / List / RadioGroup / Spacer | `false` | 纯布局容器，不阻挡 |
 
 可通过直接赋值在运行时切换：`widget.raycast_target = false`。
 
@@ -160,6 +172,31 @@ Widget 将 Transform 的核心操作暴露为自身的便捷方法：
 Text 覆写了此方法使用 `getGlobalScaledSize()`（文本实际尺寸），避免在 Scroll 中被过早裁剪。
 裁剪使用 1px 容差，仅当元素与裁剪区**完全无交集**时才跳过整棵子树。
 
+## SizeFlags — 在容器中的布局行为
+
+每个 Widget 持有以下布局属性，由父容器读取：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `h_size_flags` | number | `FILL` (1) | 水平 SizeFlags 位标志 |
+| `v_size_flags` | number | `FILL` (1) | 垂直 SizeFlags 位标志 |
+| `stretch_ratio` | number | `1.0` | 开启 EXPAND 时瓜分空间的权重 |
+
+SizeFlags 位标志（`Utils.SIZE_FLAGS`）：
+
+| 标志 | 值 | 含义 |
+|------|-----|------|
+| `SHRINK_BEGIN` | 0 | 保持最小尺寸，靠左/上 |
+| `FILL` | 1 | 填满分到的区域 |
+| `EXPAND` | 2 | 参与剩余空间瓜分 |
+| `SHRINK_CENTER` | 4 | 在区域内居中（需关闭 FILL） |
+| `SHRINK_END` | 8 | 在区域内靠右/下（需关闭 FILL） |
+
+```lua
+child.h_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
+child.stretch_ratio = 2.0
+```
+
 ## 属性
 
 | 属性 | 类型 | 说明 |
@@ -175,4 +212,5 @@ Text 覆写了此方法使用 `getGlobalScaledSize()`（文本实际尺寸），
 | `raycast_target` | boolean | 射线检测开关。开启后，即使没有显式事件 handler，鼠标落在区域内也会阻断事件穿透。可视控件默认 `true`，容器默认 `false` |
 | `render_layer` | number | 渲染层级（0=BASE, 50=OVERLAY, 80=DROPDOWN, 100=TOOLTIP） |
 | `always_draw` | boolean | 是否跳过可见性裁剪 |
+| `_clip_rect` | table/nil | 裁剪矩形（内部属性，由 Scroll 等设置），传给子节点用于 AABB 裁剪 |
 | `_name` | string | widget 名称（调试用） |

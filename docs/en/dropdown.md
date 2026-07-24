@@ -26,7 +26,6 @@ A dropdown selection component. Clicking the trigger button expands a popup opti
 | `getSelectedIndex()` | Get the currently selected index |
 | `getSelectedValue()` | Get the currently selected text |
 | `setOptions(options, selected_index)` | Replace the options list |
-| `destroyPopup()` | Destroy the popup layer (remove from UiManager) |
 
 ## Static Methods
 

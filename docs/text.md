@@ -33,6 +33,8 @@
 | `setVAlign(align)` | 设置垂直对齐方式 |
 | `setWrapMode(mode)` | 设置换行模式：`"off"` 或 `"default"` |
 | `getDimensions()` | 获取渲染后的文本尺寸 `w, h` |
+| `getMinimumSize()` | 返回文本的最小自然尺寸（不换行完整宽度 × 一行高度） |
+| `getDesiredSize()` | 同 `getMinimumSize`（期望自然宽度 = 不换行全宽） |
 | `getScaledDimensions()` | 获取本地缩放后的尺寸 |
 | `getGlobalScaledDimensions()` | 获取全局缩放后的尺寸 |
 | `getSize()` | 同 `getDimensions()` |

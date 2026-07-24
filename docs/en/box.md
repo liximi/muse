@@ -1,46 +1,51 @@
-# Box (BoxContainer)
+# BoxContainer
 
-A Flexbox-style layout container. Children are arranged along the main axis with support for flex-grow/flex-shrink distribution.
+Linear layout container (mirrors Godot `HBoxContainer` / `VBoxContainer`). Children are arranged sequentially along the main axis, expressing layout intent through SizeFlags.
 
-**Inheritance chain:** `Widget` → `Box`
+**Inheritance chain:** `Widget` → `Container` → `BoxContainer`
 
 ## Constructor Parameters (datas)
 
 ```lua
 {
-    orientation = "vertical" | "horizontal",  -- layout direction, default "vertical"
-    space = number,               -- spacing between children (pixels), default 0
-    cross_align = "stretch" | "start" | "center" | "end",  -- cross-axis alignment, default "stretch"
+    orientation = "horizontal" | "vertical",  -- layout direction, default "vertical"
+    separation = number,    -- spacing between children (pixels), default 0
+    alignment = "begin" | "center" | "end",   -- overall offset when no EXPAND children, default "begin"
+    auto_size = boolean,    -- auto-size on main axis, default false (inherited from Container)
+    -- ... also inherits all Widget / Container base parameters
 }
 ```
 
-## Child Element Properties
+## Child Properties
 
-Set the following fields on each child widget to control layout behavior:
+Set on each child to control layout:
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `flex_grow` | `0` | Remaining space allocation weight |
-| `flex_shrink` | `1` | Shrink weight when space is insufficient |
-| `flex_min_size` | `0` | Minimum main-axis size (pixels) |
+| `h_size_flags` | `FILL` (1) | Horizontal size flags (`EXPAND`=2 to grab remaining space) |
+| `v_size_flags` | `FILL` (1) | Vertical size flags |
+| `stretch_ratio` | `1.0` | Weight when dividing remaining space (with EXPAND) |
 
 ## Public Methods
 
 | Method | Description |
 |--------|-------------|
-| `layout()` | Manually trigger layout calculation |
-| `addChild(child)` | Add a child element (auto-marks dirty layout) |
-| `removeChild(child)` | Remove a child element |
+| `addSpacer()` | Add an elastic spacer (`Spacer`), pushing subsequent children to the end |
+| `getMinimumSize()` | Child min sizes summed on main axis + spacing, max on cross axis (capped by container's own size) |
+| `_getChildrenMinSize()` | Pure child-derived minimum size (without container cap), for change detection |
 
-Layout is automatically triggered in `onUpdate` (dirty flag), or on `onSizeChanged`.
+## Layout Algorithm (Three Pass)
 
-## Layout Algorithm
-
-1. Collect all visible children, query preferred sizes via `measure()`
-2. Calculate total preferred main-axis size = sum(main_sizes) + space × (n - 1)
-3. **Surplus space** → distribute by `flex_grow` weights
-4. **Insufficient space** → shrink by `flex_shrink` weights (not below `flex_min_size`)
-5. Cross-axis: `stretch` fills container; `start`/`center`/`end` aligns
+```
+Pass 1: collect each child's min_size / desired_size / EXPAND flag
+Pass 2A: distribute by desired_size ratio ("I need this much")
+    - EXPAND children → sync min upward to prevent being shrunk back
+    - Non-EXPAND children → deduct desired increment from stretch pool
+Pass 2B: distribute remaining by stretch_ratio ("I'm greedy")
+    - Insufficient space → remove from pool, redistribute
+    - Last EXPAND child absorbs floating-point rounding
+Pass 3: fitChildInRect each child + alignment offset
+```
 
 ## Convenience Constructors
 
@@ -49,26 +54,46 @@ local BoxV = require "ui.widgets.containers.box_v_container"
 local BoxH = require "ui.widgets.containers.box_h_container"
 ```
 
-## Example
+## Examples
 
 ```lua
-local box = Box({
+-- Vertical layout, children fill width
+local vbox = BoxContainer({
     orientation = "vertical",
-    space = 4,
-    cross_align = "stretch",
+    separation = 4,
     anchor = {0, 0, 1, 1},
 })
 
--- Fixed-height element
-box:addChild(Button({text = "Header", h = 40}))
+-- Fixed-height button
+vbox:addChild(Button({ text = "Header", h = 40 }))
 
--- flex_grow fills remaining space
-local content = Panel({bg_color = Utils.RGB(40, 40, 50)})
-content.flex_grow = 1
-content.flex_shrink = 1
-content.flex_min_size = 100
-box:addChild(content)
+-- Elastic middle area
+local content = Panel({ bg_color = Utils.RGB(40, 40, 50) })
+content.v_size_flags = Utils.SIZE_FLAGS.FILL + Utils.SIZE_FLAGS.EXPAND
+content.stretch_ratio = 1.0
+content:setCustomMinimumSize(nil, 100)
+vbox:addChild(content)
 
--- Fixed-height element
-box:addChild(Button({text = "Footer", h = 30}))
+-- Spacer pushes to bottom
+vbox:addSpacer()
+
+-- Fixed-height button
+vbox:addChild(Button({ text = "Footer", h = 30 }))
 ```
+
+```lua
+-- Horizontal layout + center alignment
+local hbox = BoxContainer({
+    orientation = "horizontal",
+    separation = 8,
+    alignment = "center",
+    anchor = {0, 0, 1, 0},
+    h = 48,
+})
+hbox:addChild(Button({ text = "Cancel", w = 80 }))
+hbox:addChild(Button({ text = "OK", w = 80 }))
+```
+
+> **Note**: A plain Widget with `h = 40` placed in a container gets a height of 0 — because
+> the base `getMinimumSize()` returns `(0, 0)`. Call `setCustomMinimumSize(nil, 40)` or override `getMinimumSize`.
+> Button, Text, Image etc. already override this — no extra handling needed.

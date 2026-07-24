@@ -8,6 +8,7 @@ A text button component supporting 6 state styles (normal / pressed / hover / se
 
 ```lua
 {
+    text = string | table,            -- button text (coloredtext supported). text is managed separately, NOT part of state style
     font_key = string,            -- font key
     normal = style_table,         -- default state style (Utils.newButtonStateStyle)
     hover = style_table,          -- hover state style
@@ -20,6 +21,10 @@ A text button component supporting 6 state styles (normal / pressed / hover / se
     on_pressed = function(x, y),  -- press callback (inherited from ButtonBase)
 }
 ```
+
+> **Text is NOT part of state style**: State changes only affect colors, font size etc. — not the text content.
+> If `setStateStyle` includes a `text` field, it auto-calls `setText()` (back-compat). But the recommended approach
+> is to manage text via the constructor `text` parameter or `setText()`.
 
 ### State Style Fields (returned by `Utils.newButtonStateStyle`)
 
@@ -41,8 +46,11 @@ A text button component supporting 6 state styles (normal / pressed / hover / se
 
 | Method | Description |
 |--------|-------------|
+| `setText(text)` | Set button text (not affected by state changes) |
+| `getText()` | Get button text |
 | `setStateStyle(state, style)` | Set the style for a given state; state is `"normal"` / `"pressed"` / `"disabled"` / `"selected"` / `"hover"` / `"selected_hover"` |
 | `getStateStyle(state)` | Get the merged style for a state (auto-merges custom style, normal style, and theme style) |
+| `getMinimumSize()` | Returns internal text minimum size + text padding (2px × 2) |
 
 ## Methods Inherited from ButtonBase
 
