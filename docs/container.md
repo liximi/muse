@@ -24,8 +24,12 @@
 | 方法 | 说明 |
 |------|------|
 | `queueSort()` | 标记脏，下一帧 `_preChildrenUpdate` 自动调用 `_sortChildren()` |
-| `fitChildInRect(child, x, y, w, h)` | 将子控件放入给定矩形区域内，根据其 `h_size_flags` / `v_size_flags` 决定 Fill 或 Shrink 行为 |
+| `fitChildInRect(child, x, y, w, h)` | 将子控件放入给定矩形区域内，根据其 `h_size_flags` / `v_size_flags` 决定 Fill 或 Shrink 行为。非 FILL 时尺寸在 `[minsize, min(desired, rect_size)]` 之间。设完尺寸后立即触发 `_notifySizeChanged` 让子控件同步重排 |
 | `_visibleChildren()` | 返回可见（`isShown() == true`）的子控件列表 |
+| `getDesiredSize()` | 返回容器期望尺寸。默认等于 `getMinimumSize()`，子类覆写以报告基于子控件 desired_size 的尺寸 |
+| `getInnerCombinedMaximumSize()` | 返回容器内部可用最大尺寸（扣除装饰后的空间）。默认返回自身尺寸 |
+| `_getAllowedSizeFlagsHorizontal()` | 子类覆写，返回允许子控件使用的水平 size_flags 列表 |
+| `_getAllowedSizeFlagsVertical()` | 子类覆写，返回允许子控件使用的垂直 size_flags 列表 |
 
 ### 需子类覆写的方法
 

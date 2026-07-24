@@ -65,6 +65,20 @@ Utils.ALIGNMENT = {
 
 仅当容器内无 EXPAND 子控件时生效。用于 BoxContainer 的 `alignment` 参数。
 
+### SCROLL_MODE — 滚动条显示模式
+
+```lua
+Utils.SCROLL_MODE = {
+    DISABLED    = "disabled",     -- 禁用滚动
+    AUTO        = "auto",         -- 内容溢出时显示（默认垂直模式）
+    SHOW_ALWAYS = "show_always",  -- 始终显示
+    SHOW_NEVER  = "show_never",   -- 始终隐藏（仍可通过代码滚动）
+    RESERVE     = "reserve",      -- 预留滚动条空间
+}
+```
+
+用于 Scroll 的 `horizontal_scroll_mode` / `vertical_scroll_mode` 参数。
+
 ### BTN_STATES — 按钮状态
 
 ```lua

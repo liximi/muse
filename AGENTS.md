@@ -56,7 +56,10 @@ Widget
 核心方法：
 - `queueSort()` — 标记脏，下一帧自动重排
 - `_sortChildren()` — 子类覆写，实现具体布局算法
-- `fitChildInRect(child, x, y, w, h)` — 按 child 的 size_flags 决定 Fill/Shrink
+- `fitChildInRect(child, x, y, w, h)` — 按 child 的 size_flags 决定 Fill/Shrink，非 FILL 时尺寸取 `[minsize, min(desired, rect_size)]`
+- `getDesiredSize()` — 期望尺寸，默认等于 getMinimumSize()
+- `getInnerCombinedMaximumSize()` — 内部最大可用尺寸（扣除装饰）
+- `_getAllowedSizeFlagsHorizontal/Vertical()` — 子类可覆写以限制子控件 size_flags
 - `_preChildrenUpdate(dt)` — Widget.update 的钩子，在子控件 update 之前排序
 - `getMinimumSize()` — 子类覆写，报告容器最小尺寸（BoxContainer 含 `math.max(children, container_size)` 保底）
 - `_getChildrenMinSize()` — 纯子控件推导的最小尺寸（不经容器尺寸 cap），**供变化检测用**
@@ -226,7 +229,6 @@ Widget
 ├── NineSlice
 ├── ProgressBar
 ├── Modal
-├── TabView
 ├── RadioGroup
 ├── ButtonBase
 │   ├── Button
@@ -244,6 +246,10 @@ Widget
     │   └── ListContainer (diff 复用)
     ├── MarginContainer
     ├── CenterContainer
+    ├── PanelContainer
+    ├── TabContainer
+    ├── GridContainer
+    ├── FlowContainer
     └── VirtualList (虚拟化)
 ```
 
@@ -342,7 +348,7 @@ Widget
 
 当前主要测试场景：
 - **Godot Containers** — 9 节演示所有容器特性（Fill/Expand/alignment/auto_size/Spacer/Scroll）
-- **Game Settings** — 真实复杂 UI（TabView + BoxContainer + Scroll auto_track）
+- **Game Settings** — 真实复杂 UI（TabContainer + BoxContainer + Scroll auto_track）
 - **ProgressBar** — 容器重写版，静态/交互式水平垂直
 - **Chat History** — ChatBubble + ListContainer + Scroll
 - **Virtual List** — 虚拟化列表，3000 项数据仅实例化 ~12 个控件

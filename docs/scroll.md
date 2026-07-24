@@ -78,7 +78,7 @@ local scroll = Scroll({
     item = content,
     anchor = {0, 0, 1, 1},
     padding = {0, 8, 0, 0},
-    hide_slider_when_cannot_scroll = true,
+    vertical_scroll_mode = "auto",
 })
 scroll:setScrollableH(800)
 
@@ -93,7 +93,7 @@ end
 local scroll = Scroll({
     item = list,
     anchor = {0, 0, 1, 1},
-    hide_slider_when_cannot_scroll = true,
+    vertical_scroll_mode = "auto",
 })
 -- 无需手动 setScrollableH，auto_track 自动追踪 VBox 高度
 ```
