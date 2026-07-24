@@ -84,11 +84,12 @@ function love.load()
 
     -- 3. 添加子 widget
     local btn = root:addChild(Button({
+        text = "Click Me",
         pivot = {0.5, 0.5},
         anchor = {0.5, 0.5, 0.5, 0.5},  -- 居中
         w = 160,
         h = 40,
-        normal = Utils.newButtonStateStyle("Click Me", Utils.UI_COLORS.TITLE, 16,
+        normal = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, 16,
                     Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
         on_click = function()
             print("Hello, World!")
@@ -176,30 +177,30 @@ end
 
 | 组件 | 简介 | 文档 |
 |------|------|------|
-| **TextInput** | 文本输入框，光标控制、选区、剪贴板、撤销/重做 | [docs/textinput.md](docs/textinput.md) |
-| **SliderBar** | 滑块，支持水平/垂直方向、拖拽、长按步进、整数步长模式 | [docs/sliderbar.md](docs/sliderbar.md) |
-| **ProgressBar** | 进度条，支持水平和垂直方向 | [docs/progressbar.md](docs/progressbar.md) |
+| **TextInput** | 文本输入框，光标控制、选区、剪贴板、撤销/重做、自适应高度、单行模式 | [docs/textinput.md](docs/textinput.md) |
+| **SliderBar** | 滑块，支持水平/垂直方向、拖拽、长按步进、连续和整数步长模式 | [docs/sliderbar.md](docs/sliderbar.md) |
+| **ProgressBar** | 进度条，支持水平和垂直方向，可开启交互模式拖拽调节 | [docs/progressbar.md](docs/progressbar.md) |
 
-### 容器组件
+### 布局容器
+
+| 组件 | 简介 | 文档 |
+|------|------|------|
+| **BoxContainer** | Godot 风格线性排列容器（HBox/VBox），三趟分配算法 + SizeFlags | [docs/box_container.md](docs/box_container.md) |
+| **MarginContainer** | 四边距容器 | [docs/margin_container.md](docs/margin_container.md) |
+| **CenterContainer** | 居中容器 | [docs/center_container.md](docs/center_container.md) |
+| **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
+| **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
+| **List** | 线性列表容器（旧版），子元素按主轴依次排列 + diff 复用 | [docs/list.md](docs/list.md) |
+| **Box** | Flexbox 式布局容器（旧版） | [docs/box.md](docs/box.md) |
+
+### 视图 / 浮层组件
 
 | 组件 | 简介 | 文档 |
 |------|------|------|
 | **Modal** | 模态框，全屏半透明遮罩 + 居中内容，Escape/点击外部关闭 | [docs/modal.md](docs/modal.md) |
 | **TabView** | 标签页视图，顶部 Button 栏 + 下方内容面板 | [docs/tabview.md](docs/tabview.md) |
-| **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
-| **BoxContainer** | Godot 风格线性排列容器（HBox/VBox），三趟分配算法 + SizeFlags | [docs/box_container.md](docs/box_container.md) |
-| **MarginContainer** | 四边距容器 | [docs/margin_container.md](docs/margin_container.md) |
-| **CenterContainer** | 居中容器 | [docs/center_container.md](docs/center_container.md) |
-| **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
-| **List** | 线性列表容器（旧版，逐步废弃），子元素按主轴依次排列 + diff 复用 | [docs/list.md](docs/list.md) |
-| **Box** | Flexbox 式布局容器（旧版，逐步废弃） | [docs/box.md](docs/box.md) |
-
-### 浮层组件
-
-| 组件 | 简介 | 文档 |
-|------|------|------|
-| **Tooltip** | 鼠标悬停提示，可设延迟、最大宽度和位置偏移 | [docs/tooltip.md](docs/tooltip.md) |
 | **Dropdown** | 下拉选择，触发按钮 + 弹出选项列表（支持滚动） | [docs/dropdown.md](docs/dropdown.md) |
+| **Tooltip** | 鼠标悬停提示，可设延迟、最大宽度和位置偏移 | [docs/tooltip.md](docs/tooltip.md) |
 
 ### 高级组件
 

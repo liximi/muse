@@ -84,11 +84,12 @@ function love.load()
 
     -- 3. Add a child widget
     local btn = root:addChild(Button({
+        text = "Click Me",
         pivot = {0.5, 0.5},
         anchor = {0.5, 0.5, 0.5, 0.5},  -- centered
         w = 160,
         h = 40,
-        normal = Utils.newButtonStateStyle("Click Me", Utils.UI_COLORS.TITLE, 16,
+        normal = Utils.newButtonStateStyle(nil, Utils.UI_COLORS.TITLE, 16,
                     Utils.UI_COLORS.BTN_NORMAL, nil, nil, nil, nil, 4),
         on_click = function()
             print("Hello, World!")
@@ -176,30 +177,30 @@ The only core dependencies are **classic** and **tween**. Lovebird and i18n are 
 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
-| **TextInput** | Text input field with cursor control, selection, clipboard, and undo/redo | [docs/en/textinput.md](docs/en/textinput.md) |
-| **SliderBar** | Slider bar supporting horizontal/vertical orientation, drag, long-press stepping, and integer step mode | [docs/en/sliderbar.md](docs/en/sliderbar.md) |
-| **ProgressBar** | Progress bar supporting horizontal and vertical orientation | [docs/en/progressbar.md](docs/en/progressbar.md) |
+| **TextInput** | Text input field with cursor control, selection, clipboard, undo/redo, adaptive height, and single-line mode | [docs/en/textinput.md](docs/en/textinput.md) |
+| **SliderBar** | Slider bar supporting horizontal/vertical, drag, long-press stepping, continuous and integer step modes | [docs/en/sliderbar.md](docs/en/sliderbar.md) |
+| **ProgressBar** | Progress bar supporting horizontal/vertical orientation, with optional interactive drag mode | [docs/en/progressbar.md](docs/en/progressbar.md) |
 
-### Container Components
+### Layout Containers
 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
-| **Modal** | Modal dialog with fullscreen semi-transparent overlay + centered content, closes on Escape / outside click | [docs/en/modal.md](docs/en/modal.md) |
-| **TabView** | Tabbed view with top Button bar + content panel below | [docs/en/tabview.md](docs/en/tabview.md) |
-| **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations + auto content tracking | [docs/en/scroll.md](docs/en/scroll.md) |
 | **BoxContainer** | Godot-style linear layout container (HBox/VBox), three-pass allocation + SizeFlags | [docs/en/box_container.md](docs/en/box_container.md) |
 | **MarginContainer** | Margin container with configurable per-edge margins | [docs/en/margin_container.md](docs/en/margin_container.md) |
 | **CenterContainer** | Center container for centering children | [docs/en/center_container.md](docs/en/center_container.md) |
 | **Spacer** | Invisible flexible spacer widget | [docs/en/spacer.md](docs/en/spacer.md) |
+| **Scroll** | Scroll container with scissor clipping + optional scrollbar + tween animations + auto content tracking | [docs/en/scroll.md](docs/en/scroll.md) |
 | **List** | Linear list container (legacy), sequential arrangement + diff reuse | [docs/en/list.md](docs/en/list.md) |
-| **Box** | Flexbox-style layout container (legacy, being phased out) | [docs/en/box.md](docs/en/box.md) |
+| **Box** | Flexbox-style layout container (legacy) | [docs/en/box.md](docs/en/box.md) |
 
-### Overlay Components
+### View / Overlay Components
 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
-| **Tooltip** | Mouse hover tooltip with configurable delay, max width, and positional offset | [docs/en/tooltip.md](docs/en/tooltip.md) |
+| **Modal** | Modal dialog with fullscreen semi-transparent overlay + centered content | [docs/en/modal.md](docs/en/modal.md) |
+| **TabView** | Tabbed view with top Button bar + content panel below | [docs/en/tabview.md](docs/en/tabview.md) |
 | **Dropdown** | Dropdown selector with trigger button + popup option list (supports scrolling) | [docs/en/dropdown.md](docs/en/dropdown.md) |
+| **Tooltip** | Mouse hover tooltip with configurable delay, max width, and positional offset | [docs/en/tooltip.md](docs/en/tooltip.md) |
 
 ### Advanced Components
 
