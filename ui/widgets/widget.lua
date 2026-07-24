@@ -22,6 +22,10 @@ local CULL_EPSILON = 1          -- AABB 裁剪容差（像素），防止浮点�
 	sy = number
 	padding = {left, right, top, bottom}
 	r = number
+	h_size_flags = number     -- SIZE_FLAGS 组合值，默认 FILL
+	v_size_flags = number     -- SIZE_FLAGS 组合值，默认 FILL
+	stretch_ratio = number    -- EXPAND 时的分配比例，默认 1.0
+	custom_minimum_size = {w, h}  -- 覆盖内容最小尺寸
 ]]
 local Widget = Class(function(self, name, datas, theme)
 	-- 支持 Widget(datas, theme) 的无 name 调用方式
@@ -74,11 +78,15 @@ local Widget = Class(function(self, name, datas, theme)
 	self.raycast_target = false
 
 	-- 容器布局标志（参考 Godot SizeFlags，默认 FILL）
-	self.h_size_flags = Utils.SIZE_FLAGS.FILL
-	self.v_size_flags = Utils.SIZE_FLAGS.FILL
-	self.stretch_ratio = 1.0
-	self._custom_min_w = nil
-	self._custom_min_h = nil
+	self.h_size_flags = datas and datas.h_size_flags or Utils.SIZE_FLAGS.FILL
+	self.v_size_flags = datas and datas.v_size_flags or Utils.SIZE_FLAGS.FILL
+	self.stretch_ratio = (datas and datas.stretch_ratio) or 1.0
+	if datas and datas.custom_minimum_size then
+		self:setCustomMinimumSize(datas.custom_minimum_size[1], datas.custom_minimum_size[2])
+	else
+		self._custom_min_w = nil
+		self._custom_min_h = nil
+	end
 
 	self.enabled = true
 	self.shown = true
