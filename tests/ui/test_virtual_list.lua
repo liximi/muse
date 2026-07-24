@@ -64,7 +64,7 @@ function test.create(parent)
 
 	-- 标题
 	parent:addChild(Text({
-		text = string.format("VirtualList — %d items, only %d~%d widgets instantiated", ITEM_COUNT, 0, 0),
+		text = string.format("VirtualList — %d data items, only ~10 widgets instantiated (scroll to verify)", ITEM_COUNT),
 		font_size = 14, h = 20,
 		text_color = Utils.UI_COLORS.SECONDARY_TEXT,
 		anchor = {0, 0, 1, 0}, padding = {0, 0, 0, 0},
@@ -98,13 +98,6 @@ function test.create(parent)
 	vlist:setData(ITEM_COUNT, function(index)
 		return fake_data[index]
 	end)
-
-	-- 更新标题显示实际实例数
-	local item_count = #vlist:getItems()
-	local children_text = parent.children[#parent.children]
-	children_text:setText(string.format(
-		"VirtualList — %d items, only %d widgets instantiated",
-		ITEM_COUNT, item_count))
 end
 
 return test
