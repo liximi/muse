@@ -3,7 +3,6 @@
 -- 粉色框 = 容器边界，内部元素不画框
 --------------------------------------------------
 
-local Widget = require "ui.widgets.widget"
 local Panel = require "ui.widgets.panel"
 local Text = require "ui.widgets.text"
 local Button = require "ui.widgets.button"
@@ -14,7 +13,6 @@ local Scroll = require "ui.widgets.containers.scroll_container"
 local Grid = require "ui.widgets.containers.grid_container"
 local Flow = require "ui.widgets.containers.flow_container"
 local PanelContainer = require "ui.widgets.containers.panel_container"
-local TabContainer = require "ui.widgets.containers.tab_container"
 local Spacer = require "ui.widgets.spacer"
 local Utils = require "ui.utils"
 local ORIENT = Utils.ORIENTATION
@@ -214,13 +212,17 @@ function test.create(parent)
 	do
 		local flow = root_vbox:addChild(Flow({ h_separation = 6, v_separation = 6 }))
 		flow:enableDebug(true)
-		local labels = { "标签A", "很长的标签B", "C", "标签D", "另一个标签E", "短", "长长的标签F" }
+		local labels = { "标签A", "很长的标签B", "C", "标签D", "另一个标签E", "短", "长长的标签F",
+			"G", "较长标签H", "I", "J", "标签K", "L", "超长标签名称M", "N",
+			"O", "很长很长很长的标签P", "Q", "R", "S", "标签T", "U",
+			"V", "超长的W", "X", "Y", "最终标签Z",
+		}
 		for _, label in ipairs(labels) do
 			flow:addChild(Button({ text = label, h_size_flags = 0, v_size_flags = 0 }))
 		end
 	end
 
-	-- 13. FlowContainer — 末行居中对齐
+	-- 13. FlowContainer — 末行对齐
 	root_vbox:addChild(Text({
 		text = "13. FlowContainer — alignment=center, last_wrap=begin（末行靠左）",
 		font_size = 14,
@@ -232,7 +234,7 @@ function test.create(parent)
 			last_wrap_alignment = "begin",
 		}))
 		flow:enableDebug(true)
-		for i = 1, 5 do
+		for i = 1, 30 do
 			flow:addChild(Button({ text = "项 " .. i, h_size_flags = 0, v_size_flags = 0 }))
 		end
 	end
@@ -253,29 +255,7 @@ function test.create(parent)
 		inner:addChild(Button({ text = "面板内按钮 2" }))
 	end
 
-	-- 15. TabContainer — 标签页
-	root_vbox:addChild(Text({
-		text = "15. TabContainer — 标签页容器",
-		font_size = 14,
-	}))
-	do
-		local tc = root_vbox:addChild(TabContainer({ h = 160 }))
-		tc:enableDebug(true)
-		local page1 = Widget({ name = "页面一" })
-		page1:addChild(Text({ text = "这是第一个标签页的内容", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
-		tc:addChild(page1)
-
-		local page2 = Widget({ name = "页面二" })
-		page2:addChild(Text({ text = "第二个标签页", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
-		page2:addChild(Button({ text = "按钮在第二页", anchor = {0, 0, 1, 0}, padding = {0, 0, 30, 0} }))
-		tc:addChild(page2)
-
-		local page3 = Widget({ name = "第三页" })
-		page3:addChild(Text({ text = "标签页三的内容", font_size = 14, anchor = {0, 0, 1, 0}, h = 30 }))
-		tc:addChild(page3)
-	end
-
-	-- 16. ScrollMode 演示
+	-- 15. ScrollMode 演示
 	root_vbox:addChild(Text({
 		text = "16. ScrollMode — SHOW_ALWAYS（始终显示滚动条）vs AUTO（默认）",
 		font_size = 14,

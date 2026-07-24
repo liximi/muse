@@ -11,7 +11,7 @@ local Button = require "ui.widgets.button"
 local Checkbox = require "ui.widgets.checkbox"
 local Dropdown = require "ui.widgets.dropdown"
 local SliderBar = require "ui.widgets.sliderbar"
-local TabView = require "ui.widgets.tabview"
+local TabContainer = require "ui.widgets.containers.tab_container"
 local Scroll = require "ui.widgets.containers.scroll_container"
 local Box = require "ui.widgets.containers.box_container"
 local Utils = require "ui.utils"
@@ -290,7 +290,7 @@ function test.create(parent)
 	--------------------------------------------------
 	-- 画面 Tab
 	--------------------------------------------------
-	local tab_graphics = Widget({ anchor = {0, 0, 1, 1} })
+	local tab_graphics = Widget({ name = "画面", anchor = {0, 0, 1, 1} })
 	local scroll_gfx = tab_graphics:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
@@ -377,7 +377,7 @@ function test.create(parent)
 	--------------------------------------------------
 	-- 音频 Tab
 	--------------------------------------------------
-	local tab_audio = Widget({ anchor = {0, 0, 1, 1} })
+	local tab_audio = Widget({ name = "音频", anchor = {0, 0, 1, 1} })
 	local scroll_aud = tab_audio:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
@@ -435,7 +435,7 @@ function test.create(parent)
 	--------------------------------------------------
 	-- 游戏 Tab
 	--------------------------------------------------
-	local tab_gameplay = Widget({ anchor = {0, 0, 1, 1} })
+	local tab_gameplay = Widget({ name = "游戏", anchor = {0, 0, 1, 1} })
 	local scroll_gp = tab_gameplay:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
@@ -503,7 +503,7 @@ function test.create(parent)
 	--------------------------------------------------
 	-- 辅助功能 Tab
 	--------------------------------------------------
-	local tab_accessibility = Widget({ anchor = {0, 0, 1, 1} })
+	local tab_accessibility = Widget({ name = "辅助功能", anchor = {0, 0, 1, 1} })
 	local scroll_acc = tab_accessibility:addChild(Scroll({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 4, 0, 0},
@@ -557,21 +557,16 @@ function test.create(parent)
 	scroll_acc:setItem(acc_list)
 
 	--------------------------------------------------
-	-- TabView
+	-- TabContainer
 	--------------------------------------------------
-	parent:addChild(TabView({
+	local tc = parent:addChild(TabContainer({
 		anchor = {0, 0, 1, 1},
 		padding = {0, 0, TITLE_H + TITLE_BOTTOM, BOTTOM_BAR_H},
-		tabs = {
-			{label = "画面",     content = tab_graphics},
-			{label = "音频",     content = tab_audio},
-			{label = "游戏",     content = tab_gameplay},
-			{label = "辅助功能", content = tab_accessibility},
-		},
-		on_tab_changed = function(idx)
-			print("[Settings] Tab switched to:", idx)
-		end,
 	}))
+	tc:addChild(tab_graphics)
+	tc:addChild(tab_audio)
+	tc:addChild(tab_gameplay)
+	tc:addChild(tab_accessibility)
 
 	--------------------------------------------------
 	-- 收集当前设置值并打印
