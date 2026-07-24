@@ -65,8 +65,15 @@ function Container:fitChildInRect(child, x, y, w, h)
 		h = fh
 	end
 
+	local old_w, old_h = child.transform:getSize()
 	child.transform:setPosition(x, y)
 	child.transform:setSize(w, h)
+
+	-- 立即触发 SizeChanged：让 Text 等控件在父容器继续排其余子控件之前完成重排，
+	-- 避免"宽度变了但文本高度还是旧的"导致下方控件定位错误。
+	if child._notifySizeChanged and (w ~= old_w or h ~= old_h) then
+		child:_notifySizeChanged(w, h)
+	end
 end
 
 --- 返回容器内部可用最大尺寸（扣除自身装饰如 padding/margin 后的空间）。
@@ -147,18 +154,27 @@ function Container:_preChildrenUpdate(dt)
 		or children_min_w ~= self._last_children_min_w
 		or children_min_h ~= self._last_children_min_h then
 		self:_sortChildren()
+
+		-- fitChildInRect 可能触发子控件 SizeChanged → reflow（如文本换行），
+		-- 子控件 min size 可能已变，再排一次确保下方元素不会定位错误。
+		local new_cw, new_ch = self:_getChildrenMinSize()
+		if new_cw ~= children_min_w or new_ch ~= children_min_h then
+			self:_sortChildren()
+			new_cw, new_ch = self:_getChildrenMinSize()
+		end
+
 		self._last_sort_w = cw
 		self._last_sort_h = ch
-		self._last_children_min_w = children_min_w
-		self._last_children_min_h = children_min_h
+		self._last_children_min_w = new_cw
+		self._last_children_min_h = new_ch
 		self._dirty = false
 		if self.auto_size then
 			if self._auto_size_axis == "h" then
-				if children_min_w > 0 then self.transform:setSize(children_min_w, nil) end
+				if new_cw > 0 then self.transform:setSize(new_cw, nil) end
 			elseif self._auto_size_axis == "v" then
-				if children_min_h > 0 then self.transform:setSize(nil, children_min_h) end
+				if new_ch > 0 then self.transform:setSize(nil, new_ch) end
 			else
-				if children_min_w > 0 or children_min_h > 0 then self.transform:setSize(children_min_w, children_min_h) end
+				if new_cw > 0 or new_ch > 0 then self.transform:setSize(new_cw, new_ch) end
 			end
 		end
 	end

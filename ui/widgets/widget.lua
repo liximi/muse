@@ -580,6 +580,16 @@ function Widget:enableSizeChangedEvent(enable)
 	end
 end
 
+--- 容器在 fitChildInRect 后立即调用，让子控件同步完成重排（如文本换行）。
+--- 仅在 __enable_size_changed_event 启用时生效。
+function Widget:_notifySizeChanged(w, h)
+	if self.__enable_size_changed_event then
+		self.__oldw = w
+		self.__oldh = h
+		self:handleEvent("SizeChanged", w, h)
+	end
+end
+
 --------------------------------------------------
 -- Debug
 --------------------------------------------------
