@@ -4,7 +4,7 @@ Linear list container arranging children sequentially along an axis. Supports ef
 
 **Inheritance:** `Widget` → `List`
 
-> List is a direct Widget subclass, not a Container. For new code prefer `BoxContainer`; use List when you need `updateItems` diff reuse (e.g., chat_history).
+> List is a direct Widget subclass (not a Container). For simple linear layouts, prefer `BoxContainer`. List's unique value is `updateItems` diff reuse — key-based add/remove/update that preserves widget state (focus, selection, etc.). `chat_history` depends on this capability.
 
 ## Constructor Parameters (datas)
 

@@ -4,7 +4,7 @@
 
 **继承链：** `Widget` → `List`
 
-> **注意**：List 不是 Container 的子类，而是 Widget 的直接子类。它有自己的布局逻辑（`layout()`），不参与 Godot Container 的 SizeFlags 系统。对于新代码，推荐使用 `BoxContainer`；List 主要用于需要 `updateItems` diff 复用的场景（如 `chat_history`）。
+> **注意**：List 是 Widget 的直接子类（非 Container），有自己的布局逻辑（`layout()`），不参与 Godot Container 的 SizeFlags 系统。对于纯线性排列，推荐使用 `BoxContainer`。List 的独特价值在于 `updateItems` diff 复用——通过 key 做增删改 diff，保留已有控件的状态（输入焦点、选中状态等），`chat_history` 依赖此能力。
 
 ## 构造参数（datas）
 

@@ -191,7 +191,7 @@ end
 | **Spacer** | 不可见弹性占位符 | [docs/spacer.md](docs/spacer.md) |
 | **Scroll** | 滚动容器，scissor 裁剪 + 可选滑条 + 补间动画 + 内容尺寸自动追踪 | [docs/scroll.md](docs/scroll.md) |
 | **List** | 线性列表容器（旧版），子元素按主轴依次排列 + diff 复用 | [docs/list.md](docs/list.md) |
-| **Box** | Flexbox 式布局容器（旧版） | [docs/box.md](docs/box.md) |
+| **Box** | Flexbox 式布局容器（旧版，已由 BoxContainer 替代） | [docs/box.md](docs/box.md) |
 
 ### 视图 / 浮层组件
 

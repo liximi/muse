@@ -1,8 +1,8 @@
-# Box（旧版，逐步废弃）
+# Box（旧版，已由 BoxContainer 替代）
 
 Flexbox 式布局容器，通过 `flex_grow`/`flex_shrink` 伸缩分配空间。已被 **Godot Container 路线**替代。
 
-> **新代码请使用 BoxContainer / MarginContainer / CenterContainer**。Box 仅保留以支持仍依赖它的旧代码。
+> **新代码请使用 BoxContainer**。Box 仅保留以支持仍依赖它的旧代码。
 
 **继承链：** `Widget` → `Box`
 

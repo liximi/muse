@@ -1,8 +1,8 @@
-# Box (Legacy, Deprecated)
+# Box (Legacy, replaced by BoxContainer)
 
 Flexbox-style layout container using `flex_grow`/`flex_shrink`. **Replaced by the Godot Container route.**
 
-> **New code should use BoxContainer / MarginContainer / CenterContainer.** Box is kept only for legacy compatibility.
+> **New code should use BoxContainer.** Box is kept only for legacy compatibility.
 
 **Inheritance:** `Widget` → `Box`
 
