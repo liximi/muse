@@ -260,6 +260,7 @@ Widget
 - **`text` 不再是样式的一部分**。`getStateStyle` 合并时跳过 `text` 字段
 - `applyButtonTextStyle` 不再调用 `setText`。状态切换只改颜色/字号
 - `setStateStyle(state, style)` 中若 `style.text` 存在，自动调用 `setText(style.text)`（兼容旧用法）
+- **`onSetState` 同样兼容旧写法**：显式状态样式带 `text` 时，切到该状态会 `setText(style.text)` —— 因此**不要把动态文本放进状态样式**（教训：TabContainer 曾把标题传入 normal 样式，标签切换时标题被覆盖回 "Tab N"；现标题经 `setTabTitle` 记忆在容器 `_tab_titles`，按钮文字走构造参数 `text`，重建标签栏后自动恢复）
 - 按钮文字通过 `Button({ text = "..." })` 或 `button:setText("...")` 管理
 - Dropdown 触发按钮文字更新依赖 `setStateStyle` 的自动 `setText` 行为
 

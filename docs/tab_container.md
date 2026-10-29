@@ -20,6 +20,8 @@
 
 子控件通过 `addChild` 添加后自动成为标签页，内部 `_rebuildTabBar()` 重建按钮栏。`_sortChildren()` 定位 Tab 栏和当前选中的内容控件，切换时通过 `show()`/`hide()` 控制可见性。
 
+标签标题经 `setTabTitle()` 记忆在容器内，标签栏重建后自动恢复；标题不写入按钮状态样式（文字与样式分离），切换标签不会覆盖自定义标题。
+
 ## 公有方法
 
 | 方法 | 说明 |
@@ -29,7 +31,7 @@
 | `setCurrentTab(idx)` | 切换标签页 |
 | `getCurrentTab()` | 获取当前选中索引 |
 | `getTabControl(idx)` | 获取指定索引的内容控件 |
-| `setTabTitle(idx, title)` | 设置 Tab 标题 |
+| `setTabTitle(idx, title)` | 设置 Tab 标题（持久保存，标签栏重建后仍有效） |
 | `setTabsPosition(pos)` | 设置 Tab 栏位置 |
 | `setTabsVisible(visible)` | 设置 Tab 栏可见性 |
 

@@ -47,6 +47,7 @@ local TabContainer = Class(Container, function(self, datas, theme)
 	wac(self, self._tab_bar)
 
 	self._tab_buttons = {}
+	self._tab_titles = {}  -- idx -> 标题（setTabTitle 记忆，标签栏重建后恢复）
 
 	if datas and datas.selected_index then
 		self._pending_selected = datas.selected_index
@@ -81,6 +82,7 @@ function TabContainer:getTabControl(idx)
 end
 
 function TabContainer:setTabTitle(idx, title)
+	self._tab_titles[idx] = title
 	if self._tab_buttons[idx] then
 		self._tab_buttons[idx]:setText(title)
 	end
@@ -155,12 +157,15 @@ function TabContainer:_rebuildTabBar()
 		if child ~= self._tab_bar and child ~= self._bg_panel then
 			idx = idx + 1
 			child:hide()
-			local title = child.name or ("Tab " .. idx)
+			local title = self._tab_titles[idx] or child.name or ("Tab " .. idx)
 			local tab_idx = idx  -- 闭包安全：捕获当前值
+			-- 标题经构造参数 text 设置，不写入状态样式：
+			-- 样式携带 text 时（旧写法），按钮切回 normal 状态会用
+			-- 样式里的旧文本覆盖 setTabTitle 设置的标题
 			local btn = Button({
 				text = title,
 				h_size_flags = Utils.SIZE_FLAGS.EXPAND + Utils.SIZE_FLAGS.FILL,
-				normal = Utils.newButtonStateStyle(title,
+				normal = Utils.newButtonStateStyle(nil,
 					self.theme.tabview.tab_text_normal,
 					self.theme.tabview.tab_font_size,
 					self.theme.tabview.tab_bg_normal,
@@ -202,7 +207,11 @@ function TabContainer:addChild(child)
 end
 
 function TabContainer:removeChild(child)
+	local idx = self:getTabIdxFromControl(child)
 	Container.removeChild(self, child)
+	if idx >= 1 then
+		table.remove(self._tab_titles, idx)  -- 保持标题与标签索引对齐
+	end
 	self:_rebuildTabBar()
 	return child
 end

@@ -20,6 +20,8 @@
 
 子控件通过 `addChild` 添加后自动成为标签页，内部 `_rebuildTabBar()` 重建按钮栏。`_sortChildren()` 定位 Tab 栏和当前选中的内容控件，切换时通过 `show()`/`hide()` 控制可见性。`getMinimumSize()` 计算所有内容 Tab 的最大尺寸 + Tab 栏高度。
 
+Tab titles set via `setTabTitle()` are remembered by the container and restored automatically when the tab bar is rebuilt; titles are not stored in button state styles (text and style are separated), so switching tabs never overwrites custom titles.
+
 ## 公有方法
 
 | 方法 | 说明 |
@@ -29,7 +31,7 @@
 | `setCurrentTab(idx)` | 切换标签页 |
 | `getCurrentTab()` | 获取当前选中索引 |
 | `getTabControl(idx)` | 获取指定索引的内容控件 |
-| `setTabTitle(idx, title)` | 设置 Tab 标题 |
+| `setTabTitle(idx, title)` | 设置 Tab 标题（持久保存，标签栏重建后仍有效） |
 | `setTabsPosition(pos)` | 设置 Tab 栏位置 |
 | `setTabsVisible(visible)` | 设置 Tab 栏可见性 |
 
